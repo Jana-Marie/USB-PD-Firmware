@@ -55,7 +55,7 @@ follows:
 
 OpenOCD can also be used to flash the firmware.  For example:
 
-    $ openocd -f interface/stlink-v2.cfg -f target/stm32f0x.cfg -c "program build/pd-buddy-firmware.bin verify reset exit"
+    $ openocd -f interface/stlink-v2.cfg -f target/stm32f0x.cfg -c "program build/pd-buddy-firmware.elf verify reset exit"
 
 ## Usage
 
