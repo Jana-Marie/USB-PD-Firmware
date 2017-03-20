@@ -28,8 +28,8 @@
 
 /* The voltage and current we want */
 /* XXX In the future, these won't be *quite* so convenient to access */
-static uint16_t dpm_desired_v = 400; /* 20 V */
-static uint16_t dpm_desired_i = 225; /* 2.25 A */
+static uint16_t dpm_desired_v = 400; /* 0.05 V increments */
+static uint16_t dpm_desired_i = 225; /* 0.01 A increments */
 
 /* Whether or not the power supply is unconstrained */
 static uint8_t dpm_unconstrained_power;
