@@ -59,7 +59,34 @@ OpenOCD can also be used to flash the firmware.  For example:
 
 ## Usage
 
-Currently, there isn't much to say here.  Plug it into your power supply, and
-the PD Buddy Sink will negotiate 2.25 A at 20 V.  This can be configured by
-editing `dpm_desired_v` and `dpm_desired_i` in `src/device_policy_manager.c`,
-then recompiling and reflashing.
+After first flashing the PD Buddy Sink, the device has no configuration.  To
+configure it, plug it into your computer while holding the "Setup" button.  The
+LED should blink once per second to indicate that the device is in
+configuration mode.  The Sink provides a virtual serial port for editing its
+configuration.
+
+### Configuration with the Serial Terminal
+
+Connect to the PD Buddy Sink with your favorite serial console program, such as
+GNU Screen, Minicom, or PuTTY.  Press Enter, and you should be greeted with a
+`PDBS)` prompt.  The `help` command gives brief summaries of each of the
+available commands.
+
+To configure the PD Buddy Sink to request 2.25 A at 20 V, run the following
+commands:
+
+    PDBS) set_v 20000
+    PDBS) set_i 2250
+    PDBS) write
+
+When `write` is run, the chosen settings are written to flash.  You can then
+simply disconnect the Sink from your computer.
+
+### Using the configured PD Buddy Sink
+
+Once the Sink has been configured, just plug it into your USB PD power supply.
+If the supply is capable of putting out the configured current at the
+configured voltage, the Sink will negotiate it, then turn on its output and
+blink the LED three times to indicate success.  If the supply cannot output
+enough power, the Sink will turn its LED on solid to indicate failure, and
+leave its output turned off.

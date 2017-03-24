@@ -47,7 +47,7 @@ static THD_FUNCTION(LED, arg) {
      * modes. */
     systime_t timeout = TIME_INFINITE;
     /* Counter for blinking modes */
-    int i;
+    int i = 0;
 
     while (true) {
         /* Wait for any event except the last one we saw */

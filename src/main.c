@@ -35,6 +35,11 @@
 #include <ch.h>
 #include <hal.h>
 
+#include "chprintf.h"
+
+#include "shell.h"
+#include "usbcfg.h"
+
 #include "priorities.h"
 #include "led.h"
 #include "policy_engine.h"
@@ -61,9 +66,23 @@ static void setup(void)
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_SLOW_BLINK);
 
     /* TODO: implement the configuration mode */
+    usbDisconnectBus(serusbcfg.usbp);
+
+    sduObjectInit(&SDU1);
+    sduStart(&SDU1, &serusbcfg);
+
+    chThdSleepMilliseconds(100);
+    usbStart(serusbcfg.usbp, &usbcfg);
+    usbConnectBus(serusbcfg.usbp);
+
+    //char text[] = "Hello, world!\r\n";
 
     while (true) {
-        chThdSleepMilliseconds(1000);
+        //sdWrite(&SDU1, (uint8_t *) text, 15);
+        //obqWriteTimeout(&SDU1.obqueue, (uint8_t *) text, 15, TIME_INFINITE);
+        //chprintf(&SDU1, "Hello, world! %d\r\n", ST2S(chVTGetSystemTime()));
+        pdb_shell();
+        chThdSleepMilliseconds(100);
     }
 }
 
