@@ -43,6 +43,7 @@
 
 #include "usbcfg.h"
 #include "storage.h"
+#include "led.h"
 
 
 /* Buffer for unwritten configuration */
@@ -131,7 +132,7 @@ static void cmd_get_tmpcfg(BaseSequentialStream *chp, int argc, char *argv[])
 {
     (void) argv;
     if (argc > 0) {
-        chprintf(chp, "Usage: get_tmpcfg [index]\r\n");
+        chprintf(chp, "Usage: get_tmpcfg\r\n");
         return;
     }
 
@@ -178,6 +179,18 @@ static void cmd_set_i(BaseSequentialStream *chp, int argc, char *argv[])
     }
 }
 
+static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    (void) chp;
+    (void) argv;
+    if (argc > 0) {
+        chprintf(chp, "Usage: identify\r\n");
+        return;
+    }
+
+    chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK_SLOW);
+}
+
 static const struct pdb_shell_cmd commands[] = {
     {"erase", cmd_erase, "Erase all stored configuration"},
     {"write", cmd_write, "Write the changes to flash"},
@@ -189,6 +202,7 @@ static const struct pdb_shell_cmd commands[] = {
     {"set_v", cmd_set_v, "Set the voltage in millivolts"},
     {"set_i", cmd_set_i, "Set the current in milliamps"},
     /* TODO {"set_v_range", cmd_set_v_range, "Set the minimum and maximum voltage in millivolts"},*/
+    {"identify", cmd_identify, "Blink the LED to identify the device"},
     {NULL, NULL, NULL}
 };
 

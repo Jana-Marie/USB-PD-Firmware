@@ -27,8 +27,9 @@
 #define LED_MEDIUM MS2ST(250)
 #define LED_SLOW MS2ST(500)
 
-/* Number of blinks for medium blink off mode */
+/* Number of blinks for temporary modes */
 #define LED_MEDIUM_BLINKS 3
+#define LED_FAST_BLINKS 8
 
 
 thread_t *pdb_led_thread;
@@ -98,6 +99,18 @@ static THD_FUNCTION(LED, arg) {
                     palSetLine(LINE_LED);
                 } else {
                     palToggleLine(LINE_LED);
+                }
+                break;
+            case PDB_EVT_LED_FAST_BLINK_SLOW:
+                timeout = LED_FAST;
+                if (i == 0) {
+                    palSetLine(LINE_LED);
+                } else if (i < (LED_FAST_BLINKS * 2)) {
+                    palToggleLine(LINE_LED);
+                } else {
+                    palClearLine(LINE_LED);
+                    timeout = TIME_INFINITE;
+                    chEvtSignal(pdb_led_thread, PDB_EVT_LED_SLOW_BLINK);
                 }
                 break;
             default:

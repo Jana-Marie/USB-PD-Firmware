@@ -28,6 +28,7 @@
 #define PDB_EVT_LED_FAST_BLINK EVENT_MASK(2)
 #define PDB_EVT_LED_MEDIUM_BLINK_OFF EVENT_MASK(3)
 #define PDB_EVT_LED_SLOW_BLINK EVENT_MASK(4)
+#define PDB_EVT_LED_FAST_BLINK_SLOW EVENT_MASK(5)
 
 /* The LED thread object */
 extern thread_t *pdb_led_thread;
