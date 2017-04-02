@@ -330,7 +330,6 @@ void pdb_shell(void)
             }
         }
     }
-    return;
 }
 
 

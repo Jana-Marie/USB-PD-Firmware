@@ -65,25 +65,19 @@ static void setup(void)
 {
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_SLOW_BLINK);
 
-    /* TODO: implement the configuration mode */
+    /* Disconnect from USB */
     usbDisconnectBus(serusbcfg.usbp);
 
+    /* Start the USB serial interface */
     sduObjectInit(&SDU1);
     sduStart(&SDU1, &serusbcfg);
 
+    /* Start USB */
     chThdSleepMilliseconds(100);
     usbStart(serusbcfg.usbp, &usbcfg);
     usbConnectBus(serusbcfg.usbp);
 
-    //char text[] = "Hello, world!\r\n";
-
-    while (true) {
-        //sdWrite(&SDU1, (uint8_t *) text, 15);
-        //obqWriteTimeout(&SDU1.obqueue, (uint8_t *) text, 15, TIME_INFINITE);
-        //chprintf(&SDU1, "Hello, world! %d\r\n", ST2S(chVTGetSystemTime()));
-        pdb_shell();
-        chThdSleepMilliseconds(100);
-    }
+    pdb_shell();
 }
 
 static void pd_buddy(void)
