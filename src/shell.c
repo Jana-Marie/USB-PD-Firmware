@@ -37,13 +37,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ch.h>
-
 #include "chprintf.h"
 
 #include "usbcfg.h"
 #include "storage.h"
 #include "led.h"
+#include "pd.h"
 
 
 /* Buffer for unwritten configuration */
@@ -178,8 +177,7 @@ static void cmd_set_v(BaseSequentialStream *chp, int argc, char *argv[])
     if (i >= 0 && i <= UINT16_MAX && endptr > argv[0]) {
         tmpcfg.status = PDB_CONFIG_STATUS_VALID;
         /* Convert mV to the unit used by USB PD */
-        /* XXX this could use a macro */
-        tmpcfg.v = i / 50;
+        tmpcfg.v = PD_MV2PDV(i);
     } else {
         chprintf(chp, "Invalid voltage\r\n");
         return;
@@ -198,8 +196,7 @@ static void cmd_set_i(BaseSequentialStream *chp, int argc, char *argv[])
     if (i >= 0 && i <= UINT16_MAX && endptr > argv[0]) {
         tmpcfg.status = PDB_CONFIG_STATUS_VALID;
         /* Convert mA to the unit used by USB PD */
-        /* XXX this could use a macro */
-        tmpcfg.i = i / 10;
+        tmpcfg.i = PD_MA2PDI(i);
     } else {
         chprintf(chp, "Invalid current\r\n");
         return;

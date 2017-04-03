@@ -216,4 +216,31 @@
 #define PD_T_TYPEC_SINK_WAIT_CAP MS2ST(465)
 
 
+/*
+ * Unit conversions
+ *
+ * V: volt
+ * CV: centivolt
+ * MV: millivolt
+ * PDV: Power Delivery voltage unit (50 mV)
+ * A: ampere
+ * CA: centiampere
+ * MA: milliampere
+ * PDI: Power Delivery current unit (10 mA)
+ */
+#define PD_MV2PDV(mv) ((mv) / 50)
+#define PD_PDV2MV(pdv) ((pdv) * 50)
+#define PD_MA2PDI(ma) ((ma) / 10)
+#define PD_PDI2MA(pdi) ((pdi) * 10)
+
+/* Get portions of a PD voltage in more normal units */
+#define PD_PDV_V(pdv) ((pdv) / 20)
+#define PD_PDV_CV(pdv) (5 * ((pdv) % 20))
+
+/* Get portions of a PD current in more normal units */
+#define PD_PDI_A(pdv) ((pdv) / 100)
+#define PD_PDI_CA(pdv) ((pdv) % 100)
+
+
+
 #endif /* PDB_PD_H */

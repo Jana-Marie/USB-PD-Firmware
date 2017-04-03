@@ -20,6 +20,8 @@
 
 #include "chprintf.h"
 
+#include "pd.h"
+
 
 struct pdb_config *pdb_config_array = (struct pdb_config *) PDB_CONFIG_BASE;
 
@@ -59,11 +61,13 @@ void pdb_config_print(BaseSequentialStream *chp, const struct pdb_config *cfg)
     chprintf(chp, "\r\n");
 
     /* Print voltages and current */
-    chprintf(chp, "v: %d.%02d V\r\n", cfg->v/20, 5*(cfg->v%20));
-    chprintf(chp, "i: %d.%02d A\r\n", cfg->i/100, cfg->i%100);
+    chprintf(chp, "v: %d.%02d V\r\n", PD_PDV_V(cfg->v), PD_PDV_CV(cfg->v));
+    chprintf(chp, "i: %d.%02d A\r\n", PD_PDI_A(cfg->i), PD_PDI_CA(cfg->i));
     if (cfg->flags & PDB_CONFIG_FLAGS_VAR_BAT) {
-        chprintf(chp, "v_min: %d.%02d V\r\n", cfg->v_min/20, 5*(cfg->v_min%20));
-        chprintf(chp, "v_max: %d.%02d V\r\n", cfg->v_max/20, 5*(cfg->v_max%20));
+        chprintf(chp, "v_min: %d.%02d V\r\n", PD_PDV_V(cfg->v_min),
+                 PD_PDV_CV(cfg->v_min));
+        chprintf(chp, "v_max: %d.%02d V\r\n", PD_PDV_V(cfg->v_max),
+                 PD_PDV_CV(cfg->v_max));
     }
 }
 
