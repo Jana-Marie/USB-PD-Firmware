@@ -1,15 +1,16 @@
 # PD Buddy firmware
 
 This is the firmware for the PD Buddy project.  Currently, this specifically
-means the PD Buddy Sink.  The firmware is currently under heavy development,
+means the [PD Buddy Sink][].  The firmware is currently under heavy development,
 but is partially functional.
+
+[PD Buddy Sink]: https://git.clayhobbs.com/clay/pd-buddy-sink
 
 ## Prerequisites
 
 To compile the firmware, you must first install the [GNU ARM Embedded
-Toolchain](https://launchpad.net/gcc-arm-embedded).  Details of its
-installation is beyond the scope of this README.  Once the toolchain is
-installed, clone this repository with:
+Toolchain][toolchain].  Details of its installation is beyond the scope of this
+README.  Once the toolchain is installed, clone this repository with:
 
     $ git clone --recursive http://git.clayhobbs.com/clay/pd-buddy-firmware.git
 
@@ -17,9 +18,13 @@ This will give you a complete copy of the repository, including the ChibiOS
 submodule.
 
 You will also need to install some program to flash the firmware.  The simplest
-option is [dfu-util](http://dfu-util.sourceforge.net/), as it requires no extra
-hardware.  If you prefer to use SWD, you could also use
-[stlink](https://github.com/texane/stlink) or [OpenOCD](http://openocd.org/).
+option is [dfu-util][], as it requires no extra hardware.  If you prefer to use
+SWD, you could also use [stlink][] or [OpenOCD][].
+
+[toolchain]: https://launchpad.net/gcc-arm-embedded
+[dfu-util]: http://dfu-util.sourceforge.net/
+[stlink]: https://github.com/texane/stlink
+[OpenOCD]: http://openocd.org/
 
 ## Compiling
 
@@ -62,15 +67,15 @@ OpenOCD can also be used to flash the firmware.  For example:
 After first flashing the PD Buddy Sink, the device has no configuration.  To
 configure it, plug it into your computer while holding the "Setup" button.  The
 LED should blink once per second to indicate that the device is in
-configuration mode.  The Sink provides a virtual serial port for editing its
-configuration.
+configuration mode.  There are then two ways to configure the Sink: a serial
+terminal, or the configuration GUI.
 
 ### Configuration with the Serial Terminal
 
 Connect to the PD Buddy Sink with your favorite serial console program, such as
-GNU Screen, Minicom, or PuTTY.  Press Enter, and you should be greeted with a
-`PDBS)` prompt.  The `help` command gives brief summaries of each of the
-available commands.
+[GNU Screen][], [Minicom][], or [PuTTY][].  Press Enter, and you should be
+greeted with a `PDBS)` prompt.  The `help` command gives brief summaries of
+each of the available commands.
 
 To configure the PD Buddy Sink to request 2.25 A at 20 V, run the following
 commands:
@@ -81,6 +86,17 @@ commands:
 
 When `write` is run, the chosen settings are written to flash.  You can then
 simply disconnect the Sink from your computer.
+
+[GNU Screen]: https://www.gnu.org/software/screen/
+[Minicom]: https://alioth.debian.org/projects/minicom
+[PuTTY]: http://www.chiark.greenend.org.uk/~sgtatham/putty/
+
+### Configuration with the GUI
+
+The Sink can also be configured by the [PD Buddy Configuration][pd-buddy-gtk]
+GUI.  For more information, see that repository's README.
+
+[pd-buddy-gtk]: https://git.clayhobbs.com/clay/pd-buddy-gtk
 
 ### Using the configured PD Buddy Sink
 
