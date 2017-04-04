@@ -4,7 +4,7 @@ This is the firmware for the PD Buddy project.  Currently, this specifically
 means the [PD Buddy Sink][].  The firmware is currently under heavy development,
 but is partially functional.
 
-[PD Buddy Sink]: https://git.clayhobbs.com/clay/pd-buddy-sink
+[PD Buddy Sink]: https://git.clayhobbs.com/pd-buddy/pd-buddy-sink
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ To compile the firmware, you must first install the [GNU ARM Embedded
 Toolchain][toolchain].  Details of its installation is beyond the scope of this
 README.  Once the toolchain is installed, clone this repository with:
 
-    $ git clone --recursive http://git.clayhobbs.com/clay/pd-buddy-firmware.git
+    $ git clone --recursive http://git.clayhobbs.com/pd-buddy/pd-buddy-firmware.git
 
 This will give you a complete copy of the repository, including the ChibiOS
 submodule.
@@ -96,7 +96,7 @@ simply disconnect the Sink from your computer.
 The Sink can also be configured by the [PD Buddy Configuration][pd-buddy-gtk]
 GUI.  For more information, see that repository's README.
 
-[pd-buddy-gtk]: https://git.clayhobbs.com/clay/pd-buddy-gtk
+[pd-buddy-gtk]: https://git.clayhobbs.com/pd-buddy/pd-buddy-gtk
 
 ### Using the configured PD Buddy Sink
 
