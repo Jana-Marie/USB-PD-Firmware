@@ -263,9 +263,19 @@ static enum policy_engine_state pe_sink_ready(void)
                 chPoolFree(&pdb_msg_pool, policy_engine_message);
                 policy_engine_message = NULL;
                 return PESinkSendReject;
+            /* Reject GotoMin messages
+             * Until we actually support GiveBack, this is the correct
+             * behavior according to S. 6.3.4 */
+            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_GOTOMIN
+                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+                chPoolFree(&pdb_msg_pool, policy_engine_message);
+                policy_engine_message = NULL;
+                return PESinkSendReject;
             /* Evaluate new Source_Capabilities */
             } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOURCE_CAPABILITIES
                     && PD_NUMOBJ_GET(policy_engine_message) > 0) {
+                /* Don't free the message: we need to keep the
+                 * Source_Capabilities message so we can evaluate it. */
                 return PESinkEvalCap;
             /* Give sink capabilities when asked */
             } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_GET_SINK_CAP
