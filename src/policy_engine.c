@@ -216,8 +216,6 @@ static enum policy_engine_state pe_sink_ready(void)
     if (evt & PDB_EVT_PE_MSG_RX) {
         if (chMBFetch(&pdb_pe_mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
             /* Ignore vendor-defined messages */
-            /* TODO: we're supposed to send NAKs in response to all
-             * unsupported structured VDMs except Attention. */
             if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_VENDOR_DEFINED
                     && PD_NUMOBJ_GET(policy_engine_message) > 0) {
                 chPoolFree(&pdb_msg_pool, policy_engine_message);
