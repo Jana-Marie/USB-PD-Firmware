@@ -218,8 +218,8 @@ static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
 static const struct pdb_shell_cmd commands[] = {
     {"license", cmd_license, "Show copyright and license information"},
     {"erase", cmd_erase, "Erase all stored configuration"},
-    {"write", cmd_write, "Write the changes to flash"},
-    {"load", cmd_load, "Load the stored configuration into RAM"},
+    {"write", cmd_write, "Store the configuration buffer"},
+    {"load", cmd_load, "Load the stored configuration into the buffer"},
     {"get_cfg", cmd_get_cfg, "Print the stored configuration"},
     {"get_tmpcfg", cmd_get_tmpcfg, "Print the configuration buffer"},
     /* TODO {"toggle_giveback", cmd_toggle_giveback, "Toggle the GiveBack flag"},*/
