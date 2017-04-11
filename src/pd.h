@@ -217,6 +217,12 @@
 
 
 /*
+ * Counter maximums
+ */
+#define PD_N_HARD_RESET_COUNT 2
+
+
+/*
  * Unit conversions
  *
  * V: volt
@@ -240,7 +246,6 @@
 /* Get portions of a PD current in more normal units */
 #define PD_PDI_A(pdv) ((pdv) / 100)
 #define PD_PDI_CA(pdv) ((pdv) % 100)
-
 
 
 #endif /* PDB_PD_H */

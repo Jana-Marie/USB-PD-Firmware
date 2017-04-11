@@ -51,6 +51,8 @@ static union pd_msg *policy_engine_message = NULL;
 static bool capability_match = false;
 /* Whether or not we have an explicit contract */
 static bool explicit_contract = false;
+/* Keep track of how many hard resets we've sent */
+static int hard_reset_counter = 0;
 /* Policy Engine thread mailbox */
 static msg_t pdb_pe_mailbox_queue[PDB_MSG_POOL_SIZE];
 mailbox_t pdb_pe_mailbox;
@@ -359,11 +361,20 @@ static enum policy_engine_state pe_sink_give_sink_cap(void)
 
 static enum policy_engine_state pe_sink_hard_reset(void)
 {
+    /* If we've already sent the maximum number of hard resets, give up */
+    if (hard_reset_counter > PD_N_HARD_RESET_COUNT) {
+        pdb_dpm_output_off();
+        /* TODO: Fall back to USB BC or Type-C power if configured for 5 V. */
+        for (;;)
+            chThdSleepMilliseconds(1000);
+    }
+
     /* Generate a hard reset signal */
     chEvtSignal(pdb_hardrst_thread, PDB_EVT_HARDRST_RESET);
     chEvtWaitAny(PDB_EVT_PE_HARD_SENT);
 
-    /* TODO: maintain HardResetCounter */
+    /* Increment HardResetCounter */
+    hard_reset_counter++;
 
     return PESinkTransitionDefault;
 }
