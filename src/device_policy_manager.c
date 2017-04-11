@@ -70,7 +70,7 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
             }
         }
     }
-    /* Nothing matched, so get 5 V */
+    /* Nothing matched (or no configuration), so get 5 V */
     request->hdr = PD_MSGTYPE_REQUEST | PD_DATAROLE_UFP |
         PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
     request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(10)
@@ -82,46 +82,39 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
 
 void pdb_dpm_get_sink_capability(union pd_msg *cap)
 {
+    /* Keep track of how many PDOs we've added */
+    int numobj = 0;
     /* Get the current configuration */
     struct pdb_config *cfg = pdb_config_flash_read();
 
-    /* If we have no configuration, request 0.1 A at 5 V. */
-    if (cfg == NULL) {
-        /* Sink_Capabilities message */
-        cap->hdr = PD_MSGTYPE_SINK_CAPABILITIES | PD_DATAROLE_UFP
-            | PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
-        /* vSafe5V at the desired current. */
-        cap->obj[0] = PD_PDO_TYPE_FIXED
+    /* If we have no configuration or want something other than 5 V, add a PDO
+     * for vSafe5V */
+    if (cfg == NULL || cfg->v != 100) {
+        /* 100 mA, 5 V, and higher capability. */
+        cap->obj[numobj++] = PD_PDO_TYPE_FIXED
             | PD_PDO_SNK_FIXED_VOLTAGE_SET(100)
             | PD_PDO_SNK_FIXED_CURRENT_SET(10);
-    /* If we want 5 V, we need to send only one PDO */
-    } else if (cfg->v == 100) {
-        /* Sink_Capabilities message */
-        cap->hdr = PD_MSGTYPE_SINK_CAPABILITIES | PD_DATAROLE_UFP
-            | PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
-        /* vSafe5V at the desired current. */
-        cap->obj[0] = PD_PDO_TYPE_FIXED
+    }
+
+    /* Add a PDO for the desired power. */
+    if (cfg != NULL) {
+        cap->obj[numobj++] = PD_PDO_TYPE_FIXED
             | PD_PDO_SNK_FIXED_VOLTAGE_SET(cfg->v)
             | PD_PDO_SNK_FIXED_CURRENT_SET(cfg->i);
-    /* Otherwise, send two PDOs, one for 5 V and one for the desired power. */
-    } else {
-        /* Sink_Capabilities message */
-        cap->hdr = PD_MSGTYPE_SINK_CAPABILITIES | PD_DATAROLE_UFP
-            | PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(2);
-        /* First, vSafe5V.  100 mA, 5 V, and higher capability. */
-        cap->obj[0] = PD_PDO_TYPE_FIXED
-            | PD_PDO_SNK_FIXED_VOLTAGE_SET(100)
-            | PD_PDO_SNK_FIXED_CURRENT_SET(10);
-        /* Next, desired_v and desired_i */
-        cap->obj[1] = PD_PDO_TYPE_FIXED
-            | PD_PDO_SNK_FIXED_VOLTAGE_SET(cfg->v)
-            | PD_PDO_SNK_FIXED_CURRENT_SET(cfg->i);
+        /* If we want more than 5 V, set the Higher Capability flag */
+        if (cfg->v != 100) {
+            cap->obj[0] |= PD_PDO_SNK_FIXED_HIGHER_CAP;
+        }
     }
 
     /* Set the unconstrained power flag. */
     if (dpm_unconstrained_power) {
         cap->obj[0] |= PD_PDO_SNK_FIXED_UNCONSTRAINED;
     }
+
+    /* Set the Sink_Capabilities message header */
+    cap->hdr = PD_MSGTYPE_SINK_CAPABILITIES | PD_DATAROLE_UFP | PD_SPECREV_2_0
+        | PD_POWERROLE_SINK | PD_NUMOBJ(numobj);
 }
 
 void pdb_dpm_output_on(void)
