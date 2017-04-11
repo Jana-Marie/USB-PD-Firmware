@@ -49,12 +49,16 @@ enum policy_engine_state {
 static union pd_msg *policy_engine_message = NULL;
 /* Whether or not the source capabilities match our required power */
 static bool capability_match = false;
+/* Whether or not we have an explicit contract */
+static bool explicit_contract = false;
 /* Policy Engine thread mailbox */
 static msg_t pdb_pe_mailbox_queue[PDB_MSG_POOL_SIZE];
 mailbox_t pdb_pe_mailbox;
 
 static enum policy_engine_state pe_sink_startup(void)
 {
+    explicit_contract = false;
+
     /* No need to reset the protocol layer here.  There are two ways into this
      * state: startup and exiting hard reset.  On startup, the protocol layer
      * is reset by the startup procedure.  When exiting hard reset, the
@@ -154,8 +158,27 @@ static enum policy_engine_state pe_sink_select_cap(void)
             chPoolFree(&pdb_msg_pool, policy_engine_message);
             policy_engine_message = NULL;
             return PESinkSoftReset;
-        /* TODO: Wait and Reject messages should be recognized here */
+        /* If the message was Wait or Reject */
+        } else if ((PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_REJECT
+                    || PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_WAIT)
+                && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+            /* If we don't have an explicit contract, wait for capabilities */
+            if (!explicit_contract) {
+                chPoolFree(&pdb_msg_pool, policy_engine_message);
+                policy_engine_message = NULL;
+                return PESinkWaitCap;
+            /* If we do have an explicit contract, go to the ready state */
+            } else {
+                /* TODO: we should take note if we got here from a Wait
+                 * message, because we Should run the SinkRequestTimer in the
+                 * Ready state if that's the case. */
+                chPoolFree(&pdb_msg_pool, policy_engine_message);
+                policy_engine_message = NULL;
+                return PESinkReady;
+            }
         } else {
+            chPoolFree(&pdb_msg_pool, policy_engine_message);
+            policy_engine_message = NULL;
             return PESinkSendSoftReset;
         }
     }
@@ -176,6 +199,9 @@ static enum policy_engine_state pe_sink_transition_sink(void)
         /* If we got a PS_RDY, handle it */
         if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_PS_RDY
                 && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+            /* We just finished negotiating an explicit contract */
+            explicit_contract = true;
+
             /* Set the output appropriately */
             if (capability_match) {
                 pdb_dpm_output_on();
@@ -344,6 +370,8 @@ static enum policy_engine_state pe_sink_hard_reset(void)
 
 static enum policy_engine_state pe_sink_transition_default(void)
 {
+    explicit_contract = false;
+
     /* Tell the DPM to turn off the output */
     pdb_dpm_output_off();
 
