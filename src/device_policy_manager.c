@@ -28,7 +28,7 @@
 
 
 /* Whether or not the power supply is unconstrained */
-static uint8_t dpm_unconstrained_power;
+static bool dpm_unconstrained_power;
 
 bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg *request)
 {
@@ -41,11 +41,7 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK);
 
     /* Get whether or not the power supply is constrained */
-    if (capabilities->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED) {
-        dpm_unconstrained_power = 1;
-    } else {
-        dpm_unconstrained_power = 0;
-    }
+    dpm_unconstrained_power = capabilities->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
 
     /* Make sure we have configuration */
     if (cfg != NULL) {
