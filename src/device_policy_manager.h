@@ -37,6 +37,11 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
 void pdb_dpm_get_sink_capability(union pd_msg *cap);
 
 /*
+ * Indicate that power negotiations are starting.
+ */
+void pdb_dpm_pd_start(void);
+
+/*
  * Turn on the power output, with LED indication.
  */
 void pdb_dpm_output_on(void);

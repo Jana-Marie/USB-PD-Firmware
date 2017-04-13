@@ -66,6 +66,7 @@ static const I2CConfig i2c2config = {
  */
 static void setup(void)
 {
+    /* Indicate that we're in setup mode */
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_SLOW_BLINK);
 
     /* Disconnect from USB */
@@ -88,8 +89,6 @@ static void setup(void)
  */
 static void pd_buddy(void)
 {
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK);
-
     /* Start I2C2 to make communication with the PHY possible */
     i2cStart(&I2CD2, &i2c2config);
 

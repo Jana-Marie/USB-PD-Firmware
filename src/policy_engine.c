@@ -62,6 +62,7 @@ mailbox_t pdb_pe_mailbox;
 static enum policy_engine_state pe_sink_startup(void)
 {
     explicit_contract = false;
+    pdb_dpm_pd_start();
 
     /* No need to reset the protocol layer here.  There are two ways into this
      * state: startup and exiting hard reset.  On startup, the protocol layer

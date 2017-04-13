@@ -113,6 +113,11 @@ void pdb_dpm_get_sink_capability(union pd_msg *cap)
         | PD_POWERROLE_SINK | PD_NUMOBJ(numobj);
 }
 
+void pdb_dpm_pd_start(void)
+{
+    chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK);
+}
+
 void pdb_dpm_output_on(void)
 {
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_MEDIUM_BLINK_OFF);
