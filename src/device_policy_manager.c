@@ -25,6 +25,7 @@
 #include "led.h"
 #include "storage.h"
 #include "pd.h"
+#include "fusb302b.h"
 
 
 /* Whether or not the power supply is unconstrained */
@@ -111,6 +112,36 @@ void pdb_dpm_get_sink_capability(union pd_msg *cap)
     /* Set the Sink_Capabilities message header */
     cap->hdr = PD_MSGTYPE_SINK_CAPABILITIES | PD_DATAROLE_UFP | PD_SPECREV_2_0
         | PD_POWERROLE_SINK | PD_NUMOBJ(numobj);
+}
+
+bool pdb_dpm_evaluate_typec_current(void)
+{
+    /* Get the current configuration */
+    struct pdb_config *cfg = pdb_config_flash_read();
+
+    /* If we have no configuration or don't want 5 V, Type-C Current can't
+     * possibly satisfy our needs */
+    if (cfg == NULL || cfg->v != 100) {
+        return false;
+    }
+
+    /* Get the present Type-C Current advertisement */
+    enum fusb_typec_current tcc = fusb_get_typec_current();
+
+    /* If 1.5 A is available and we want no more than that, great. */
+    if (tcc == OnePointFiveAmps && cfg->i <= 150) {
+        return true;
+    }
+    /* If 3 A is available and we want no more than that, that's great too. */
+    if (tcc == ThreePointZeroAmps && cfg->i <= 300) {
+        return true;
+    }
+    /* We're overly cautious if USB default current is available, since that
+     * could mean different things depending on the port we're connected to,
+     * and since we're really supposed to enumerate in order to request more
+     * than 100 mA.  This could be changed in the future. */
+
+    return false;
 }
 
 void pdb_dpm_pd_start(void)

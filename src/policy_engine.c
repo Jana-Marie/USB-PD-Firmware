@@ -44,7 +44,8 @@ enum policy_engine_state {
     PESinkTransitionDefault,
     PESinkSoftReset,
     PESinkSendSoftReset,
-    PESinkSendReject
+    PESinkSendReject,
+    PESinkSourceUnresponsive
 };
 
 /* The received message we're currently working with */
@@ -364,13 +365,10 @@ static enum policy_engine_state pe_sink_give_sink_cap(void)
 
 static enum policy_engine_state pe_sink_hard_reset(void)
 {
-    /* If we've already sent the maximum number of hard resets, give up */
+    /* If we've already sent the maximum number of hard resets, assume the
+     * source is unresponsive. */
     if (hard_reset_counter > PD_N_HARD_RESET_COUNT) {
-        pdb_dpm_output_off();
-        /* TODO: Fall back to Type-C Current if configured for 5 V. */
-        while (true) {
-            chThdSleepMilliseconds(1000);
-        }
+        return PESinkSourceUnresponsive;
     }
 
     /* Generate a hard reset signal */
@@ -504,6 +502,32 @@ static enum policy_engine_state pe_sink_send_reject(void)
 }
 
 /*
+ * When Power Delivery is unresponsive, fall back to Type-C Current
+ */
+static enum policy_engine_state pe_sink_source_unresponsive(void)
+{
+    static int old_tcc_match = -1;
+    int tcc_match = pdb_dpm_evaluate_typec_current();
+
+    /* If the last two readings are the same, set the output */
+    if (old_tcc_match == tcc_match) {
+        if (tcc_match) {
+            pdb_dpm_output_on();
+        } else {
+            pdb_dpm_output_off();
+        }
+    }
+
+    /* Remember whether or not the last measurement succeeded */
+    old_tcc_match = tcc_match;
+
+    /* Wait tPDDebounce between measurements */
+    chThdSleep(PD_T_PD_DEBOUNCE);
+
+    return PESinkSourceUnresponsive;
+}
+
+/*
  * Policy Engine state machine thread
  */
 static THD_WORKING_AREA(waPolicyEngine, 128);
@@ -557,6 +581,9 @@ static THD_FUNCTION(PolicyEngine, arg) {
                 break;
             case PESinkSendReject:
                 state = pe_sink_send_reject();
+                break;
+            case PESinkSourceUnresponsive:
+                state = pe_sink_source_unresponsive();
                 break;
             default:
                 /* This is an error.  It really shouldn't happen.  We might

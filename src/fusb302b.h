@@ -251,6 +251,16 @@ union fusb_status {
     };
 };
 
+/*
+ * FUSB Type-C Current level enum
+ */
+enum fusb_typec_current {
+    None = 0,
+    Default = 1,
+    OnePointFiveAmps = 2,
+    ThreePointZeroAmps = 3
+};
+
 
 /* FUSB functions */
 
@@ -273,6 +283,11 @@ void fusb_send_hardrst(void);
  * Read the FUSB302B status and interrupt flags into *status
  */
 void fusb_get_status(union fusb_status *status);
+
+/*
+ * Read the FUSB302B BC_LVL as an enum fusb_typec_current
+ */
+enum fusb_typec_current fusb_get_typec_current(void);
 
 /*
  * Initialization routine for the FUSB302B

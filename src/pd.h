@@ -214,6 +214,9 @@
 #define PD_T_PS_TRANSITION MS2ST(500)
 #define PD_T_SENDER_RESPONSE MS2ST(27)
 #define PD_T_TYPEC_SINK_WAIT_CAP MS2ST(465)
+/* This is actually a Type-C time value, not a Power Delivery time value, but
+ * who cares? */
+#define PD_T_PD_DEBOUNCE MS2ST(15)
 
 
 /*

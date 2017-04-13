@@ -188,6 +188,19 @@ void fusb_get_status(union fusb_status *status)
     i2cReleaseBus(&I2CD2);
 }
 
+enum fusb_typec_current fusb_get_typec_current(void)
+{
+    i2cAcquireBus(&I2CD2);
+
+    /* Read the BC_LVL into a variable */
+    enum fusb_typec_current bc_lvl = fusb_read_byte(FUSB_STATUS0)
+        & FUSB_STATUS0_BC_LVL;
+
+    i2cReleaseBus(&I2CD2);
+
+    return bc_lvl;
+}
+
 void fusb_reset(void)
 {
     i2cAcquireBus(&I2CD2);

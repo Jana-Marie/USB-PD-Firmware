@@ -27,7 +27,7 @@
 /*
  * Create a Request message based on the given Source_Capabilities message.
  *
- * Returns false if sufficient power is not available, true if it is.
+ * Returns true if sufficient power is available, false otherwise.
  */
 bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg *request);
 
@@ -35,6 +35,14 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
  * Create a Sink_Capabilities message for our current capabilities.
  */
 void pdb_dpm_get_sink_capability(union pd_msg *cap);
+
+/*
+ * Evaluate whether or not the currently offered Type-C Current can fulfill our
+ * power needs.
+ *
+ * Returns true if sufficient power is available, false otherwise.
+ */
+bool pdb_dpm_evaluate_typec_current(void);
 
 /*
  * Indicate that power negotiations are starting.
