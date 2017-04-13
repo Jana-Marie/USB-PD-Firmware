@@ -18,6 +18,8 @@
 
 #include "policy_engine.h"
 
+#include <stdbool.h>
+
 #include "messages.h"
 #include "priorities.h"
 #include "device_policy_manager.h"
@@ -364,9 +366,10 @@ static enum policy_engine_state pe_sink_hard_reset(void)
     /* If we've already sent the maximum number of hard resets, give up */
     if (hard_reset_counter > PD_N_HARD_RESET_COUNT) {
         pdb_dpm_output_off();
-        /* TODO: Fall back to USB BC or Type-C power if configured for 5 V. */
-        for (;;)
+        /* TODO: Fall back to Type-C Current if configured for 5 V. */
+        while (true) {
             chThdSleepMilliseconds(1000);
+        }
     }
 
     /* Generate a hard reset signal */

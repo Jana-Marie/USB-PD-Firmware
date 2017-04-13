@@ -61,6 +61,9 @@ static const I2CConfig i2c2config = {
     0
 };
 
+/*
+ * Enter setup mode
+ */
 static void setup(void)
 {
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_SLOW_BLINK);
@@ -80,6 +83,9 @@ static void setup(void)
     pdb_shell();
 }
 
+/*
+ * Negotiate with the power supply for the configured power
+ */
 static void pd_buddy(void)
 {
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK);
