@@ -156,14 +156,12 @@ void fusb_setup(void)
     /* Measure CC1 */
     fusb_write_byte(FUSB_SWITCHES0, 0x07);
     chThdSleepMicroseconds(250);
-    uint8_t cc1;
-    cc1 = fusb_read_byte(FUSB_STATUS0) & FUSB_STATUS0_BC_LVL;
+    uint8_t cc1 = fusb_read_byte(FUSB_STATUS0) & FUSB_STATUS0_BC_LVL;
 
     /* Measure CC2 */
     fusb_write_byte(FUSB_SWITCHES0, 0x0B);
     chThdSleepMicroseconds(250);
-    uint8_t cc2;
-    cc2 = fusb_read_byte(FUSB_STATUS0) & FUSB_STATUS0_BC_LVL;
+    uint8_t cc2 = fusb_read_byte(FUSB_STATUS0) & FUSB_STATUS0_BC_LVL;
 
     /* Select the correct CC line for BMC signaling; also enable AUTO_CRC */
     if (cc1 > cc2) {
