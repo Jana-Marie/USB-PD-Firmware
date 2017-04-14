@@ -116,8 +116,15 @@ void pdb_dpm_get_sink_capability(union pd_msg *cap)
 
 bool pdb_dpm_evaluate_typec_current(void)
 {
-    /* Get the current configuration */
-    struct pdb_config *cfg = pdb_config_flash_read();
+    static bool cfg_set = false;
+    static struct pdb_config *cfg = NULL;
+
+    /* Only get the configuration the first time this function runs, since its
+     * location will never change without rebooting into setup mode. */
+    if (!cfg_set) {
+        cfg = pdb_config_flash_read();
+        cfg_set = true;
+    }
 
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
