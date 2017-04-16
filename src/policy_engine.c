@@ -155,6 +155,9 @@ static enum policy_engine_state pe_sink_select_cap(void)
         /* If the source accepted our request, wait for the new power */
         if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_ACCEPT
                 && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+            /* Transition to Sink Standby if necessary */
+            pdb_dpm_sink_standby();
+
             chPoolFree(&pdb_msg_pool, policy_engine_message);
             policy_engine_message = NULL;
             return PESinkTransitionSink;
@@ -209,11 +212,7 @@ static enum policy_engine_state pe_sink_transition_sink(void)
             explicit_contract = true;
 
             /* Set the output appropriately */
-            if (capability_match) {
-                pdb_dpm_output_on();
-            } else {
-                pdb_dpm_output_off();
-            }
+            pdb_dpm_output_set(capability_match);
 
             chPoolFree(&pdb_msg_pool, policy_engine_message);
             policy_engine_message = NULL;
@@ -223,7 +222,7 @@ static enum policy_engine_state pe_sink_transition_sink(void)
             /* Turn off the power output before this hard reset to make sure we
              * don't supply an incorrect voltage to the device we're powering.
              */
-            pdb_dpm_output_off();
+            pdb_dpm_output_set(false);
 
             chPoolFree(&pdb_msg_pool, policy_engine_message);
             policy_engine_message = NULL;
@@ -385,8 +384,8 @@ static enum policy_engine_state pe_sink_transition_default(void)
 {
     explicit_contract = false;
 
-    /* Tell the DPM to turn off the output */
-    pdb_dpm_output_off();
+    /* Tell the DPM to transition to default power */
+    pdb_dpm_output_default();
 
     /* There is no local hardware to reset. */
     /* Since we never change our data role from UFP, there is no reason to set
@@ -511,11 +510,7 @@ static enum policy_engine_state pe_sink_source_unresponsive(void)
 
     /* If the last two readings are the same, set the output */
     if (old_tcc_match == tcc_match) {
-        if (tcc_match) {
-            pdb_dpm_output_on();
-        } else {
-            pdb_dpm_output_off();
-        }
+        pdb_dpm_output_set(tcc_match);
     }
 
     /* Remember whether or not the last measurement succeeded */

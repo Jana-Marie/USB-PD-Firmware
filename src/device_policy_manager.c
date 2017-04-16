@@ -31,6 +31,12 @@
 /* Whether or not the power supply is unconstrained */
 static bool dpm_unconstrained_power;
 
+/* The last explicitly or implicitly negotiated voltage in PDV */
+static int dpm_present_voltage = PD_MV2PDV(5000);
+
+/* The requested voltage */
+static int dpm_requested_voltage;
+
 bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg *request)
 {
     /* Get the current configuration */
@@ -63,6 +69,10 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
                 request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(cfg->i)
                     | PD_RDO_FV_CURRENT_SET(cfg->i)
                     | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
+
+                /* Update requested voltage */
+                dpm_requested_voltage = cfg->v;
+
                 return true;
             }
         }
@@ -74,6 +84,10 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
         | PD_RDO_FV_CURRENT_SET(10)
         | PD_RDO_NO_USB_SUSPEND | PD_RDO_CAP_MISMATCH
         | PD_RDO_OBJPOS_SET(1);
+
+    /* Update requested voltage */
+    dpm_requested_voltage = PD_MV2PDV(5000);
+
     return false;
 }
 
@@ -126,6 +140,9 @@ bool pdb_dpm_evaluate_typec_current(void)
         cfg_set = true;
     }
 
+    /* We don't control the voltage anymore; it will always be 5 V. */
+    dpm_requested_voltage = PD_MV2PDV(5000);
+
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
     if (cfg == NULL || cfg->v != 100) {
@@ -156,14 +173,38 @@ void pdb_dpm_pd_start(void)
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK);
 }
 
-void pdb_dpm_output_on(void)
+void pdb_dpm_sink_standby(void)
 {
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_MEDIUM_BLINK_OFF);
-    palSetLine(LINE_OUT_CTRL);
+    /* If the voltage is changing, enter Sink Standby */
+    if (dpm_requested_voltage != dpm_present_voltage) {
+        /* For the PD Buddy Sink, entering Sink Standby is equivalent to
+         * turning the output off.  However, we don't want to change the LED
+         * state for standby mode. */
+        palClearLine(LINE_OUT_CTRL);
+    }
 }
 
-void pdb_dpm_output_off(void)
+void pdb_dpm_output_set(bool state)
 {
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_ON);
-    palClearLine(LINE_OUT_CTRL);
+    /* Update the present voltage */
+    dpm_present_voltage = dpm_requested_voltage;
+
+    /* Set the power output */
+    if (state) {
+        /* Turn the output on */
+        chEvtSignal(pdb_led_thread, PDB_EVT_LED_MEDIUM_BLINK_OFF);
+        palSetLine(LINE_OUT_CTRL);
+    } else {
+        /* Turn the output off */
+        chEvtSignal(pdb_led_thread, PDB_EVT_LED_ON);
+        palClearLine(LINE_OUT_CTRL);
+    }
+}
+
+void pdb_dpm_output_default(void)
+{
+    /* Pretend we requested 5 V */
+    dpm_requested_voltage = PD_MV2PDV(5000);
+    /* Turn the output off */
+    pdb_dpm_output_set(false);
 }

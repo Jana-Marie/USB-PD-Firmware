@@ -50,14 +50,19 @@ bool pdb_dpm_evaluate_typec_current(void);
 void pdb_dpm_pd_start(void);
 
 /*
- * Turn on the power output, with LED indication.
+ * Transition to Sink Standby if necessary.
  */
-void pdb_dpm_output_on(void);
+void pdb_dpm_sink_standby(void);
 
 /*
- * Turn off the power output, with LED indication.
+ * Set the output state, with LED indication.
  */
-void pdb_dpm_output_off(void);
+void pdb_dpm_output_set(bool state);
+
+/*
+ * Transition the sink to default power.
+ */
+void pdb_dpm_output_default(void);
 
 
 #endif /* PDB_DEVICE_POLICY_MANAGER_H */
