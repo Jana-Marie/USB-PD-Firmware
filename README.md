@@ -10,7 +10,7 @@ but is largely functional.
 
 * Two boot modes, Setup and Sink, selected by the Setup button's state at
   startup.
-* Sink mode Implements a simple USB Power Delivery sink, aiming for full
+* Sink mode implements a simple USB Power Delivery sink, aiming for full
   compliance with the USB Power Delivery Specification, Revision 2.0,
   Version 1.3.
 * Requests the configured voltage and current if available, or a safe, low
