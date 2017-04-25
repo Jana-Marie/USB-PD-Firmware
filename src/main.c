@@ -81,13 +81,14 @@ static void setup(void)
     usbStart(serusbcfg.usbp, &usbcfg);
     usbConnectBus(serusbcfg.usbp);
 
+    /* Start the shell */
     pdb_shell();
 }
 
 /*
  * Negotiate with the power supply for the configured power
  */
-static void pd_buddy(void)
+static void sink(void)
 {
     /* Start I2C2 to make communication with the PHY possible */
     i2cStart(&I2CD2, &i2c2config);
@@ -139,6 +140,6 @@ int main(void) {
         setup();
     } else {
         /* Button unpressed -> deliver power, buddy! */
-        pd_buddy();
+        sink();
     }
 }

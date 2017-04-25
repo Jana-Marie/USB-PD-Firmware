@@ -2,9 +2,23 @@
 
 This is the firmware for the PD Buddy project.  Currently, this specifically
 means the [PD Buddy Sink][].  The firmware is currently under heavy development,
-but is partially functional.
+but is largely functional.
 
 [PD Buddy Sink]: https://git.clayhobbs.com/pd-buddy/pd-buddy-sink
+
+## Features
+
+* Two boot modes, Setup and Sink, selected by the Setup button's state at
+  startup.
+* Sink mode Implements a simple USB Power Delivery sink, aiming for full
+  compliance with the USB Power Delivery Specification, Revision 2.0,
+  Version 1.3.
+* Requests the configured voltage and current if available, or a safe, low
+  power request otherwise.
+* Provides power on the output connector only when an explicit contract is in
+  place for the configured voltage and current.
+* Setup mode implements a USB CDC-ACM command-line interface allowing
+  configuration to be loaded from and stored in flash.
 
 ## Prerequisites
 
