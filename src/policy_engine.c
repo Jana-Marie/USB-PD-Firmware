@@ -88,10 +88,14 @@ static enum policy_engine_state pe_sink_wait_cap(void)
 {
     /* Fetch a message from the protocol layer */
     eventmask_t evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX
-            | PDB_EVT_PE_I_OVRTEMP, PD_T_TYPEC_SINK_WAIT_CAP);
+            | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_RESET, PD_T_TYPEC_SINK_WAIT_CAP);
     /* If we timed out waiting for Source_Capabilities, send a hard reset */
     if (evt == 0) {
         return PESinkHardReset;
+    }
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
     }
     /* If we're too hot, we shouldn't negotiate power yet */
     if (evt & PDB_EVT_PE_I_OVRTEMP) {
@@ -144,17 +148,27 @@ static enum policy_engine_state pe_sink_select_cap(void)
     /* Transmit the request */
     chMBPost(&pdb_prltx_mailbox, (msg_t) policy_engine_message, TIME_IMMEDIATE);
     chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
-    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR);
+    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
+            | PDB_EVT_PE_RESET);
     /* Free the sent message */
     chPoolFree(&pdb_msg_pool, policy_engine_message);
     policy_engine_message = NULL;
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
     /* If the message transmission failed, send a hard reset */
     if ((evt & PDB_EVT_PE_TX_DONE) == 0) {
         return PESinkHardReset;
     }
 
     /* Wait for a response */
-    evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX, PD_T_SENDER_RESPONSE);
+    evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET,
+            PD_T_SENDER_RESPONSE);
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
     /* If we didn't get a response before the timeout, send a hard reset */
     if (evt == 0) {
         return PESinkHardReset;
@@ -207,7 +221,12 @@ static enum policy_engine_state pe_sink_select_cap(void)
 static enum policy_engine_state pe_sink_transition_sink(void)
 {
     /* Wait for the PS_RDY message */
-    eventmask_t evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX, PD_T_PS_TRANSITION);
+    eventmask_t evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET,
+            PD_T_PS_TRANSITION);
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
     /* If no message was received, send a hard reset */
     if (evt == 0) {
         return PESinkHardReset;
@@ -364,12 +383,17 @@ static enum policy_engine_state pe_sink_give_sink_cap(void)
     /* Transmit our capabilities */
     chMBPost(&pdb_prltx_mailbox, (msg_t) snk_cap, TIME_IMMEDIATE);
     chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
-    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR);
+    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
+            | PDB_EVT_PE_RESET);
 
     /* Free the Sink_Capabilities message */
     chPoolFree(&pdb_msg_pool, snk_cap);
     snk_cap = NULL;
 
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
     /* If the message transmission failed, send a hard reset */
     if ((evt & PDB_EVT_PE_TX_DONE) == 0) {
         return PESinkHardReset;
@@ -426,10 +450,15 @@ static enum policy_engine_state pe_sink_soft_reset(void)
     /* Transmit the Accept */
     chMBPost(&pdb_prltx_mailbox, (msg_t) accept, TIME_IMMEDIATE);
     chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
-    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR);
+    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
+            | PDB_EVT_PE_RESET);
     /* Free the sent message */
     chPoolFree(&pdb_msg_pool, accept);
     accept = NULL;
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
     /* If the message transmission failed, send a hard reset */
     if ((evt & PDB_EVT_PE_TX_DONE) == 0) {
         return PESinkHardReset;
@@ -451,17 +480,27 @@ static enum policy_engine_state pe_sink_send_soft_reset(void)
     /* Transmit the soft reset */
     chMBPost(&pdb_prltx_mailbox, (msg_t) softrst, TIME_IMMEDIATE);
     chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
-    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR);
+    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
+            | PDB_EVT_PE_RESET);
     /* Free the sent message */
     chPoolFree(&pdb_msg_pool, softrst);
     softrst = NULL;
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
     /* If the message transmission failed, send a hard reset */
     if ((evt & PDB_EVT_PE_TX_DONE) == 0) {
         return PESinkHardReset;
     }
 
     /* Wait for a response */
-    evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX, PD_T_SENDER_RESPONSE);
+    evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET,
+            PD_T_SENDER_RESPONSE);
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
     /* If we didn't get a response before the timeout, send a hard reset */
     if (evt == 0) {
         return PESinkHardReset;
@@ -502,12 +541,17 @@ static enum policy_engine_state pe_sink_send_reject(void)
     /* Transmit the message */
     chMBPost(&pdb_prltx_mailbox, (msg_t) reject, TIME_IMMEDIATE);
     chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
-    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR);
+    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
+            | PDB_EVT_PE_RESET);
 
     /* Free the Reject message */
     chPoolFree(&pdb_msg_pool, reject);
     reject = NULL;
 
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
     /* If the message transmission failed, send a soft reset */
     if ((evt & PDB_EVT_PE_TX_DONE) == 0) {
         return PESinkSendSoftReset;
