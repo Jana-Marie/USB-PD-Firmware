@@ -26,6 +26,7 @@
 #include "protocol_rx.h"
 #include "protocol_tx.h"
 #include "hard_reset.h"
+#include "policy_engine.h"
 
 
 /*
@@ -70,6 +71,14 @@ static THD_FUNCTION(IntNPoll, arg) {
                 events |= PDB_EVT_HARDRST_I_HARDSENT;
             }
             chEvtSignal(pdb_hardrst_thread, events);
+
+            /* If the I_OCP_TEMP and OVRTEMP flags are set, tell the Policy
+             * Engine thread */
+            if (status.interrupta & FUSB_INTERRUPTA_I_OCP_TEMP
+                    && status.status1 & FUSB_STATUS1_OVRTEMP) {
+                chEvtSignal(pdb_pe_thread, PDB_EVT_PE_I_OVRTEMP);
+            }
+
         }
         chThdSleepMilliseconds(1);
     }

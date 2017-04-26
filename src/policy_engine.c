@@ -62,7 +62,9 @@ mailbox_t pdb_pe_mailbox;
 
 static enum policy_engine_state pe_sink_startup(void)
 {
+    /* We don't have an explicit contract currently */
     explicit_contract = false;
+    /* Tell the DPM that we've started negotiations */
     pdb_dpm_pd_start();
 
     /* No need to reset the protocol layer here.  There are two ways into this
@@ -85,29 +87,37 @@ static enum policy_engine_state pe_sink_discovery(void)
 static enum policy_engine_state pe_sink_wait_cap(void)
 {
     /* Fetch a message from the protocol layer */
-    eventmask_t evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX, PD_T_TYPEC_SINK_WAIT_CAP);
+    eventmask_t evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX
+            | PDB_EVT_PE_I_OVRTEMP, PD_T_TYPEC_SINK_WAIT_CAP);
     /* If we timed out waiting for Source_Capabilities, send a hard reset */
     if (evt == 0) {
         return PESinkHardReset;
     }
+    /* If we're too hot, we shouldn't negotiate power yet */
+    if (evt & PDB_EVT_PE_I_OVRTEMP) {
+        return PESinkWaitCap;
+    }
 
-    /* Get the message */
-    if (chMBFetch(&pdb_pe_mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
-        /* If we got a Source_Capabilities message, read it. */
-        if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOURCE_CAPABILITIES
-                && PD_NUMOBJ_GET(policy_engine_message) > 0) {
-            return PESinkEvalCap;
-        /* If the message was a Soft_Reset, do the soft reset procedure */
-        } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOFT_RESET
-                && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
-            return PESinkSoftReset;
-        /* If we got an unexpected message, reset */
-        } else {
-            /* Free the received message */
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            return PESinkHardReset;
+    /* If we got a message */
+    if (evt & PDB_EVT_PE_MSG_RX) {
+        /* Get the message */
+        if (chMBFetch(&pdb_pe_mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+            /* If we got a Source_Capabilities message, read it. */
+            if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOURCE_CAPABILITIES
+                    && PD_NUMOBJ_GET(policy_engine_message) > 0) {
+                return PESinkEvalCap;
+            /* If the message was a Soft_Reset, do the soft reset procedure */
+            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOFT_RESET
+                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+                chPoolFree(&pdb_msg_pool, policy_engine_message);
+                policy_engine_message = NULL;
+                return PESinkSoftReset;
+            /* If we got an unexpected message, reset */
+            } else {
+                /* Free the received message */
+                chPoolFree(&pdb_msg_pool, policy_engine_message);
+                return PESinkHardReset;
+            }
         }
     }
 
@@ -236,11 +246,17 @@ static enum policy_engine_state pe_sink_transition_sink(void)
 static enum policy_engine_state pe_sink_ready(void)
 {
     /* Wait for an event */
-    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET);
+    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
+            | PDB_EVT_PE_I_OVRTEMP);
 
     /* If we got reset signaling, transition to default */
     if (evt & PDB_EVT_PE_RESET) {
         return PESinkTransitionDefault;
+    }
+
+    /* If we overheated, send a hard reset */
+    if (evt & PDB_EVT_PE_I_OVRTEMP) {
+        return PESinkHardReset;
     }
 
     /* If we received a message */
