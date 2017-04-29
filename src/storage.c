@@ -23,6 +23,8 @@
 #include "pd.h"
 
 
+/* Initialize the location of the configuration array.  PDB_CONFIG_BASE is set
+ * in the Makefile. */
 struct pdb_config *pdb_config_array = (struct pdb_config *) PDB_CONFIG_BASE;
 
 

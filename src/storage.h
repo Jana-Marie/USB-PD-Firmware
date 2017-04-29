@@ -37,10 +37,10 @@ struct pdb_config {
     uint16_t _reserved[2];
 } __attribute__((packed));
 
-/* Status for configuration structures.  The empty status indicates that the
- * struct is ready to be written, including an update to the valid status.
- * Once the struct is no longer needed, the status is updated to invalid.
- * Erasing the flash page resets all structures to the empty status. */
+/* Status for configuration structures.  EMPTY indicates that the struct is
+ * ready to be written, including a status update to VALID.  Once the struct is
+ * no longer needed, the status is updated to INVALID.  Erasing the flash page
+ * resets all structures to EMPTY. */
 #define PDB_CONFIG_STATUS_INVALID 0x0000
 #define PDB_CONFIG_STATUS_VALID 0xBEEF
 #define PDB_CONFIG_STATUS_EMPTY 0xFFFF
