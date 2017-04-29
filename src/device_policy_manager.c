@@ -128,6 +128,13 @@ void pdb_dpm_get_sink_capability(union pd_msg *cap)
         | PD_POWERROLE_SINK | PD_NUMOBJ(numobj);
 }
 
+bool pdb_dpm_giveback_enabled(void)
+{
+    struct pdb_config *cfg = pdb_config_flash_read();
+
+    return cfg->flags & PDB_CONFIG_FLAGS_GIVEBACK;
+}
+
 bool pdb_dpm_evaluate_typec_current(void)
 {
     static bool cfg_set = false;

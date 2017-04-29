@@ -37,6 +37,11 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
 void pdb_dpm_get_sink_capability(union pd_msg *cap);
 
 /*
+ * Return whether or not GiveBack support is enabled.
+ */
+bool pdb_dpm_giveback_enabled(void);
+
+/*
  * Evaluate whether or not the currently offered Type-C Current can fulfill our
  * power needs.
  *
