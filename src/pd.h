@@ -192,7 +192,7 @@
 
 #define PD_RDO_OBJPOS_SET(i) (((i) << PD_RDO_OBJPOS_SHIFT) & PD_RDO_OBJPOS)
 
-/* Fixed and Variable RDO, no giveback support */
+/* Fixed and Variable RDO, no GiveBack support */
 #define PD_RDO_FV_CURRENT_SHIFT 10
 #define PD_RDO_FV_CURRENT (0x3FF << PD_RDO_FV_CURRENT_SHIFT)
 #define PD_RDO_FV_MAX_CURRENT_SHIFT 0
@@ -201,7 +201,13 @@
 #define PD_RDO_FV_CURRENT_SET(i) (((i) << PD_RDO_FV_CURRENT_SHIFT) & PD_RDO_FV_CURRENT)
 #define PD_RDO_FV_MAX_CURRENT_SET(i) (((i) << PD_RDO_FV_MAX_CURRENT_SHIFT) & PD_RDO_FV_MAX_CURRENT)
 
-/* TODO: other types of RDO */
+/* Fixed and Variable RDO with GiveBack support */
+#define PD_RDO_FV_MIN_CURRENT_SHIFT 0
+#define PD_RDO_FV_MIN_CURRENT (0x3FF << PD_RDO_FV_MIN_CURRENT_SHIFT)
+
+#define PD_RDO_FV_MIN_CURRENT_SET(i) (((i) << PD_RDO_FV_MIN_CURRENT_SHIFT) & PD_RDO_FV_MIN_CURRENT)
+
+/* TODO: Battery RDOs */
 
 
 /*
