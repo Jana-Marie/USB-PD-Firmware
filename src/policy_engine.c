@@ -56,6 +56,8 @@ static union pd_msg *last_dpm_request = NULL;
 static bool capability_match = false;
 /* Whether or not we have an explicit contract */
 static bool explicit_contract = false;
+/* Whether or not we're receiving minimum power*/
+static bool min_power = false;
 /* Keep track of how many hard resets we've sent */
 static int hard_reset_counter = 0;
 /* Policy Engine thread mailbox */
@@ -183,6 +185,8 @@ static enum policy_engine_state pe_sink_select_cap(void)
             /* Transition to Sink Standby if necessary */
             pdb_dpm_sink_standby();
 
+            min_power = false;
+
             chPoolFree(&pdb_msg_pool, policy_engine_message);
             policy_engine_message = NULL;
             return PESinkTransitionSink;
@@ -203,9 +207,10 @@ static enum policy_engine_state pe_sink_select_cap(void)
                 return PESinkWaitCap;
             /* If we do have an explicit contract, go to the ready state */
             } else {
-                /* TODO: we should take note if we got here from a Wait
-                 * message, because we Should run the SinkRequestTimer in the
-                 * Ready state if that's the case. */
+                /* If we got here from a Wait message, we Should run
+                 * SinkRequestTimer in the Ready state. */
+                min_power = (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_WAIT);
+
                 chPoolFree(&pdb_msg_pool, policy_engine_message);
                 policy_engine_message = NULL;
                 return PESinkReady;
@@ -242,7 +247,7 @@ static enum policy_engine_state pe_sink_transition_sink(void)
             explicit_contract = true;
 
             /* Set the output appropriately */
-            pdb_dpm_output_set(capability_match);
+            pdb_dpm_output_set(capability_match && !min_power);
 
             chPoolFree(&pdb_msg_pool, policy_engine_message);
             policy_engine_message = NULL;
@@ -265,9 +270,16 @@ static enum policy_engine_state pe_sink_transition_sink(void)
 
 static enum policy_engine_state pe_sink_ready(void)
 {
+    eventmask_t evt;
+
     /* Wait for an event */
-    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
-            | PDB_EVT_PE_I_OVRTEMP);
+    if (min_power) {
+        evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
+                | PDB_EVT_PE_I_OVRTEMP, PD_T_SINK_REQUEST);
+    } else {
+        evt = chEvtWaitAny(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
+                | PDB_EVT_PE_I_OVRTEMP);
+    }
 
     /* If we got reset signaling, transition to default */
     if (evt & PDB_EVT_PE_RESET) {
@@ -277,6 +289,12 @@ static enum policy_engine_state pe_sink_ready(void)
     /* If we overheated, send a hard reset */
     if (evt & PDB_EVT_PE_I_OVRTEMP) {
         return PESinkHardReset;
+    }
+
+    /* If no event was received, the timer ran out. */
+    if (evt == 0) {
+        /* Repeat our Request message */
+        return PESinkSelectCap;
     }
 
     /* If we received a message */
@@ -330,14 +348,23 @@ static enum policy_engine_state pe_sink_ready(void)
                 chPoolFree(&pdb_msg_pool, policy_engine_message);
                 policy_engine_message = NULL;
                 return PESinkSendReject;
-            /* Reject GotoMin messages
-             * Until we actually support GiveBack, this is the correct
-             * behavior according to S. 6.3.4 */
+            /* Handle GotoMin messages */
             } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_GOTOMIN
                     && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
-                return PESinkSendReject;
+                if (pdb_dpm_giveback_enabled()) {
+                    /* We support GiveBack, so go to minimum power */
+                    pdb_dpm_output_set(false);
+                    min_power = true;
+
+                    chPoolFree(&pdb_msg_pool, policy_engine_message);
+                    policy_engine_message = NULL;
+                    return PESinkTransitionSink;
+                } else {
+                    /* We don't support GiveBack, so send a Reject */
+                    chPoolFree(&pdb_msg_pool, policy_engine_message);
+                    policy_engine_message = NULL;
+                    return PESinkSendReject;
+                }
             /* Evaluate new Source_Capabilities */
             } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOURCE_CAPABILITIES
                     && PD_NUMOBJ_GET(policy_engine_message) > 0) {

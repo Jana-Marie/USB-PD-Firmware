@@ -66,9 +66,18 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
                 /* We got what we wanted, so build a request for that */
                 request->hdr = PD_MSGTYPE_REQUEST | PD_DATAROLE_UFP |
                     PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
-                request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(cfg->i)
-                    | PD_RDO_FV_CURRENT_SET(cfg->i)
-                    | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
+                if (cfg->flags & PDB_CONFIG_FLAGS_GIVEBACK) {
+                    /* GiveBack enabled */
+                    request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(10)
+                        | PD_RDO_FV_CURRENT_SET(cfg->i)
+                        | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
+                        | PD_RDO_OBJPOS_SET(i + 1);
+                } else {
+                    /* GiveBack disabled */
+                    request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(cfg->i)
+                        | PD_RDO_FV_CURRENT_SET(cfg->i)
+                        | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
+                }
 
                 /* Update requested voltage */
                 dpm_requested_voltage = cfg->v;
@@ -77,7 +86,7 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
             }
         }
     }
-    /* Nothing matched (or no configuration), so get 5 V */
+    /* Nothing matched (or no configuration), so get 5 V at low current */
     request->hdr = PD_MSGTYPE_REQUEST | PD_DATAROLE_UFP |
         PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
     request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(10)
