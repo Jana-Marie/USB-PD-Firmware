@@ -50,6 +50,8 @@ enum policy_engine_state {
 
 /* The received message we're currently working with */
 static union pd_msg *policy_engine_message = NULL;
+/* The most recent Request from the DPM */
+static union pd_msg *last_dpm_request = NULL;
 /* Whether or not the source capabilities match our required power */
 static bool capability_match = false;
 /* Whether or not we have an explicit contract */
@@ -131,14 +133,15 @@ static enum policy_engine_state pe_sink_wait_cap(void)
 
 static enum policy_engine_state pe_sink_eval_cap(void)
 {
-    /* Get a message object */
-    union pd_msg *request = chPoolAlloc(&pdb_msg_pool);
+    /* Get a message object for the request if we don't have one already */
+    if (last_dpm_request == NULL) {
+        last_dpm_request = chPoolAlloc(&pdb_msg_pool);
+    }
     /* Ask the DPM what to request */
-    capability_match = pdb_dpm_evaluate_capability(policy_engine_message, request);
+    capability_match = pdb_dpm_evaluate_capability(policy_engine_message,
+            last_dpm_request);
     /* Free the Source_Capabilities message */
     chPoolFree(&pdb_msg_pool, policy_engine_message);
-    /* Put the request into policy_engine_message */
-    policy_engine_message = request;
 
     return PESinkSelectCap;
 }
@@ -146,13 +149,11 @@ static enum policy_engine_state pe_sink_eval_cap(void)
 static enum policy_engine_state pe_sink_select_cap(void)
 {
     /* Transmit the request */
-    chMBPost(&pdb_prltx_mailbox, (msg_t) policy_engine_message, TIME_IMMEDIATE);
+    chMBPost(&pdb_prltx_mailbox, (msg_t) last_dpm_request, TIME_IMMEDIATE);
     chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
-    /* Free the sent message */
-    chPoolFree(&pdb_msg_pool, policy_engine_message);
-    policy_engine_message = NULL;
+    /* Don't free the request; we might need it again */
     /* If we got reset signaling, transition to default */
     if (evt & PDB_EVT_PE_RESET) {
         return PESinkTransitionDefault;
