@@ -169,20 +169,18 @@ static const uint8_t vcom_string0[] = {
  * Vendor string.
  */
 static const uint8_t vcom_string1[] = {
-    USB_DESC_BYTE(34),                    /* bLength.                         */
+    USB_DESC_BYTE(18),                    /* bLength.                         */
     USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
-    'C', 0, 'l', 0, 'a', 0, 'y', 0, 't', 0, 'o', 0, 'n', 0, ' ', 0,
-    'G', 0, '.', 0, ' ', 0, 'H', 0, 'o', 0, 'b', 0, 'b', 0, 's', 0,
+    'P', 0, 'D', 0, ' ', 0, 'B', 0, 'u', 0, 'd', 0, 'd', 0, 'y', 0,
 };
 
 /*
  * Device Description string.
  */
 static const uint8_t vcom_string2[] = {
-    USB_DESC_BYTE(28),                    /* bLength.                         */
+    USB_DESC_BYTE(10),                    /* bLength.                         */
     USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
-    'P', 0, 'D', 0, ' ', 0, 'B', 0, 'u', 0, 'd', 0, 'd', 0, 'y', 0,
-    ' ', 0, 'S', 0, 'i', 0, 'n', 0, 'k', 0
+    'S', 0, 'i', 0, 'n', 0, 'k', 0
 };
 
 /*
