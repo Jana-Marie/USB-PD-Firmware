@@ -83,8 +83,8 @@ Prints licensing information for the firmware.
 
 Usage: `erase`
 
-Erases all stored configuration from flash.  This can be used to restore a
-device to its default state.
+Synchronously erases all stored configuration from flash.  This can be used to
+restore a device to its default state.
 
 Note: The `erase` command is mainly intended for development and testing.
 Stored configuration is automatically erased if necessary when `write` is run,
@@ -95,9 +95,9 @@ doing, there should be no reason to ever run `erase`.
 
 Usage: `write`
 
-Writes the contents of the configuration buffer to flash.  Wear leveling is
-done to ensure long flash life, and the flash sector is automatically erased if
-necessary.
+Synchronously writes the contents of the configuration buffer to flash.  Wear
+leveling is done to ensure long flash life, and the flash sector is
+automatically erased if necessary.
 
 ### load
 
