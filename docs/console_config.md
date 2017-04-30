@@ -149,3 +149,47 @@ Usage: `identify`
 
 Blinks the LED quickly.  Useful for identifying which device you're connected
 to if several are plugged in to your computer at once.
+
+## Configuration Format
+
+Wherever a configuration object is printed, the following format is used.
+
+The configuration consists of a number of fields, one per line.  Each field is
+of the format:
+
+    name: value
+
+Only the `status` field is mandatory.  Any or all other fields may be absent if
+their values are not valid or relevant.
+
+### status
+
+The `status` field holds the name of the status of the printed configuration
+object.  The possible names are:
+
+* `empty`: A configuration object left empty after the last erase.
+* `valid`: The configuration object that holds the current device settings.
+* `invalid`: A configuration object that once held settings, but has been
+  superseded.
+
+### flags
+
+The `flags` field holds zero or more flags.  If no flags are enabled, the
+field's value is `(none)`.  Otherwise, the field's value is some combination of
+the following words, separated by spaces, representing the flags enabled in
+this configuration object:
+
+* `GiveBack`: allows the power supply to temporarily reduce power to the device
+  if necessary.
+
+### v
+
+The `v` field holds the fixed voltage of the configuration object, in volts.
+The field's value is a floating-point decimal number, followed by a space and a
+capital V.  For example: `20.00 V`
+
+### i
+
+The `i` field holds the fixed current of the configuration object, in amperes.
+The field's value is a floating-point decimal number, followed by a space and a
+capital A.  For example: `2.25 A`
