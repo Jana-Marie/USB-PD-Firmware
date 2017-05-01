@@ -28,6 +28,9 @@
 #include "fusb302b.h"
 
 
+/* The current draw when the output is disabled */
+#define DPM_MIN_CURRENT PD_MA2PDI(100)
+
 /* Whether or not the power supply is unconstrained */
 static bool dpm_unconstrained_power;
 
@@ -68,7 +71,7 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
                     PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
                 if (cfg->flags & PDB_CONFIG_FLAGS_GIVEBACK) {
                     /* GiveBack enabled */
-                    request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(10)
+                    request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(DPM_MIN_CURRENT)
                         | PD_RDO_FV_CURRENT_SET(cfg->i)
                         | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
                         | PD_RDO_OBJPOS_SET(i + 1);
@@ -89,8 +92,8 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
     /* Nothing matched (or no configuration), so get 5 V at low current */
     request->hdr = PD_MSGTYPE_REQUEST | PD_DATAROLE_UFP |
         PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
-    request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(10)
-        | PD_RDO_FV_CURRENT_SET(10)
+    request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(DPM_MIN_CURRENT)
+        | PD_RDO_FV_CURRENT_SET(DPM_MIN_CURRENT)
         | PD_RDO_NO_USB_SUSPEND | PD_RDO_CAP_MISMATCH
         | PD_RDO_OBJPOS_SET(1);
 
@@ -110,10 +113,10 @@ void pdb_dpm_get_sink_capability(union pd_msg *cap)
     /* If we have no configuration or want something other than 5 V, add a PDO
      * for vSafe5V */
     if (cfg == NULL || cfg->v != 100) {
-        /* 100 mA, 5 V, and higher capability. */
+        /* Minimum current, 5 V, and higher capability. */
         cap->obj[numobj++] = PD_PDO_TYPE_FIXED
             | PD_PDO_SNK_FIXED_VOLTAGE_SET(100)
-            | PD_PDO_SNK_FIXED_CURRENT_SET(10);
+            | PD_PDO_SNK_FIXED_CURRENT_SET(DPM_MIN_CURRENT);
     }
 
     /* Add a PDO for the desired power. */
