@@ -112,10 +112,10 @@ void pdb_dpm_get_sink_capability(union pd_msg *cap)
 
     /* If we have no configuration or want something other than 5 V, add a PDO
      * for vSafe5V */
-    if (cfg == NULL || cfg->v != 100) {
+    if (cfg == NULL || cfg->v != PD_MV2PDV(5000)) {
         /* Minimum current, 5 V, and higher capability. */
         cap->obj[numobj++] = PD_PDO_TYPE_FIXED
-            | PD_PDO_SNK_FIXED_VOLTAGE_SET(100)
+            | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_MV2PDV(5000))
             | PD_PDO_SNK_FIXED_CURRENT_SET(DPM_MIN_CURRENT);
     }
 
@@ -125,7 +125,7 @@ void pdb_dpm_get_sink_capability(union pd_msg *cap)
             | PD_PDO_SNK_FIXED_VOLTAGE_SET(cfg->v)
             | PD_PDO_SNK_FIXED_CURRENT_SET(cfg->i);
         /* If we want more than 5 V, set the Higher Capability flag */
-        if (cfg->v != 100) {
+        if (cfg->v != PD_MV2PDV(5000)) {
             cap->obj[0] |= PD_PDO_SNK_FIXED_HIGHER_CAP;
         }
     }
@@ -164,7 +164,7 @@ bool pdb_dpm_evaluate_typec_current(void)
 
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
-    if (cfg == NULL || cfg->v != 100) {
+    if (cfg == NULL || cfg->v != PD_MV2PDV(5000)) {
         return false;
     }
 
