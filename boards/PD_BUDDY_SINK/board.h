@@ -41,14 +41,14 @@
 #define BOARD_H
 
 /*
- * Setup for PD Buddy board.
+ * Setup for PD Buddy Sink board.
  */
 
 /*
  * Board identifier.
  */
-#define BOARD_PD_BUDDY
-#define BOARD_NAME                  "PD Buddy"
+#define BOARD_PD_BUDDY_SINK
+#define BOARD_NAME                  "PD Buddy Sink"
 
 /*
  * Board oscillators-related settings.

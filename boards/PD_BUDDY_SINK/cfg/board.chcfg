@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--PD Buddy ChibiOS board configuration-->
+<!--PD Buddy Sink ChibiOS board configuration-->
 <board
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="http://www.chibios.org/xml/schema/boards/stm32f0xx_board.xsd">
@@ -8,12 +8,12 @@
     <output_path>..</output_path>
     <hal_version>3.0.x</hal_version>
   </configuration_settings>
-  <board_name>PD Buddy</board_name>
-  <board_id>PD_BUDDY</board_id>
+  <board_name>PD Buddy Sink</board_name>
+  <board_id>PD_BUDDY_SINK</board_id>
   <board_functions></board_functions>
   <subtype>STM32F072xB</subtype>
   <clocks HSEFrequency="0" HSEBypass="true" LSEFrequency="0"
-  	LSEBypass="false" LSEDrive="3 High Drive (default)" />
+  	LSEBypass="false" LSEDrive="3 High Drive (default)" ></clocks>
   <ports>
     <GPIOA>
       <pin0
