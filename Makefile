@@ -96,7 +96,7 @@ include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v6m.mk
 include $(CHIBIOS)/test/rt/test.mk
 
 # Define linker script file here
-LDSCRIPT=$(CHIBIOS)/../ld/STM32F072xB.ld
+LDSCRIPT=$(CHIBIOS)/../ld/STM32F072x8.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -191,7 +191,7 @@ CPPWARN = -Wall -Wextra -Wundef
 #
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS = -DPDB_CONFIG_BASE=0x0801F800
+UDEFS = -DPDB_CONFIG_BASE=0x0800F800
 
 # Define ASM defines here
 UADEFS =
