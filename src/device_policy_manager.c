@@ -48,7 +48,7 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
     uint8_t numobj = PD_NUMOBJ_GET(capabilities);
 
     /* Make the LED blink to indicate ongoing power negotiations */
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK);
+    chEvtSignal(pdb_led_thread, PDB_EVT_LED_NEGOTIATING);
 
     /* Get whether or not the power supply is constrained */
     dpm_unconstrained_power = capabilities->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
@@ -189,7 +189,7 @@ bool pdb_dpm_evaluate_typec_current(void)
 
 void pdb_dpm_pd_start(void)
 {
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK);
+    chEvtSignal(pdb_led_thread, PDB_EVT_LED_NEGOTIATING);
 }
 
 void pdb_dpm_sink_standby(void)
@@ -211,11 +211,11 @@ void pdb_dpm_output_set(bool state)
     /* Set the power output */
     if (state) {
         /* Turn the output on */
-        chEvtSignal(pdb_led_thread, PDB_EVT_LED_MEDIUM_BLINK_OFF);
+        chEvtSignal(pdb_led_thread, PDB_EVT_LED_OUTPUT_ON);
         palSetLine(LINE_OUT_CTRL);
     } else {
         /* Turn the output off */
-        chEvtSignal(pdb_led_thread, PDB_EVT_LED_ON);
+        chEvtSignal(pdb_led_thread, PDB_EVT_LED_OUTPUT_OFF);
         palClearLine(LINE_OUT_CTRL);
     }
 }

@@ -67,7 +67,7 @@ static const I2CConfig i2c2config = {
 static void setup(void)
 {
     /* Indicate that we're in setup mode */
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_SLOW_BLINK);
+    chEvtSignal(pdb_led_thread, PDB_EVT_LED_CONFIG);
 
     /* Disconnect from USB */
     usbDisconnectBus(serusbcfg.usbp);

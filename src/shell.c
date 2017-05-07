@@ -224,7 +224,7 @@ static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
         return;
     }
 
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_FAST_BLINK_SLOW);
+    chEvtSignal(pdb_led_thread, PDB_EVT_LED_IDENTIFY);
 }
 
 static const struct pdb_shell_cmd commands[] = {
