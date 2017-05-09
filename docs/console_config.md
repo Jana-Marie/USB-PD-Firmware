@@ -137,11 +137,17 @@ Usage: `set_v voltage_in_mV`
 
 Sets the voltage of the configuration buffer, in millivolts.
 
+Note: values are rounded down to the nearest Power Delivery voltage unit
+(50 mV).
+
 ### set_i
 
 Usage: `set_i current_in_mA`
 
 Sets the current of the configuration buffer, in milliamperes.
+
+Note: values are rounded down to the nearest Power Delivery current unit
+(10 mA).
 
 ### identify
 
