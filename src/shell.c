@@ -47,7 +47,7 @@
 
 /* Buffer for unwritten configuration */
 static struct pdb_config tmpcfg = {
-    .status = PDB_CONFIG_STATUS_EMPTY
+    .status = PDB_CONFIG_STATUS_VALID
 };
 
 static void cmd_license(BaseSequentialStream *chp, int argc, char *argv[])
@@ -187,7 +187,6 @@ static void cmd_set_v(BaseSequentialStream *chp, int argc, char *argv[])
     char *endptr;
     long i = strtol(argv[0], &endptr, 0);
     if (i >= 0 && i <= UINT16_MAX && endptr > argv[0]) {
-        tmpcfg.status = PDB_CONFIG_STATUS_VALID;
         /* Convert mV to the unit used by USB PD */
         tmpcfg.v = PD_MV2PDV(i);
     } else {
@@ -206,7 +205,6 @@ static void cmd_set_i(BaseSequentialStream *chp, int argc, char *argv[])
     char *endptr;
     long i = strtol(argv[0], &endptr, 0);
     if (i >= 0 && i <= UINT16_MAX && endptr > argv[0]) {
-        tmpcfg.status = PDB_CONFIG_STATUS_VALID;
         /* Convert mA to the unit used by USB PD */
         tmpcfg.i = PD_MA2PDI(i);
     } else {
