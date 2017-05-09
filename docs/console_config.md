@@ -113,8 +113,9 @@ Usage: `get_cfg [index]`
 If no index is provided, prints the current configuration from flash.  If there
 is no configuration, `No configuration` is printed instead.
 
-For developers, if an index is provided, prints a particular location in the
-configuration flash sector.
+For developers: if an index is provided, prints a particular location in the
+configuration flash sector.  If the index lies outside the configuration flash
+sector, `Invalid index` is printed instead.
 
 ### get_tmpcfg
 
