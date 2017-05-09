@@ -67,6 +67,9 @@ unplugged at any time.
 
 ## Commands
 
+Commands are echoed on the terminal as characters are received.  Lines are
+separated by `\r\n` and a command's output ends with the `PDBS) ` prompt.
+
 ### help
 
 Usage: `help`
