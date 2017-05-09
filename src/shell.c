@@ -165,6 +165,18 @@ static void cmd_get_tmpcfg(BaseSequentialStream *chp, int argc, char *argv[])
     pdb_config_print(chp, &tmpcfg);
 }
 
+static void cmd_clear_flags(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    (void) argv;
+    if (argc > 0) {
+        chprintf(chp, "Usage: clear_flags\r\n");
+        return;
+    }
+
+    /* Clear all flags */
+    tmpcfg.flags = 0;
+}
+
 static void cmd_toggle_giveback(BaseSequentialStream *chp, int argc, char *argv[])
 {
     (void) argv;
@@ -232,6 +244,7 @@ static const struct pdb_shell_cmd commands[] = {
     {"load", cmd_load, "Load the stored configuration into the buffer"},
     {"get_cfg", cmd_get_cfg, "Print the stored configuration"},
     {"get_tmpcfg", cmd_get_tmpcfg, "Print the configuration buffer"},
+    {"clear_flags", cmd_clear_flags, "Clear all flags"},
     {"toggle_giveback", cmd_toggle_giveback, "Toggle the GiveBack flag"},
     /* TODO {"toggle_var_bat", cmd_toggle_var_bat, "Toggle the Var/Bat flag"},*/
     {"set_v", cmd_set_v, "Set the voltage in millivolts"},

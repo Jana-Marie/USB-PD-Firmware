@@ -104,7 +104,8 @@ automatically erased if necessary.
 Usage: `load`
 
 Loads the current configuration from flash into the buffer.  Useful if you want
-to change some settings while leaving others alone.
+to change some settings while leaving others alone.  If there is no
+configuration, `No configuration` is printed instead.
 
 ### get_cfg
 
@@ -122,6 +123,12 @@ sector, `Invalid index` is printed instead.
 Usage: `get_tmpcfg`
 
 Prints the contents of the configuration buffer.
+
+### clear_flags
+
+Usage: `clear_flags`
+
+Clears all the flags in the configuration buffer.
 
 ### toggle_giveback
 
