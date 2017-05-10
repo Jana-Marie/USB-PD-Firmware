@@ -70,6 +70,10 @@ unplugged at any time.
 Commands are echoed on the terminal as characters are received.  Lines are
 separated by `\r\n` and a command's output ends with the `PDBS) ` prompt.
 
+The command buffer can be cleared by sending ^D (a `\x04` character).  It is
+recommended to do this at the start of programmatic communications to ensure
+that the first command sent will be correctly processed.
+
 ### help
 
 Usage: `help`
