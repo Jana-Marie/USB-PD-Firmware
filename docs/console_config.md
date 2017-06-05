@@ -221,11 +221,12 @@ capital A.  For example: `2.25 A`
 
 The PD Buddy Sink can be identified by the following USB device descriptors:
 
-* idVendor: 0x1209 (InterBiometrics, or pid.codes)
+* idVendor: 0x1209 (InterBiometrics, or [pid.codes][])
 * idProduct: 0x9DB5 (PD Buddy Sink)
 
 The device's firmware version number is given in the iSerial descriptor.  The
 version number follows [Semantic Versioning][].  The serial console
 configuration interface is the API that the version number describes.
 
+[pid.codes]: http://pid.codes/
 [Semantic Versioning]: http://semver.org/
