@@ -1,8 +1,8 @@
-# PD Buddy firmware
+# PD Buddy Sink Firmware
 
 This is the firmware for the PD Buddy project.  Currently, this specifically
-means the [PD Buddy Sink][].  The firmware is currently under heavy development,
-but is largely functional.
+means the [PD Buddy Sink][].  The firmware is considered stable, and supports
+the most common use cases for the device.
 
 [PD Buddy Sink]: https://git.clayhobbs.com/pd-buddy/pd-buddy-sink
 
@@ -17,6 +17,8 @@ but is largely functional.
   power request otherwise.
 * Provides power on the output connector only when an explicit contract is in
   place for the configured voltage and current.
+* Optional GiveBack support allows power supplies to temporarily remove power
+  from the PD Buddy Sink if necessary.
 * Setup mode implements a USB CDC-ACM command-line interface allowing
   configuration to be loaded from and stored in flash.
 
