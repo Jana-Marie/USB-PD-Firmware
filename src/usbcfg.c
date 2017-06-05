@@ -55,7 +55,7 @@ static const uint8_t vcom_device_descriptor_data[18] = {
             0x00,          /* bDeviceProtocol.                 */
             0x40,          /* bMaxPacketSize.                  */
             0x1209,        /* idVendor (pid.codes).            */
-            0x0001,        /* idProduct.                       */
+            0x9DB5,        /* idProduct (PD Buddy Sink).       */
             0x0200,        /* bcdDevice.                       */
             1,             /* iManufacturer.                   */
             2,             /* iProduct.                        */
