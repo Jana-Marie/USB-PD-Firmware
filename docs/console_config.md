@@ -1,5 +1,7 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
+Version 1.0.0, 2017-06-05
+
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device does not perform any USB
 Power Delivery communications, instead running a configuration console over a
@@ -214,3 +216,16 @@ capital V.  For example: `20.00 V`
 The `i` field holds the fixed current of the configuration object, in amperes.
 The field's value is a floating-point decimal number, followed by a space and a
 capital A.  For example: `2.25 A`
+
+## USB Descriptors
+
+The PD Buddy Sink can be identified by the following USB device descriptors:
+
+* idVendor: 0x1209 (InterBiometrics, or pid.codes)
+* idProduct: 0x9DB5 (PD Buddy Sink)
+
+The device's firmware version number is given in the iSerial descriptor.  The
+version number follows [Semantic Versioning][].  The serial console
+configuration interface is the API that the version number describes.
+
+[Semantic Versioning]: http://semver.org/
