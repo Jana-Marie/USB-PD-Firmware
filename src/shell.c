@@ -198,7 +198,7 @@ static void cmd_set_v(BaseSequentialStream *chp, int argc, char *argv[])
 
     char *endptr;
     long i = strtol(argv[0], &endptr, 0);
-    if (i >= 0 && i <= UINT16_MAX && endptr > argv[0]) {
+    if (i >= PD_MV_MIN && i <= PD_MV_MAX && endptr > argv[0]) {
         /* Convert mV to the unit used by USB PD */
         tmpcfg.v = PD_MV2PDV(i);
     } else {
@@ -216,7 +216,7 @@ static void cmd_set_i(BaseSequentialStream *chp, int argc, char *argv[])
 
     char *endptr;
     long i = strtol(argv[0], &endptr, 0);
-    if (i >= 0 && i <= UINT16_MAX && endptr > argv[0]) {
+    if (i >= PD_MA_MIN && i <= PD_MA_MAX && endptr > argv[0]) {
         /* Convert mA to the unit used by USB PD */
         tmpcfg.i = PD_MA2PDI(i);
     } else {

@@ -256,5 +256,17 @@
 #define PD_PDI_A(pdv) ((pdv) / 100)
 #define PD_PDI_CA(pdv) ((pdv) % 100)
 
+/*
+ * Unit constants
+ */
+#define PD_MV_MIN 0
+#define PD_MV_MAX 20000
+#define PD_PDV_MIN PD_MV2PDV(PD_MV_MIN)
+#define PD_PDV_MAX PD_MV2PDV(PD_MV_MAX)
+#define PD_MA_MIN 0
+#define PD_MA_MAX 5000
+#define PD_PDI_MIN PD_MA2PDI(PD_MA_MIN)
+#define PD_PDI_MAX PD_MA2PDI(PD_MA_MAX)
+
 
 #endif /* PDB_PD_H */

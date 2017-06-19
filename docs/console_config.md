@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.0.0, 2017-06-05
+Version 1.0.1, 2017-06-19
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device does not perform any USB
@@ -152,7 +152,8 @@ battery.
 
 Usage: `set_v voltage_in_mV`
 
-Sets the voltage of the configuration buffer, in millivolts.
+Sets the voltage of the configuration buffer, in millivolts.  Prints no output
+on success, an error message on failure.
 
 Note: values are rounded down to the nearest Power Delivery voltage unit
 (50 mV).
@@ -161,7 +162,8 @@ Note: values are rounded down to the nearest Power Delivery voltage unit
 
 Usage: `set_i current_in_mA`
 
-Sets the current of the configuration buffer, in milliamperes.
+Sets the current of the configuration buffer, in milliamperes.  Prints no
+output on success, an error message on failure.
 
 Note: values are rounded down to the nearest Power Delivery current unit
 (10 mA).
