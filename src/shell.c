@@ -50,6 +50,10 @@ static struct pdb_config tmpcfg = {
     .status = PDB_CONFIG_STATUS_VALID
 };
 
+/*
+ * Command functions
+ */
+
 static void cmd_license(BaseSequentialStream *chp, int argc, char *argv[])
 {
     (void) argv;
@@ -237,6 +241,9 @@ static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_IDENTIFY);
 }
 
+/*
+ * List of shell commands
+ */
 static const struct pdb_shell_cmd commands[] = {
     {"license", cmd_license, "Show copyright and license information"},
     {"erase", cmd_erase, "Erase all stored configuration"},
@@ -254,6 +261,9 @@ static const struct pdb_shell_cmd commands[] = {
     {NULL, NULL, NULL}
 };
 
+/*
+ * The shell's configuration
+ */
 const struct pdb_shell_cfg shell_cfg = {
     (BaseSequentialStream *)&SDU1,
     commands
@@ -302,9 +312,7 @@ static bool cmdexec(const struct pdb_shell_cmd *scp, BaseSequentialStream *chp,
 }
 
 /*
- * PD Buddy configuration shell
- *
- * p: The configuration for the shell itself
+ * PD Buddy Sink configuration shell
  */
 void pdb_shell(void)
 {
@@ -315,15 +323,22 @@ void pdb_shell(void)
     char *args[PDB_SHELL_MAX_ARGUMENTS + 1];
 
     while (true) {
+        /* Print the prompt */
         chprintf(chp, "PDBS) ");
+
+        /* Read a line of input */
         if (shellGetLine(chp, line, sizeof(line))) {
+            /* If a command was not entered, prompt again */
             chprintf(chp, "\r\n");
             continue;
         }
+
+        /* Tokenize the line */
         lp = _strtok(line, " \t", &tokp);
         cmd = lp;
         n = 0;
         while ((lp = _strtok(NULL, " \t", &tokp)) != NULL) {
+            /* If we have too many tokens, abort */
             if (n >= PDB_SHELL_MAX_ARGUMENTS) {
                 chprintf(chp, "too many arguments\r\n");
                 cmd = NULL;
@@ -332,7 +347,10 @@ void pdb_shell(void)
             args[n++] = lp;
         }
         args[n] = NULL;
+
+        /* If there's a command to run, run it */
         if (cmd != NULL) {
+            /* Handle "help" in a special way */
             if (strcmp(cmd, "help") == 0) {
                 if (n > 0) {
                     chprintf(chp, "Usage: help\r\n");
@@ -344,6 +362,8 @@ void pdb_shell(void)
                 if (scp != NULL)
                     list_commands(chp, scp);
             }
+            /* Run a command, giving a generic error message if there is no
+             * such command */
             else if ((scp == NULL) || cmdexec(scp, chp, cmd, n, args)) {
                 chprintf(chp, "%s", cmd);
                 chprintf(chp, " ?\r\n");
@@ -372,13 +392,16 @@ bool shellGetLine(BaseSequentialStream *chp, char *line, unsigned size)
     while (true) {
         char c;
 
+        /* Read a character */
         if (chSequentialStreamRead(chp, (uint8_t *)&c, 1) == 0)
             return true;
-        if (c == 4) {
+        /* Abort if ^D is received */
+        if (c == '\x04') {
             chprintf(chp, "^D");
             return true;
         }
-        if ((c == 8) || (c == 127)) {
+        /* Delete a character if ASCII backspace or delete is received */
+        if ((c == '\b') || (c == '\x7F')) {
             if (p != line) {
                 chSequentialStreamPut(chp, 0x08);
                 chSequentialStreamPut(chp, 0x20);
@@ -387,13 +410,16 @@ bool shellGetLine(BaseSequentialStream *chp, char *line, unsigned size)
             }
             continue;
         }
+        /* Finish reading input if Enter is pressed */
         if (c == '\r') {
             chprintf(chp, "\r\n");
             *p = 0;
             return false;
         }
-        if (c < 0x20)
+        /* Ignore other non-printing characters */
+        if (c < ' ')
             continue;
+        /* If there's room in the line buffer, append the new character */
         if (p < line + size - 1) {
             chSequentialStreamPut(chp, c);
             *p++ = (char)c;
