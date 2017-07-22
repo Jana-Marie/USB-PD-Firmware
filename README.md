@@ -34,8 +34,9 @@ This will give you a complete copy of the repository, including the ChibiOS
 submodule.
 
 You will also need to install some program to flash the firmware.  The simplest
-option is [dfu-util][], as it requires no extra hardware.  If you prefer to use
-SWD, you could also use [stlink][] or [OpenOCD][].
+option is [dfu-util][], as it requires no extra hardware (though either the
+Boot switch must be installed or two pads must be bridged).  If you prefer to
+use SWD, you could also use [stlink][] or [OpenOCD][].
 
 [toolchain]: https://launchpad.net/gcc-arm-embedded
 [dfu-util]: http://dfu-util.sourceforge.net/
@@ -58,12 +59,16 @@ the following:
 
 ### dfu-util
 
-Set the boot mode switch on the PD Buddy Sink to DFU mode and plug it into your
-computer.  Flash the firmware with:
+Set the Boot switch (SW1) on the PD Buddy Sink to the position not marked on
+the silkscreen to set the device to DFU mode.  If your Sink doesn't have a Boot
+switch, you can simply bridge the two long, close-together pads on the
+footprint for SW1 with a blob of solder to achieve the same effect.  Once the
+Sink is set to DFU mode, plug it into your computer.  Flash the firmware with:
 
     $ dfu-util -a 0 -s 0x08000000:leave -D build/pd-buddy-firmware.bin
 
-Don't forget to set the switch back to normal mode after unplugging the device.
+Don't forget to set the switch back to normal mode (or remove the solder blob)
+after unplugging the device.
 
 ### stlink
 
