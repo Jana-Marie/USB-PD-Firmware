@@ -30,6 +30,8 @@
 
 bool pdb_dpm_led_pd_status = true;
 
+bool pdb_dpm_usb_comms = false;
+
 
 /* The current draw when the output is disabled */
 #define DPM_MIN_CURRENT PD_MA2PDI(100)
@@ -86,6 +88,9 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
                         | PD_RDO_FV_CURRENT_SET(cfg->i)
                         | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
                 }
+                if (pdb_dpm_usb_comms) {
+                    request->obj[0] |= PD_RDO_USB_COMMS;
+                }
 
                 /* Update requested voltage */
                 dpm_requested_voltage = cfg->v;
@@ -101,6 +106,9 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
         | PD_RDO_FV_CURRENT_SET(DPM_MIN_CURRENT)
         | PD_RDO_NO_USB_SUSPEND | PD_RDO_CAP_MISMATCH
         | PD_RDO_OBJPOS_SET(1);
+    if (pdb_dpm_usb_comms) {
+        request->obj[0] |= PD_RDO_USB_COMMS;
+    }
 
     /* Update requested voltage */
     dpm_requested_voltage = PD_MV2PDV(5000);
@@ -138,6 +146,11 @@ void pdb_dpm_get_sink_capability(union pd_msg *cap)
     /* Set the unconstrained power flag. */
     if (dpm_unconstrained_power) {
         cap->obj[0] |= PD_PDO_SNK_FIXED_UNCONSTRAINED;
+    }
+
+    /* Set the USB communications capable flag. */
+    if (pdb_dpm_usb_comms) {
+        cap->obj[0] |= PD_PDO_SNK_FIXED_USB_COMMS;
     }
 
     /* Set the Sink_Capabilities message header */

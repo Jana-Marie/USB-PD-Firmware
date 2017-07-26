@@ -27,6 +27,9 @@
 /* Whether the DPM sets the LED to indicate the PD status */
 extern bool pdb_dpm_led_pd_status;
 
+/* Whether the device is capable of USB communications */
+extern bool pdb_dpm_usb_comms;
+
 
 /*
  * Create a Request message based on the given Source_Capabilities message.

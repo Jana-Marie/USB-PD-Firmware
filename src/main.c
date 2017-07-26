@@ -90,8 +90,9 @@ static void start_pd(void)
  */
 static void setup(void)
 {
-    /* Set the DPM to not set the LED to show PD status */
+    /* Configure the DPM to play nice with the shell */
     pdb_dpm_led_pd_status = false;
+    pdb_dpm_usb_comms = true;
 
     /* Start the USB Power Delivery threads */
     start_pd();
