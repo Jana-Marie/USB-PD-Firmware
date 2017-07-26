@@ -62,10 +62,36 @@ static const I2CConfig i2c2config = {
 };
 
 /*
+ * Start the USB Power Delivery threads
+ */
+static void start_pd(void)
+{
+    /* Start I2C2 to make communication with the PHY possible */
+    i2cStart(&I2CD2, &i2c2config);
+
+    /* Initialize the FUSB302B */
+    fusb_setup();
+
+    /* Create the policy engine thread. */
+    pdb_pe_run();
+
+    /* Create the protocol layer threads. */
+    pdb_prlrx_run();
+    pdb_prltx_run();
+    pdb_hardrst_run();
+
+    /* Create the INT_N thread. */
+    pdb_int_n_run();
+}
+
+/*
  * Enter setup mode
  */
 static void setup(void)
 {
+    /* Start the USB Power Delivery threads */
+    start_pd();
+
     /* Indicate that we're in setup mode */
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_CONFIG);
 
@@ -90,22 +116,8 @@ static void setup(void)
  */
 static void sink(void)
 {
-    /* Start I2C2 to make communication with the PHY possible */
-    i2cStart(&I2CD2, &i2c2config);
-
-    /* Initialize the FUSB302B */
-    fusb_setup();
-
-    /* Create the policy engine thread. */
-    pdb_pe_run();
-
-    /* Create the protocol layer threads. */
-    pdb_prlrx_run();
-    pdb_prltx_run();
-    pdb_hardrst_run();
-
-    /* Create the INT_N thread. */
-    pdb_int_n_run();
+    /* Start the USB Power Delivery threads */
+    start_pd();
 
     /* Wait, letting all the other threads do their work. */
     while (true) {

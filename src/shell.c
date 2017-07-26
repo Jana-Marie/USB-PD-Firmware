@@ -393,8 +393,10 @@ bool shellGetLine(BaseSequentialStream *chp, char *line, unsigned size)
         char c;
 
         /* Read a character */
-        if (chSequentialStreamRead(chp, (uint8_t *)&c, 1) == 0)
-            return true;
+        /* The cast to BaseAsynchronousChannel * is safe because we know that
+         * chp is always really of that type. */
+        while (chnReadTimeout((BaseAsynchronousChannel *) chp, (uint8_t *)&c, 1, TIME_IMMEDIATE) == 0)
+            chThdSleepMilliseconds(2);
         /* Abort if ^D is received */
         if (c == '\x04') {
             chprintf(chp, "^D");
