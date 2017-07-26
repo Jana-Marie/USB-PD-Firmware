@@ -29,6 +29,7 @@
 #define PDB_EVT_PE_TX_ERR EVENT_MASK(3)
 #define PDB_EVT_PE_HARD_SENT EVENT_MASK(4)
 #define PDB_EVT_PE_I_OVRTEMP EVENT_MASK(5)
+#define PDB_EVT_PE_GET_SOURCE_CAP EVENT_MASK(6)
 
 /* The Policy Engine thread object */
 extern thread_t *pdb_pe_thread;

@@ -275,10 +275,11 @@ static enum policy_engine_state pe_sink_ready(void)
     /* Wait for an event */
     if (min_power) {
         evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
-                | PDB_EVT_PE_I_OVRTEMP, PD_T_SINK_REQUEST);
+                | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP,
+                PD_T_SINK_REQUEST);
     } else {
         evt = chEvtWaitAny(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
-                | PDB_EVT_PE_I_OVRTEMP);
+                | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP);
     }
 
     /* If we got reset signaling, transition to default */
@@ -289,6 +290,11 @@ static enum policy_engine_state pe_sink_ready(void)
     /* If we overheated, send a hard reset */
     if (evt & PDB_EVT_PE_I_OVRTEMP) {
         return PESinkHardReset;
+    }
+
+    /* If the DPM wants us to, send a Get_Source_Cap message */
+    if (evt & PDB_EVT_PE_GET_SOURCE_CAP) {
+        return PESinkGetSourceCap;
     }
 
     /* If no event was received, the timer ran out. */
@@ -397,7 +403,28 @@ static enum policy_engine_state pe_sink_ready(void)
 
 static enum policy_engine_state pe_sink_get_source_cap(void)
 {
-    /* Stubbed until we actually have a need for this */
+    /* Get a message object */
+    union pd_msg *get_source_cap = chPoolAlloc(&pdb_msg_pool);
+    /* Make a Get_Source_Cap message */
+    get_source_cap->hdr = PD_MSGTYPE_GET_SOURCE_CAP | PD_DATAROLE_UFP
+        | PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(0);
+    /* Transmit the Get_Source_Cap */
+    chMBPost(&pdb_prltx_mailbox, (msg_t) get_source_cap, TIME_IMMEDIATE);
+    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
+    eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
+            | PDB_EVT_PE_RESET);
+    /* Free the sent message */
+    chPoolFree(&pdb_msg_pool, get_source_cap);
+    get_source_cap = NULL;
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
+    /* If the message transmission failed, send a hard reset */
+    if ((evt & PDB_EVT_PE_TX_DONE) == 0) {
+        return PESinkHardReset;
+    }
+
     return PESinkReady;
 }
 

@@ -42,6 +42,7 @@
 #include "usbcfg.h"
 #include "storage.h"
 #include "led.h"
+#include "policy_engine.h"
 #include "pd.h"
 
 
@@ -101,6 +102,8 @@ static void cmd_write(BaseSequentialStream *chp, int argc, char *argv[])
     }
 
     pdb_config_flash_update(&tmpcfg);
+
+    chEvtSignal(pdb_pe_thread, PDB_EVT_PE_GET_SOURCE_CAP);
 }
 
 static void cmd_load(BaseSequentialStream *chp, int argc, char *argv[])
