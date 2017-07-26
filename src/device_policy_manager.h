@@ -24,6 +24,10 @@
 #include "messages.h"
 
 
+/* Whether the DPM sets the LED to indicate the PD status */
+extern bool pdb_dpm_led_pd_status;
+
+
 /*
  * Create a Request message based on the given Source_Capabilities message.
  *

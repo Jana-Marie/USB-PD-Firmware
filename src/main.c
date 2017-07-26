@@ -42,6 +42,7 @@
 
 #include "priorities.h"
 #include "led.h"
+#include "device_policy_manager.h"
 #include "policy_engine.h"
 #include "protocol_tx.h"
 #include "protocol_rx.h"
@@ -89,6 +90,9 @@ static void start_pd(void)
  */
 static void setup(void)
 {
+    /* Set the DPM to not set the LED to show PD status */
+    pdb_dpm_led_pd_status = false;
+
     /* Start the USB Power Delivery threads */
     start_pd();
 
