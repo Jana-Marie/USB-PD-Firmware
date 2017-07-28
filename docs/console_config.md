@@ -1,11 +1,11 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.0.1, 2017-06-19
+Version 1.1.0-dev, 2017-07-27
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
-plugging it into a computer.  In this mode, the device does not perform any USB
-Power Delivery communications, instead running a configuration console over a
-USB CDC-ACM virtual serial port.  This allows the user to change the voltage
+plugging it into a computer.  In this mode, the device runs a configuration
+interface over a USB CDC-ACM virtual serial port in addition to the usual USB
+Power Delivery communications.  This allows the user to change the voltage
 and current the Sink requests, as well as other settings related to the
 device's operation.
 
@@ -108,6 +108,10 @@ Synchronously writes the contents of the configuration buffer to flash.  Wear
 leveling is done to ensure long flash life, and the flash sector is
 automatically erased if necessary.
 
+If the output is enabled, the newly written configuration is automatically
+negotiated.  The newly configured power is then made available on the output
+connector if it is available from the source.
+
 ### load
 
 Usage: `load`
@@ -174,6 +178,19 @@ Usage: `identify`
 
 Blinks the LED quickly.  Useful for identifying which device you're connected
 to if several are plugged in to your computer at once.
+
+### output
+
+Usage: `output [enable|disable]`
+
+If no argument is provided, prints the state of the power output (`enabled` or
+`disabled`).
+
+If an argument is provided, sets the output to the specified state.
+
+This command only affects whether the output can be turned on during the
+ongoing run of Setup mode.  The output is disabled in Setup mode by default,
+and is always enabled in Sink mode.
 
 ## Configuration Format
 
