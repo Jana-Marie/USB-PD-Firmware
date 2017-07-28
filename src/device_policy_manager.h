@@ -24,6 +24,9 @@
 #include "messages.h"
 
 
+/* Whether the DPM is able to turn on the output */
+extern bool pdb_dpm_output_enabled;
+
 /* Whether the DPM sets the LED to indicate the PD status */
 extern bool pdb_dpm_led_pd_status;
 

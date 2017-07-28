@@ -42,6 +42,7 @@
 #include "usbcfg.h"
 #include "storage.h"
 #include "led.h"
+#include "device_policy_manager.h"
 #include "policy_engine.h"
 #include "pd.h"
 
@@ -244,6 +245,33 @@ static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_IDENTIFY);
 }
 
+static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    if (argc == 0) {
+        /* With no arguments, print the output status */
+        if (pdb_dpm_output_enabled) {
+            chprintf(chp, "enabled\r\n");
+        } else {
+            chprintf(chp, "disabled\r\n");
+        }
+    } else if (argc == 1) {
+        /* Set the output status and re-negotiate power */
+        if (strcmp(argv[0], "enable") == 0) {
+            pdb_dpm_output_enabled = true;
+            chEvtSignal(pdb_pe_thread, PDB_EVT_PE_GET_SOURCE_CAP);
+        } else if (strcmp(argv[0], "disable") == 0) {
+            pdb_dpm_output_enabled = false;
+            chEvtSignal(pdb_pe_thread, PDB_EVT_PE_GET_SOURCE_CAP);
+        } else {
+            /* Or, if the argument was invalid, print a usage message */
+            chprintf(chp, "Usage: output [enable|disable]\r\n");
+        }
+    } else {
+        /* If there are too many arguments, print a usage message */
+        chprintf(chp, "Usage: output [enable|disable]\r\n");
+    }
+}
+
 /*
  * List of shell commands
  */
@@ -261,6 +289,7 @@ static const struct pdb_shell_cmd commands[] = {
     {"set_i", cmd_set_i, "Set the current in milliamps"},
     /* TODO {"set_v_range", cmd_set_v_range, "Set the minimum and maximum voltage in millivolts"},*/
     {"identify", cmd_identify, "Blink the LED to identify the device"},
+    {"output", cmd_output, "Get or set the output status"},
     {NULL, NULL, NULL}
 };
 

@@ -28,6 +28,8 @@
 #include "fusb302b.h"
 
 
+bool pdb_dpm_output_enabled = true;
+
 bool pdb_dpm_led_pd_status = true;
 
 bool pdb_dpm_usb_comms = false;
@@ -229,7 +231,7 @@ void pdb_dpm_output_set(bool state)
     dpm_present_voltage = dpm_requested_voltage;
 
     /* Set the power output */
-    if (state) {
+    if (state && pdb_dpm_output_enabled) {
         /* Turn the output on */
         if (pdb_dpm_led_pd_status) {
             chEvtSignal(pdb_led_thread, PDB_EVT_LED_OUTPUT_ON);

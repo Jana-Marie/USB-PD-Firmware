@@ -91,6 +91,7 @@ static void start_pd(void)
 static void setup(void)
 {
     /* Configure the DPM to play nice with the shell */
+    pdb_dpm_output_enabled = false;
     pdb_dpm_led_pd_status = false;
     pdb_dpm_usb_comms = true;
 
