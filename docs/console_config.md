@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.1.0-dev, 2017-07-27
+Version 1.1.0-dev, 2017-07-28
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
@@ -192,6 +192,14 @@ This command only affects whether the output can be turned on during the
 ongoing run of Setup mode.  The output is disabled in Setup mode by default,
 and is always enabled in Sink mode.
 
+### get_source_cap
+
+Usage: `get_source_cap`
+
+Prints the capabilities advertised by the Power Delivery source.  Each
+capability is represented by a Power Data Object (PDO), printed in the format
+listed in the PDO Format section below.
+
 ## Configuration Format
 
 Wherever a configuration object is printed, the following format is used.
@@ -235,6 +243,23 @@ capital V.  For example: `20.00 V`
 The `i` field holds the fixed current of the configuration object, in amperes.
 The field's value is a floating-point decimal number, followed by a space and a
 capital A.  For example: `2.25 A`
+
+## PDO Format
+
+Wherever a PDO is printed, the following format is used.  
+
+A PDO consists of a number of fields, one per line.  Each field is of the
+format:
+
+    name: value
+
+When a list of PDOs is printed, each PDO is numbered with a line as follows:
+
+    PDO #1:
+
+The fields of such a PDO are each indented by a single ASCII tab character.
+
+**TODO**: describe exactly how each type of PDO is printed.
 
 ## USB Descriptors
 
