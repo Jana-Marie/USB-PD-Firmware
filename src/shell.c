@@ -59,7 +59,7 @@ static void print_src_fixed_pdo(BaseSequentialStream *chp, uint32_t pdo)
 {
     int tmp;
 
-    chprintf(chp, "\ttype: fixed\r\n");
+    chprintf(chp, "fixed\r\n");
 
     /* Dual-role power */
     tmp = (pdo & PD_PDO_SRC_FIXED_DUAL_ROLE_PWR) >> PD_PDO_SRC_FIXED_DUAL_ROLE_PWR_SHIFT;
@@ -110,7 +110,7 @@ static void print_src_pdo(BaseSequentialStream *chp, uint32_t pdo, uint8_t index
 {
     /* If we have a positive index, print a label for the PDO */
     if (index) {
-        chprintf(chp, "PDO %d:\r\n", index);
+        chprintf(chp, "PDO %d: ", index);
     }
 
     /* Select the appropriate method for printing the PDO itself */
@@ -118,7 +118,7 @@ static void print_src_pdo(BaseSequentialStream *chp, uint32_t pdo, uint8_t index
         print_src_fixed_pdo(chp, pdo);
     } else {
         /* Unknown PDO, just print it as hex */
-        chprintf(chp, "\t%08X\r\n", pdo);
+        chprintf(chp, "%08X\r\n", pdo);
     }
 }
 
