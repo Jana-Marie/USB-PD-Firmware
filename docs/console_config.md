@@ -246,18 +246,17 @@ capital A.  For example: `2.25 A`
 
 ## PDO Format
 
-Wherever a PDO is printed, the following format is used.  
-
-A PDO consists of a number of fields, one per line.  Each field is of the
-format:
-
-    name: value
-
 When a list of PDOs is printed, each PDO is numbered with a line as follows:
 
-    PDO #1:
+    PDO n: type
 
-The fields of such a PDO are each indented by a single ASCII tab character.
+`n` is the index of the PDO.  `type` is one of `fixed`, `variable`, `battery`,
+or the entire PDO represented as a 32-bit hexadecimal number if the type is
+unknown.  If `type` is not a hexadecimal number, the rest of the PDO is printed
+as a list of fields, one per line, each indented by a single ASCII tab
+character.  Each field is of the format:
+
+    name: value
 
 **TODO**: describe exactly how each type of PDO is printed.
 
