@@ -33,6 +33,9 @@ extern bool pdb_dpm_led_pd_status;
 /* Whether the device is capable of USB communications */
 extern bool pdb_dpm_usb_comms;
 
+/* The most recently received Source_Capabilities message */
+extern const union pd_msg *pdb_dpm_capabilities;
+
 
 /*
  * Create a Request message based on the given Source_Capabilities message.

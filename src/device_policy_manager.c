@@ -29,10 +29,10 @@
 
 
 bool pdb_dpm_output_enabled = true;
-
 bool pdb_dpm_led_pd_status = true;
-
 bool pdb_dpm_usb_comms = false;
+
+const union pd_msg *pdb_dpm_capabilities = NULL;
 
 
 /* The current draw when the output is disabled */
@@ -49,6 +49,14 @@ static int dpm_requested_voltage;
 
 bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg *request)
 {
+    /* Update the stored Source_Capabilities */
+    if (capabilities != NULL) {
+        if (pdb_dpm_capabilities != NULL) {
+            chPoolFree(&pdb_msg_pool, (union pd_msg *) pdb_dpm_capabilities);
+        }
+        pdb_dpm_capabilities = capabilities;
+    }
+
     /* Get the current configuration */
     struct pdb_config *cfg = pdb_config_flash_read();
     /* Get the number of PDOs */

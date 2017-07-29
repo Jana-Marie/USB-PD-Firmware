@@ -142,8 +142,10 @@ static enum policy_engine_state pe_sink_eval_cap(void)
     /* Ask the DPM what to request */
     capability_match = pdb_dpm_evaluate_capability(policy_engine_message,
             last_dpm_request);
-    /* Free the Source_Capabilities message */
-    chPoolFree(&pdb_msg_pool, policy_engine_message);
+    /* It's up to the DPM to free the Source_Capabilities message, which it can
+     * do whenever it sees fit.  Just remove our reference to it since we won't
+     * know when it's no longer valid. */
+    policy_engine_message = NULL;
 
     return PESinkSelectCap;
 }

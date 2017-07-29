@@ -53,6 +53,77 @@ static struct pdb_config tmpcfg = {
 };
 
 /*
+ * Helper functions for printing PDOs
+ */
+static void print_src_fixed_pdo(BaseSequentialStream *chp, uint32_t pdo)
+{
+    int tmp;
+
+    chprintf(chp, "\ttype: fixed\r\n");
+
+    /* Dual-role power */
+    tmp = (pdo & PD_PDO_SRC_FIXED_DUAL_ROLE_PWR) >> PD_PDO_SRC_FIXED_DUAL_ROLE_PWR_SHIFT;
+    if (tmp) {
+        chprintf(chp, "\tdual_role_pwr: %d\r\n", tmp);
+    }
+
+    /* USB Suspend Supported */
+    tmp = (pdo & PD_PDO_SRC_FIXED_USB_SUSPEND) >> PD_PDO_SRC_FIXED_USB_SUSPEND_SHIFT;
+    if (tmp) {
+        chprintf(chp, "\tusb_suspend: %d\r\n", tmp);
+    }
+
+    /* Unconstrained power */
+    tmp = (pdo & PD_PDO_SRC_FIXED_UNCONSTRAINED) >> PD_PDO_SRC_FIXED_UNCONSTRAINED_SHIFT;
+    if (tmp) {
+        chprintf(chp, "\tunconstrained_pwr: %d\r\n", tmp);
+    }
+
+    /* USB communications capable */
+    tmp = (pdo & PD_PDO_SRC_FIXED_USB_COMMS) >> PD_PDO_SRC_FIXED_USB_COMMS_SHIFT;
+    if (tmp) {
+        chprintf(chp, "\tusb_comms: %d\r\n", tmp);
+    }
+
+    /* Dual-role data */
+    tmp = (pdo & PD_PDO_SRC_FIXED_DUAL_ROLE_DATA) >> PD_PDO_SRC_FIXED_DUAL_ROLE_DATA_SHIFT;
+    if (tmp) {
+        chprintf(chp, "\tdual_role_data: %d\r\n", tmp);
+    }
+
+    /* Peak current */
+    tmp = (pdo & PD_PDO_SRC_FIXED_PEAK_CURRENT) >> PD_PDO_SRC_FIXED_PEAK_CURRENT_SHIFT;
+    if (tmp) {
+        chprintf(chp, "\tpeak_i: %d\r\n", tmp);
+    }
+
+    /* Voltage */
+    tmp = (pdo & PD_PDO_SRC_FIXED_VOLTAGE) >> PD_PDO_SRC_FIXED_VOLTAGE_SHIFT;
+    chprintf(chp, "\tv: %d.%02d V\r\n", PD_PDV_V(tmp), PD_PDV_CV(tmp));
+
+    /* Maximum current */
+    tmp = (pdo & PD_PDO_SRC_FIXED_CURRENT) >> PD_PDO_SRC_FIXED_CURRENT_SHIFT;
+    chprintf(chp, "\ti: %d.%02d A\r\n", PD_PDI_A(tmp), PD_PDI_CA(tmp));
+}
+
+static void print_src_pdo(BaseSequentialStream *chp, uint32_t pdo, uint8_t index)
+{
+    /* If we have a positive index, print a label for the PDO */
+    if (index) {
+        chprintf(chp, "PDO %d:\r\n", index);
+    }
+
+    /* Select the appropriate method for printing the PDO itself */
+    if ((pdo & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED) {
+        print_src_fixed_pdo(chp, pdo);
+    } else {
+        /* Unknown PDO, just print it as hex */
+        chprintf(chp, "\t%08X\r\n", pdo);
+    }
+}
+
+
+/*
  * Command functions
  */
 
@@ -272,6 +343,27 @@ static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
     }
 }
 
+static void cmd_get_source_cap(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    (void) argv;
+    if (argc > 0) {
+        chprintf(chp, "Usage: get_source_cap\r\n");
+        return;
+    }
+
+    /* If we haven't seen any Source_Capabilities yet, bail out now */
+    if (pdb_dpm_capabilities == NULL) {
+        chprintf(chp, "No Source_Capabilities\r\n");
+        return;
+    }
+
+    /* Print all the PDOs */
+    uint8_t numobj = PD_NUMOBJ_GET(pdb_dpm_capabilities);
+    for (uint8_t i = 0; i < numobj; i++) {
+        print_src_pdo(chp, pdb_dpm_capabilities->obj[i], i+1);
+    }
+}
+
 /*
  * List of shell commands
  */
@@ -290,6 +382,7 @@ static const struct pdb_shell_cmd commands[] = {
     /* TODO {"set_v_range", cmd_set_v_range, "Set the minimum and maximum voltage in millivolts"},*/
     {"identify", cmd_identify, "Blink the LED to identify the device"},
     {"output", cmd_output, "Get or set the output status"},
+    {"get_source_cap", cmd_get_source_cap, "Print the capabilities of the PD source"},
     {NULL, NULL, NULL}
 };
 
