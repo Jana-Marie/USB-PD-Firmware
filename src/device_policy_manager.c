@@ -180,9 +180,9 @@ bool pdb_dpm_evaluate_typec_current(void)
     static bool cfg_set = false;
     static struct pdb_config *cfg = NULL;
 
-    /* Only get the configuration the first time this function runs, since its
-     * location will never change without rebooting into setup mode. */
-    if (!cfg_set) {
+    /* Get the configuration the first time this function runs, and again any
+     * time the status is found to not be valid. */
+    if (!cfg_set || cfg->status != PDB_CONFIG_STATUS_VALID) {
         cfg = pdb_config_flash_read();
         cfg_set = true;
     }
