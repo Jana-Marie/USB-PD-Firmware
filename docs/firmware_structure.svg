@@ -321,8 +321,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6"
-     inkscape:cx="215.3595"
-     inkscape:cy="887.19716"
+     inkscape:cx="322.41307"
+     inkscape:cy="897.91145"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -348,7 +348,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -853,6 +853,22 @@
          id="tspan7455"
          x="116.79938"
          y="43.820847"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';text-align:end;text-anchor:end;stroke-width:0.13229166px">GET_SOURCE_CAP</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';text-align:end;text-anchor:end;stroke-width:0.13229166px">GET_SOURCE_CAP</tspan><tspan
+         sodipodi:role="line"
+         x="116.79938"
+         y="47.237003"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';text-align:end;text-anchor:end;stroke-width:0.13229166px"
+         id="tspan4738" /></text>
+    <text
+       id="text4744"
+       y="41.741978"
+       x="116.79938"
+       style="font-style:normal;font-weight:normal;font-size:2.11666656px;line-height:3.30729151px;font-family:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.13229166px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       xml:space="preserve"><tspan
+         id="tspan4742"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76388884px;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';text-align:end;text-anchor:end;stroke-width:0.13229166px"
+         y="41.741978"
+         x="116.79938"
+         sodipodi:role="line">NEW_POWER</tspan></text>
   </g>
 </svg>
