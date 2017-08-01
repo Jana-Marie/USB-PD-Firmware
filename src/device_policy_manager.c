@@ -74,7 +74,7 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
     dpm_unconstrained_power = capabilities->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
 
     /* Make sure we have configuration */
-    if (cfg != NULL) {
+    if (cfg != NULL && pdb_dpm_output_enabled) {
         /* Look at the PDOs to see if one matches our desires */
         for (uint8_t i = 0; i < numobj; i++) {
             /* Fixed Supply PDOs come first, so when we see a PDO that isn't a
@@ -117,8 +117,14 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
         PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
     request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(DPM_MIN_CURRENT)
         | PD_RDO_FV_CURRENT_SET(DPM_MIN_CURRENT)
-        | PD_RDO_NO_USB_SUSPEND | PD_RDO_CAP_MISMATCH
+        | PD_RDO_NO_USB_SUSPEND
         | PD_RDO_OBJPOS_SET(1);
+    /* If the output is enabled and we got here, it must be a capability
+     * mismatch. */
+    if (pdb_dpm_output_enabled) {
+        request->obj[0] |= PD_RDO_CAP_MISMATCH;
+    }
+    /* If we can do USB communications, tell the power supply */
     if (pdb_dpm_usb_comms) {
         request->obj[0] |= PD_RDO_USB_COMMS;
     }
@@ -126,7 +132,8 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
     /* Update requested voltage */
     dpm_requested_voltage = PD_MV2PDV(5000);
 
-    return false;
+    /* At this point, we have a capability match iff the output is disabled */
+    return !pdb_dpm_output_enabled;
 }
 
 void pdb_dpm_get_sink_capability(union pd_msg *cap)
