@@ -329,10 +329,10 @@ static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
         /* Set the output status and re-negotiate power */
         if (strcmp(argv[0], "enable") == 0) {
             pdb_dpm_output_enabled = true;
-            chEvtSignal(pdb_pe_thread, PDB_EVT_PE_GET_SOURCE_CAP);
+            chEvtSignal(pdb_pe_thread, PDB_EVT_PE_NEW_POWER);
         } else if (strcmp(argv[0], "disable") == 0) {
             pdb_dpm_output_enabled = false;
-            chEvtSignal(pdb_pe_thread, PDB_EVT_PE_GET_SOURCE_CAP);
+            chEvtSignal(pdb_pe_thread, PDB_EVT_PE_NEW_POWER);
         } else {
             /* Or, if the argument was invalid, print a usage message */
             chprintf(chp, "Usage: output [enable|disable]\r\n");
