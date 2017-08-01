@@ -277,11 +277,12 @@ static enum policy_engine_state pe_sink_ready(void)
     /* Wait for an event */
     if (min_power) {
         evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
-                | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP,
-                PD_T_SINK_REQUEST);
+                | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP
+                | PDB_EVT_PE_NEW_POWER, PD_T_SINK_REQUEST);
     } else {
         evt = chEvtWaitAny(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
-                | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP);
+                | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP
+                | PDB_EVT_PE_NEW_POWER);
     }
 
     /* If we got reset signaling, transition to default */
@@ -297,6 +298,19 @@ static enum policy_engine_state pe_sink_ready(void)
     /* If the DPM wants us to, send a Get_Source_Cap message */
     if (evt & PDB_EVT_PE_GET_SOURCE_CAP) {
         return PESinkGetSourceCap;
+    }
+
+    /* If the DPM wants new power, let it figure out what power it wants
+     * exactly.  This isn't exactly the transition from the spec (that would be
+     * SelectCap, not EvalCap), but this works better with the particular
+     * design of this firmware. */
+    if (evt & PDB_EVT_PE_NEW_POWER) {
+        /* Make sure we're evaluating NULL capabilities to use the old ones */
+        if (policy_engine_message != NULL) {
+            chPoolFree(&pdb_msg_pool, policy_engine_message);
+            policy_engine_message = NULL;
+        }
+        return PESinkEvalCap;
     }
 
     /* If no event was received, the timer ran out. */

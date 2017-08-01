@@ -38,7 +38,9 @@ extern const union pd_msg *pdb_dpm_capabilities;
 
 
 /*
- * Create a Request message based on the given Source_Capabilities message.
+ * Create a Request message based on the given Source_Capabilities message.  If
+ * capabilities is NULL, the last non-null Source_Capabilities message passes
+ * is used.  If none has been provided, the behavior is undefined.
  *
  * Returns true if sufficient power is available, false otherwise.
  */

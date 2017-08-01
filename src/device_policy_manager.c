@@ -55,6 +55,9 @@ bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg 
             chPoolFree(&pdb_msg_pool, (union pd_msg *) pdb_dpm_capabilities);
         }
         pdb_dpm_capabilities = capabilities;
+    } else {
+        /* No new capabilities; use a shorter name for the stored ones. */
+        capabilities = pdb_dpm_capabilities;
     }
 
     /* Get the current configuration */

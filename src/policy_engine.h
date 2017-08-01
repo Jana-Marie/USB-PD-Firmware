@@ -30,6 +30,7 @@
 #define PDB_EVT_PE_HARD_SENT EVENT_MASK(4)
 #define PDB_EVT_PE_I_OVRTEMP EVENT_MASK(5)
 #define PDB_EVT_PE_GET_SOURCE_CAP EVENT_MASK(6)
+#define PDB_EVT_PE_NEW_POWER EVENT_MASK(7)
 
 /* The Policy Engine thread object */
 extern thread_t *pdb_pe_thread;
