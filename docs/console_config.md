@@ -198,7 +198,9 @@ Usage: `get_source_cap`
 
 Prints the capabilities advertised by the Power Delivery source.  Each
 capability is represented by a Power Data Object (PDO), printed in the format
-listed in the PDO Format section below.
+listed in the PDO Format section below.  If there are no capabilities, e.g.
+when the source does not support USB Power Delivery, `No Source_Capabilities`
+is printed instead.
 
 ## Configuration Format
 
@@ -236,13 +238,13 @@ this configuration object:
 
 The `v` field holds the fixed voltage of the configuration object, in volts.
 The field's value is a floating-point decimal number, followed by a space and a
-capital V.  For example: `20.00 V`
+capital V.  For example: `20.00 V`.
 
 ### i
 
 The `i` field holds the fixed current of the configuration object, in amperes.
 The field's value is a floating-point decimal number, followed by a space and a
-capital A.  For example: `2.25 A`
+capital A.  For example: `2.25 A`.
 
 ## PDO Format
 
@@ -250,15 +252,61 @@ When a list of PDOs is printed, each PDO is numbered with a line as follows:
 
     PDO n: type
 
-`n` is the index of the PDO.  `type` is one of `fixed`, `variable`, `battery`,
-or the entire PDO represented as a 32-bit hexadecimal number if the type is
-unknown.  If `type` is not a hexadecimal number, the rest of the PDO is printed
-as a list of fields, one per line, each indented by a single ASCII tab
-character.  Each field is of the format:
+`n` is the index of the PDO.  `type` is one of `fixed`, or the entire PDO
+represented as a 32-bit hexadecimal number if the type is unknown.  If `type`
+is not a hexadecimal number, the rest of the PDO is printed as a list of
+fields, one per line, each indented by a single ASCII tab character.  Each
+field is of the format:
 
     name: value
 
-**TODO**: describe exactly how each type of PDO is printed.
+### Source Fixed Supply PDO Fields
+
+This section describes how Source Fixed Supply PDOs (type `fixed`) are printed.
+For more information about the meaning of each field, see the USB Power
+Delivery Specification, Revision 2.0, Version 1.3, section 6.4.1.2.3.
+
+#### dual_role_pwr
+
+The `dual_role_pwr` field holds the value of the PDO's Dual-Role Power bit
+(B29).  If this field is not present, its value shall be assumed 0.
+
+#### usb_suspend
+
+The `usb_suspend` field holds the value of the PDO's USB Suspend Supported bit
+(B28).  If this field is not present, its value shall be assumed 0.
+
+#### unconstrained_pwr
+
+The `unconstrained_pwr` field holds the value of the PDO's Unconstrained Power
+bit (B27).  If this field is not present, its value shall be assumed 0.
+
+#### usb_comms
+
+The `usb_comms` field holds the value of the PDO's USB Communications Capable
+bit (B26).  If this field is not present, its value shall be assumed 0.
+
+#### dual_role_data
+
+The `dual_role_data` field holds the value of the PDO's Dual-Role Data bit
+(B25).  If this field is not present, its value shall be assumed 0.
+
+#### peak_i
+
+The `peak_i` field holds the value of the PDO's Peak Current field (B21-20), in
+decimal.  If this field is not present, its value shall be assumed 0.
+
+#### v
+
+The `v` field holds the value of the PDO's Voltage field (B19-10), in volts.
+The field's value is a floating-point decimal number, followed by a space and a
+capital V.  For example: `20.00 V`.
+
+#### i
+
+The `i` field holds the value of the PDO's Maximum Current field (B9-0), in
+amperes.  The field's value is a floating-point decimal number, followed by a
+space and a capital A.  For example: `2.25 A`.
 
 ## USB Descriptors
 
