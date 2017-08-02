@@ -76,6 +76,13 @@ The command buffer can be cleared by sending ^D (a `\x04` character).  It is
 recommended to do this at the start of programmatic communications to ensure
 that the first command sent will be correctly processed.
 
+If a received command is not recognized, the PD Buddy Sink responds with a line
+repeating the unknown command with any arguments removed, followed by a space
+and a question mark.  For example:
+
+    PDBS) foo bar
+    foo ?
+
 ### help
 
 Usage: `help`
