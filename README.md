@@ -22,6 +22,13 @@ the most common use cases for the device.
 * Setup mode implements a USB CDC-ACM command-line interface allowing
   configuration to be loaded from and stored in flash.
 
+### New in version 1.1.0
+
+* Setup mode allows real-time renegotiation of voltage and current, complete
+  with the ability to control whether the output is enabled or disabled.
+* Allows the user to read a power supply's advertised capabilities while in
+  Setup mode.
+
 ## Prerequisites
 
 To compile the firmware, you must first install the [GNU ARM Embedded
@@ -98,8 +105,8 @@ Connect to the PD Buddy Sink with your favorite serial console program, such as
 greeted with a `PDBS)` prompt.  The `help` command gives brief summaries of
 each of the available commands.
 
-To configure the PD Buddy Sink to request 2.25 A at 20 V, run the following
-commands:
+For example, to configure the PD Buddy Sink to request 2.25 A at 20 V, run the
+following commands:
 
     PDBS) set_v 20000
     PDBS) set_i 2250
