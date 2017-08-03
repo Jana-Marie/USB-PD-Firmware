@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.1.0-dev, 2017-07-28
+Version 1.1.0, 2017-08-02
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
