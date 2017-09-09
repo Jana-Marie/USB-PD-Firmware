@@ -72,10 +72,10 @@ static const USBDescriptor vcom_device_descriptor = {
 };
 
 /* Configuration Descriptor tree for a CDC.*/
-static const uint8_t vcom_configuration_descriptor_data[67] = {
+static const uint8_t vcom_configuration_descriptor_data[76] = {
     /* Configuration Descriptor.*/
-    USB_DESC_CONFIGURATION(67,            /* wTotalLength.                    */
-            0x02,          /* bNumInterfaces.                  */
+    USB_DESC_CONFIGURATION(76,            /* wTotalLength.                    */
+            0x03,          /* bNumInterfaces.                  */
             0x01,          /* bConfigurationValue.             */
             0,             /* iConfiguration.                  */
             0xC0,          /* bmAttributes (self powered).     */
@@ -145,7 +145,19 @@ static const uint8_t vcom_configuration_descriptor_data[67] = {
     USB_DESC_ENDPOINT     (USBD1_DATA_REQUEST_EP|0x80,    /* bEndpointAddress.*/
             0x02,          /* bmAttributes (Bulk).             */
             0x0040,        /* wMaxPacketSize.                  */
-            0x00)          /* bInterval.                       */
+            0x00),         /* bInterval.                       */
+    /* Interface Descriptor.*/
+    USB_DESC_INTERFACE    (0x02,          /* bInterfaceNumber.                */
+            0x00,          /* bAlternateSetting.               */
+            0x00,          /* bNumEndpoints.                   */
+            0xFF,          /* bInterfaceClass (Communications
+                              Interface Class, CDC section
+                              4.2).                            */
+            'F',           /* bInterfaceSubClass (Abstract
+                              Control Model, CDC section 4.3).   */
+            'W',           /* bInterfaceProtocol (AT commands,
+                              CDC section 4.4).                */
+            3),            /* iInterface.                      */
 };
 
 /*
