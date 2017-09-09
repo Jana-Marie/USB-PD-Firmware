@@ -326,5 +326,10 @@ The device's firmware version number is given in the iSerial descriptor.  The
 version number follows [Semantic Versioning][].  The serial console
 configuration interface is the API that the version number describes.
 
+Starting with firmware version 1.2.0, the version number can also be read using
+the firmware version extension: an interface descriptor with class code `0xFF`,
+subclass code `0x46`, and protocol `0x57` points to a string descriptor with
+the firmware version.
+
 [pid.codes]: http://pid.codes/
 [Semantic Versioning]: http://semver.org/
