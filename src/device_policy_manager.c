@@ -25,7 +25,6 @@
 #include "led.h"
 #include "storage.h"
 #include "pd.h"
-#include "fusb302b.h"
 
 
 bool pdb_dpm_output_enabled = true;
@@ -33,6 +32,7 @@ bool pdb_dpm_led_pd_status = true;
 bool pdb_dpm_usb_comms = false;
 
 const union pd_msg *pdb_dpm_capabilities = NULL;
+enum fusb_typec_current pdb_dpm_typec_current = None;
 
 
 /* The current draw when the output is disabled */
@@ -200,21 +200,21 @@ bool pdb_dpm_evaluate_typec_current(void)
     /* We don't control the voltage anymore; it will always be 5 V. */
     dpm_requested_voltage = PD_MV2PDV(5000);
 
+    /* Get the present Type-C Current advertisement */
+    pdb_dpm_typec_current = fusb_get_typec_current();
+
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
     if (cfg == NULL || cfg->v != PD_MV2PDV(5000)) {
         return false;
     }
 
-    /* Get the present Type-C Current advertisement */
-    enum fusb_typec_current tcc = fusb_get_typec_current();
-
     /* If 1.5 A is available and we want no more than that, great. */
-    if (tcc == OnePointFiveAmps && cfg->i <= 150) {
+    if (pdb_dpm_typec_current == OnePointFiveAmps && cfg->i <= 150) {
         return true;
     }
     /* If 3 A is available and we want no more than that, that's great too. */
-    if (tcc == ThreePointZeroAmps && cfg->i <= 300) {
+    if (pdb_dpm_typec_current == ThreePointZeroAmps && cfg->i <= 300) {
         return true;
     }
     /* We're overly cautious if USB default current is available, since that

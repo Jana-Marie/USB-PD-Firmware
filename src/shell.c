@@ -351,10 +351,25 @@ static void cmd_get_source_cap(BaseSequentialStream *chp, int argc, char *argv[]
         return;
     }
 
-    /* If we haven't seen any Source_Capabilities yet, bail out now */
+    /* If we haven't seen any Source_Capabilities */
     if (pdb_dpm_capabilities == NULL) {
-        chprintf(chp, "No Source_Capabilities\r\n");
-        return;
+        /* Have we started reading Type-C Current advertisements? */
+        if (pdb_dpm_typec_current != None) {
+            /* Type-C Current is available, so report it */
+            chprintf(chp, "PDO 1: typec_virtual\r\n");
+            if (pdb_dpm_typec_current == Default) {
+                chprintf(chp, "\ti: 0.50 A\r\n");
+            } else if (pdb_dpm_typec_current == OnePointFiveAmps) {
+                chprintf(chp, "\ti: 1.50 A\r\n");
+            } else if (pdb_dpm_typec_current == ThreePointZeroAmps) {
+                chprintf(chp, "\ti: 3.00 A\r\n");
+            }
+            return;
+        } else {
+            /* No Type-C Current, so report no capabilities */
+            chprintf(chp, "No Source_Capabilities\r\n");
+            return;
+        }
     }
 
     /* Print all the PDOs */

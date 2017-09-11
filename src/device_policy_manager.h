@@ -21,6 +21,7 @@
 
 #include <stdbool.h>
 
+#include "fusb302b.h"
 #include "messages.h"
 
 
@@ -35,6 +36,9 @@ extern bool pdb_dpm_usb_comms;
 
 /* The most recently received Source_Capabilities message */
 extern const union pd_msg *pdb_dpm_capabilities;
+
+/* The most recently received Type-C Current advertisement */
+extern enum fusb_typec_current pdb_dpm_typec_current;
 
 
 /*
