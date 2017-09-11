@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.2.0-dev, 2017-09-09
+Version 1.2.0-dev, 2017-09-11
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
@@ -259,10 +259,10 @@ When a list of PDOs is printed, each PDO is numbered with a line as follows:
 
     PDO n: type
 
-`n` is the index of the PDO.  `type` is one of `fixed`, or the entire PDO
-represented as a 32-bit hexadecimal number if the type is unknown.  If `type`
-is not a hexadecimal number, the rest of the PDO is printed as a list of
-fields, one per line, each indented by a single ASCII tab character.  Each
+`n` is the index of the PDO.  `type` is one of `fixed`, `typec_virtual`, or the
+entire PDO represented as a 32-bit hexadecimal number if the type is unknown.
+If `type` is not a hexadecimal number, the rest of the PDO is printed as a list
+of fields, one per line, each indented by a single ASCII tab character.  Each
 field is of the format:
 
     name: value
@@ -314,6 +314,19 @@ capital V.  For example: `20.00 V`.
 The `i` field holds the value of the PDO's Maximum Current field (B9-0), in
 amperes.  The field's value is a floating-point decimal number, followed by a
 space and a capital A.  For example: `2.25 A`.
+
+### Type-C Current Virtual PDO Fields
+
+This section describes how Type-C Current Virtual PDOs (type `typec_virtual`)
+are printed.  These are not actually PDOs sent in a PD Source_Capabilities
+message, but merely a convenient way of reporting advertised Type-C Current
+when USB Power Delivery is not available.
+
+#### i
+
+The `i` field holds the value of the advertised Type-C Current, in amperes.
+The field's value is a floating-point decimal number, followed by a space and a
+capital A.  For example: `1.50 A`.
 
 ## USB Descriptors
 
