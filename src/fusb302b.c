@@ -70,8 +70,19 @@ static void fusb_write_buf(uint8_t addr, uint8_t size, const uint8_t *buf)
 void fusb_send_message(const union pd_msg *msg)
 {
     /* Token sequences for the FUSB302B */
-    static uint8_t sop_seq[5] = {0x12, 0x12, 0x12, 0x13, 0x80};
-    static uint8_t eop_seq[4] = {0xFF, 0x14, 0xFE, 0xA1};
+    static uint8_t sop_seq[5] = {
+        FUSB_FIFO_TX_SOP1,
+        FUSB_FIFO_TX_SOP1,
+        FUSB_FIFO_TX_SOP1,
+        FUSB_FIFO_TX_SOP2,
+        FUSB_FIFO_TX_PACKSYM
+    };
+    static uint8_t eop_seq[4] = {
+        FUSB_FIFO_TX_JAM_CRC,
+        FUSB_FIFO_TX_EOP,
+        FUSB_FIFO_TX_TXOFF,
+        FUSB_FIFO_TX_TXON
+    };
 
     /* Take the I2C2 mutex now so there can't be a race condition on sop_seq */
     i2cAcquireBus(&I2CD2);
@@ -81,7 +92,7 @@ void fusb_send_message(const union pd_msg *msg)
     uint8_t msg_len = 2 + 4 * PD_NUMOBJ_GET(msg);
 
     /* Set the number of bytes to be transmitted in the packet */
-    sop_seq[4] = 0x80 | msg_len;
+    sop_seq[4] = FUSB_FIFO_TX_PACKSYM | msg_len;
 
     /* Write all three parts of the message to the TX FIFO */
     fusb_write_buf(FUSB_FIFOS, 5, sop_seq);
