@@ -187,14 +187,12 @@ bool pdb_dpm_giveback_enabled(void)
 
 bool pdb_dpm_evaluate_typec_current(void)
 {
-    static bool cfg_set = false;
     static struct pdb_config *cfg = NULL;
 
     /* Get the configuration the first time this function runs, and again any
      * time the status is found to not be valid. */
-    if (!cfg_set || cfg->status != PDB_CONFIG_STATUS_VALID) {
+    if (cfg == NULL || cfg->status != PDB_CONFIG_STATUS_VALID) {
         cfg = pdb_config_flash_read();
-        cfg_set = true;
     }
 
     /* We don't control the voltage anymore; it will always be 5 V. */
