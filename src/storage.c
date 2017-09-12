@@ -27,6 +27,10 @@
  * in the Makefile. */
 struct pdb_config *pdb_config_array = (struct pdb_config *) PDB_CONFIG_BASE;
 
+/* The location of the current configuration object.  NULL if not known or
+ * there is no current configuration. */
+struct pdb_config *config_cur = NULL;
+
 
 void pdb_config_print(BaseSequentialStream *chp, const struct pdb_config *cfg)
 {
@@ -170,6 +174,9 @@ void pdb_config_flash_erase(void)
 
     flash_lock();
 
+    /* There is no configuration now, so update config_cur to reflect this */
+    config_cur = NULL;
+
     /* Exit the critical zone */
     chSysUnlock();
 }
@@ -213,12 +220,23 @@ void pdb_config_flash_update(const struct pdb_config *cfg)
 
     flash_lock();
 
+    /* Update config_cur for the new configuration */
+    config_cur = empty;
+
     /* Exit the critical zone */
     chSysUnlock();
 }
 
 struct pdb_config *pdb_config_flash_read(void)
 {
+    /* If we already know where the configuration is, return its location */
+    if (config_cur != NULL) {
+        return config_cur;
+    }
+
+    /* We don't know where the configuration is (config_cur == NULL), so we
+     * need to find it and store its location if applicable. */
+
     /* If the first element is empty, there is no valid structure. */
     if (pdb_config_array[0].status == PDB_CONFIG_STATUS_EMPTY) {
         return NULL;
@@ -228,7 +246,8 @@ struct pdb_config *pdb_config_flash_read(void)
     for (int i = 0; i < PDB_CONFIG_ARRAY_LEN; i++) {
         /* If we've found it, return it. */
         if (pdb_config_array[i].status == PDB_CONFIG_STATUS_VALID) {
-            return &pdb_config_array[i];
+            config_cur = &pdb_config_array[i];
+            return config_cur;
         }
     }
 
