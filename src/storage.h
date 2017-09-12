@@ -79,6 +79,11 @@ void pdb_config_flash_update(const struct pdb_config *cfg);
 /*
  * Get the first valid configuration strucure.  If the flash page is empty,
  * return NULL instead.
+ *
+ * The location of the configuration is cached, and the cache is updated when
+ * pdb_config_flash_erase and pdb_config_flash_update are called.  The full
+ * lookup is only performed the first time this function is called, so there's
+ * very little penalty to calling it repeatedly.
  */
 struct pdb_config *pdb_config_flash_read(void);
 
