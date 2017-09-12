@@ -185,15 +185,16 @@ bool pdb_dpm_giveback_enabled(void)
     return cfg->flags & PDB_CONFIG_FLAGS_GIVEBACK;
 }
 
-bool pdb_dpm_evaluate_typec_current(void)
+bool pdb_dpm_evaluate_typec_current(enum fusb_typec_current tcc)
 {
     struct pdb_config *cfg = pdb_config_flash_read();
 
     /* We don't control the voltage anymore; it will always be 5 V. */
     dpm_requested_voltage = PD_MV2PDV(5000);
 
-    /* Get the present Type-C Current advertisement */
-    pdb_dpm_typec_current = fusb_get_typec_current();
+    /* Make the present Type-C Current advertisement available to the rest of
+     * the DPM */
+    pdb_dpm_typec_current = tcc;
 
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
@@ -202,11 +203,11 @@ bool pdb_dpm_evaluate_typec_current(void)
     }
 
     /* If 1.5 A is available and we want no more than that, great. */
-    if (pdb_dpm_typec_current == OnePointFiveAmps && cfg->i <= 150) {
+    if (tcc == OnePointFiveAmps && cfg->i <= 150) {
         return true;
     }
     /* If 3 A is available and we want no more than that, that's great too. */
-    if (pdb_dpm_typec_current == ThreePointZeroAmps && cfg->i <= 300) {
+    if (tcc == ThreePointZeroAmps && cfg->i <= 300) {
         return true;
     }
     /* We're overly cautious if USB default current is available, since that

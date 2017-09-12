@@ -25,6 +25,7 @@
 #include "device_policy_manager.h"
 #include "protocol_tx.h"
 #include "hard_reset.h"
+#include "fusb302b.h"
 #include "pd.h"
 
 
@@ -637,7 +638,7 @@ static enum policy_engine_state pe_sink_send_reject(void)
 static enum policy_engine_state pe_sink_source_unresponsive(void)
 {
     static int old_tcc_match = -1;
-    int tcc_match = pdb_dpm_evaluate_typec_current();
+    int tcc_match = pdb_dpm_evaluate_typec_current(fusb_get_typec_current());
 
     /* If the last two readings are the same, set the output */
     if (old_tcc_match == tcc_match) {

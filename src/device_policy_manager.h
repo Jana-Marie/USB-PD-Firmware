@@ -66,7 +66,7 @@ bool pdb_dpm_giveback_enabled(void);
  *
  * Returns true if sufficient power is available, false otherwise.
  */
-bool pdb_dpm_evaluate_typec_current(void);
+bool pdb_dpm_evaluate_typec_current(enum fusb_typec_current tcc);
 
 /*
  * Indicate that power negotiations are starting.
