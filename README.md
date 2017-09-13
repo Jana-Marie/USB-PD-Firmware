@@ -86,9 +86,10 @@ follows:
 
 ### OpenOCD
 
-OpenOCD can also be used to flash the firmware.  For example:
+OpenOCD can also be used to flash the firmware.  If your debug probe is an
+ST-LINK/V2, you can easily do this as follows:
 
-    $ openocd -f interface/stlink-v2.cfg -f target/stm32f0x.cfg -c "program build/pd-buddy-firmware.elf verify reset exit"
+    $ make flash-openocd-stlink
 
 ## Usage
 

@@ -211,3 +211,8 @@ ULIBS =
 
 RULESPATH = $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC
 include $(RULESPATH)/rules.mk
+
+# Special rules follow
+
+flash-openocd-stlink: $(BUILDDIR)/$(PROJECT).elf
+	openocd -f interface/stlink-v2.cfg -c "transport select hla_swd" -f target/stm32f0x.cfg -c "program $(BUILDDIR)/$(PROJECT).elf verify reset exit"
