@@ -24,8 +24,11 @@
 #include "messages.h"
 
 
-/* I2C address of the FUSB302B */
+/* I2C addresses of the FUSB302B chips */
 #define FUSB302B_ADDR 0x22
+#define FUSB302B01_ADDR 0x23
+#define FUSB302B10_ADDR 0x24
+#define FUSB302B11_ADDR 0x25
 
 /* Device ID register */
 #define FUSB_DEVICE_ID 0x01
