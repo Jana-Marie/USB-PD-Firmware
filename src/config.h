@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PDB_STORAGE_H
-#define PDB_STORAGE_H
+#ifndef PDB_CONFIG_H
+#define PDB_CONFIG_H
 
 #include <stdint.h>
 
@@ -88,4 +88,4 @@ void pdb_config_flash_update(const struct pdb_config *cfg);
 struct pdb_config *pdb_config_flash_read(void);
 
 
-#endif /* PDB_STORAGE_H */
+#endif /* PDB_CONFIG_H */

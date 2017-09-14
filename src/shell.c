@@ -40,7 +40,7 @@
 #include "chprintf.h"
 
 #include "usbcfg.h"
-#include "storage.h"
+#include "config.h"
 #include "led.h"
 #include "device_policy_manager.h"
 #include "policy_engine.h"

@@ -23,7 +23,7 @@
 #include <hal.h>
 
 #include "led.h"
-#include "storage.h"
+#include "config.h"
 #include "pd.h"
 
 
