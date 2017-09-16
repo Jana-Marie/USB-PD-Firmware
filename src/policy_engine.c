@@ -250,7 +250,9 @@ static enum policy_engine_state pe_sink_transition_sink(void)
             explicit_contract = true;
 
             /* Set the output appropriately */
-            pdb_dpm_output_set(capability_match && !min_power);
+            if (!min_power) {
+                pdb_dpm_output_set(capability_match);
+            }
 
             chPoolFree(&pdb_msg_pool, policy_engine_message);
             policy_engine_message = NULL;
