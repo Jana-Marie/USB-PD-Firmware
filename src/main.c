@@ -40,7 +40,6 @@
 #include "shell.h"
 #include "usbcfg.h"
 
-#include "priorities.h"
 #include "led.h"
 #include "device_policy_manager.h"
 #include "policy_engine.h"

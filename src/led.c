@@ -124,6 +124,6 @@ static THD_FUNCTION(LED, arg) {
 
 void pdb_led_run(void)
 {
-    pdb_led_thread = chThdCreateStatic(waLED, sizeof(waLED), PDB_PRIO_LED, LED,
+    pdb_led_thread = chThdCreateStatic(waLED, sizeof(waLED), PDBS_PRIO_LED, LED,
             NULL);
 }
