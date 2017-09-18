@@ -82,6 +82,7 @@ PROJECT = pd-buddy-firmware
 
 # Imported source files and paths
 CHIBIOS = ChibiOS
+PDBLIB = lib
 # Startup files.
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f0xx.mk
 # HAL-OSAL files (optional).
@@ -94,6 +95,7 @@ include $(CHIBIOS)/os/rt/rt.mk
 include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v6m.mk
 # Other files (optional).
 include $(CHIBIOS)/test/rt/test.mk
+include $(PDBLIB)/pd-buddy.mk
 
 # Define linker script file here
 LDSCRIPT=$(CHIBIOS)/../ld/STM32F072x8.ld
@@ -109,6 +111,7 @@ CSRC = $(STARTUPSRC) \
        $(BOARDSRC) \
        $(TESTSRC) \
        $(CHIBIOS)/os/hal/lib/streams/chprintf.c \
+       $(PDBSRC) \
        $(wildcard src/*.c)
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -141,6 +144,7 @@ ASMSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 INCDIR = $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) $(TESTINC) \
          $(CHIBIOS)/os/hal/lib/streams $(CHIBIOS)/os/various \
+	 $(PDBINC) \
 	 config
 
 #
