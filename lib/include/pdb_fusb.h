@@ -16,28 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pdb.h>
-#include "policy_engine.h"
-#include "protocol_rx.h"
-#include "protocol_tx.h"
-#include "hard_reset.h"
-#include "int_n.h"
-#include "fusb302b.h"
+#ifndef PDB_FUSB_H
+#define PDB_FUSB_H
+
+#include <hal.h>
 
 
-void pdb_init(struct pdb_config *cfg)
-{
-    /* Initialize the FUSB302B */
-    fusb_setup(cfg);
+/*
+ * Configuration for the FUSB302B chip
+ */
+struct pdb_fusb_config {
+    /* The I2C bus that the chip is connected to */
+    I2CDriver *i2cp;
+    /* The I2C address of the chip */
+    i2caddr_t addr;
+};
 
-    /* Create the policy engine thread. */
-    pdb_pe_run(cfg);
 
-    /* Create the protocol layer threads. */
-    pdb_prlrx_run(cfg);
-    pdb_prltx_run(cfg);
-    pdb_hardrst_run(cfg);
-
-    /* Create the INT_N thread. */
-    pdb_int_n_run(cfg);
-}
+#endif /* PDB_FUSB_H */

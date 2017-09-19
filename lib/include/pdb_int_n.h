@@ -16,28 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pdb.h>
-#include "policy_engine.h"
-#include "protocol_rx.h"
-#include "protocol_tx.h"
-#include "hard_reset.h"
-#include "int_n.h"
-#include "fusb302b.h"
+#ifndef PDB_INT_N_H
+#define PDB_INT_N_H
+
+#include <ch.h>
 
 
-void pdb_init(struct pdb_config *cfg)
-{
-    /* Initialize the FUSB302B */
-    fusb_setup(cfg);
+struct pdb_int_n {
+    THD_WORKING_AREA(_wa, 128);
+    thread_t *thread;
+};
 
-    /* Create the policy engine thread. */
-    pdb_pe_run(cfg);
 
-    /* Create the protocol layer threads. */
-    pdb_prlrx_run(cfg);
-    pdb_prltx_run(cfg);
-    pdb_hardrst_run(cfg);
-
-    /* Create the INT_N thread. */
-    pdb_int_n_run(cfg);
-}
+#endif /* PDB_INT_N_H */

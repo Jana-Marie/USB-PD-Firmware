@@ -19,11 +19,39 @@
 #ifndef PDB_H
 #define PDB_H
 
+#include <pdb_fusb.h>
+#include <pdb_dpm.h>
+#include <pdb_pe.h>
+#include <pdb_prl.h>
+#include <pdb_int_n.h>
+
+
+/*
+ * Structure for PD Buddy firmware library configuration
+ *
+ * Contains working areas for statically allocated threads, and therefore must
+ * be statically allocated!
+ */
+struct pdb_config {
+    /* Configuration information for the FUSB302B* chip */
+    struct pdb_fusb_config fusb_config;
+    /* DPM callbacks */
+    struct pdb_dpm_callbacks dpm;
+    /* Pointer to port-specific DPM data */
+    void *dpm_data;
+    /* Policy Engine thread and related variables */
+    struct pdb_pe pe;
+    /* Protocol layer threads and related variables */
+    struct pdb_prl prl;
+    /* INT_N pin thread and related variables */
+    struct pdb_int_n int_n;
+};
+
 
 /*
  * Initialize the PD Buddy firmware library, starting all its threads
  */
-void pdb_init(void);
+void pdb_init(struct pdb_config *);
 
 
 #endif /* PDB_H */

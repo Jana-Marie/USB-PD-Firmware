@@ -16,28 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pdb.h>
-#include "policy_engine.h"
-#include "protocol_rx.h"
-#include "protocol_tx.h"
-#include "hard_reset.h"
-#include "int_n.h"
-#include "fusb302b.h"
+#ifndef PDB_PRL_H
+#define PDB_PRL_H
+
+#include <stdint.h>
+
+#include <ch.h>
 
 
-void pdb_init(struct pdb_config *cfg)
-{
-    /* Initialize the FUSB302B */
-    fusb_setup(cfg);
+struct pdb_prl {
+    THD_WORKING_AREA(_rx_wa, 128);
+    thread_t *rx_thread;
+    THD_WORKING_AREA(_tx_wa, 128);
+    thread_t *tx_thread;
+    THD_WORKING_AREA(_hardrst_wa, 128);
+    thread_t *hardrst_thread;
 
-    /* Create the policy engine thread. */
-    pdb_pe_run(cfg);
+    mailbox_t tx_mailbox;
 
-    /* Create the protocol layer threads. */
-    pdb_prlrx_run(cfg);
-    pdb_prltx_run(cfg);
-    pdb_hardrst_run(cfg);
+    int8_t _rx_messageid;
+    union pd_msg *_rx_message;
 
-    /* Create the INT_N thread. */
-    pdb_int_n_run(cfg);
-}
+    int8_t _tx_messageidcounter;
+    msg_t _tx_mailbox_queue[PDB_MSG_POOL_SIZE];
+};
+
+
+#endif /* PDB_PRL_H */
