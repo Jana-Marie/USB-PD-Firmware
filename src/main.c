@@ -40,14 +40,9 @@
 #include "shell.h"
 #include "usbcfg.h"
 
+#include <pdb.h>
 #include "led.h"
 #include "device_policy_manager.h"
-#include "policy_engine.h"
-#include "protocol_tx.h"
-#include "protocol_rx.h"
-#include "hard_reset.h"
-#include "int_n.h"
-#include "fusb302b.h"
 #include "messages.h"
 
 /*
@@ -62,29 +57,6 @@ static const I2CConfig i2c2config = {
 };
 
 /*
- * Start the USB Power Delivery threads
- */
-static void start_pd(void)
-{
-    /* Start I2C2 to make communication with the PHY possible */
-    i2cStart(&I2CD2, &i2c2config);
-
-    /* Initialize the FUSB302B */
-    fusb_setup();
-
-    /* Create the policy engine thread. */
-    pdb_pe_run();
-
-    /* Create the protocol layer threads. */
-    pdb_prlrx_run();
-    pdb_prltx_run();
-    pdb_hardrst_run();
-
-    /* Create the INT_N thread. */
-    pdb_int_n_run();
-}
-
-/*
  * Enter setup mode
  */
 static void setup(void)
@@ -95,7 +67,7 @@ static void setup(void)
     pdb_dpm_usb_comms = true;
 
     /* Start the USB Power Delivery threads */
-    start_pd();
+    pdb_init();
 
     /* Indicate that we're in setup mode */
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_CONFIG);
@@ -122,7 +94,7 @@ static void setup(void)
 static void sink(void)
 {
     /* Start the USB Power Delivery threads */
-    start_pd();
+    pdb_init();
 
     /* Wait, letting all the other threads do their work. */
     while (true) {
@@ -150,6 +122,9 @@ int main(void) {
 
     /* Create the LED thread. */
     pdb_led_run();
+
+    /* Start I2C2 to make communication with the PHY possible */
+    i2cStart(&I2CD2, &i2c2config);
 
     /* Decide what mode to enter by the state of the button */
     if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
