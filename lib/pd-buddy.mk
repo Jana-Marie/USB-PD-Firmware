@@ -2,4 +2,4 @@
 PDBSRC = $(wildcard $(PDBLIB)/src/*.c)
 
 # Include directories
-PDBINC = $(PDBLIB)/inc
+PDBINC = $(PDBLIB)/include
