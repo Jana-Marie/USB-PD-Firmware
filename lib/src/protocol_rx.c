@@ -28,8 +28,6 @@
 #include "pd.h"
 
 
-thread_t *pdb_prlrx_thread;
-
 /*
  * Protocol RX machine states
  *
@@ -184,6 +182,6 @@ static THD_FUNCTION(ProtocolRX, cfg) {
 
 void pdb_prlrx_run(struct pdb_config *cfg)
 {
-    pdb_prlrx_thread = chThdCreateStatic(cfg->prl._rx_wa,
+    cfg->prl.rx_thread = chThdCreateStatic(cfg->prl._rx_wa,
             sizeof(cfg->prl._rx_wa), PDB_PRIO_PRL, ProtocolRX, cfg);
 }

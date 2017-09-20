@@ -47,7 +47,7 @@ static THD_FUNCTION(IntNPoll, vcfg) {
 
             /* If the I_GCRCSENT flag is set, tell the Protocol RX thread */
             if (status.interruptb & FUSB_INTERRUPTB_I_GCRCSENT) {
-                chEvtSignal(pdb_prlrx_thread, PDB_EVT_PRLRX_I_GCRCSENT);
+                chEvtSignal(cfg->prl.rx_thread, PDB_EVT_PRLRX_I_GCRCSENT);
             }
 
             /* If the I_TXSENT or I_RETRYFAIL flag is set, tell the Protocol TX

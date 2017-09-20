@@ -42,7 +42,7 @@ enum hardrst_state {
 /*
  * PRL_HR_Reset_Layer state
  */
-static enum hardrst_state hardrst_reset_layer(void)
+static enum hardrst_state hardrst_reset_layer(struct pdb_config *cfg)
 {
     /* First, wait for the signal to run a hard reset. */
     eventmask_t evt = chEvtWaitAny(PDB_EVT_HARDRST_RESET
@@ -53,7 +53,7 @@ static enum hardrst_state hardrst_reset_layer(void)
     pdb_prltx_messageidcounter = 0;
 
     /* Reset the Protocol RX machine */
-    chEvtSignal(pdb_prlrx_thread, PDB_EVT_PRLRX_RESET);
+    chEvtSignal(cfg->prl.rx_thread, PDB_EVT_PRLRX_RESET);
     chThdYield();
 
     /* Reset the Protocol TX machine */
@@ -70,24 +70,27 @@ static enum hardrst_state hardrst_reset_layer(void)
     }
 }
 
-static enum hardrst_state hardrst_indicate_hard_reset(void)
+static enum hardrst_state hardrst_indicate_hard_reset(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Tell the PE that we're doing a hard reset */
     chEvtSignal(pdb_pe_thread, PDB_EVT_PE_RESET);
 
     return PRLHRWaitPE;
 }
 
-static enum hardrst_state hardrst_request_hard_reset(void)
+static enum hardrst_state hardrst_request_hard_reset(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Tell the PHY to send a hard reset */
     fusb_send_hardrst();
 
     return PRLHRWaitPHY;
 }
 
-static enum hardrst_state hardrst_wait_phy(void)
+static enum hardrst_state hardrst_wait_phy(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Wait for the PHY to tell us that it's done sending the hard reset */
     chEvtWaitAnyTimeout(PDB_EVT_HARDRST_I_HARDSENT, PD_T_HARD_RESET_COMPLETE);
 
@@ -95,24 +98,27 @@ static enum hardrst_state hardrst_wait_phy(void)
     return PRLHRHardResetRequested;
 }
 
-static enum hardrst_state hardrst_hard_reset_requested(void)
+static enum hardrst_state hardrst_hard_reset_requested(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Tell the PE that the hard reset was sent */
     chEvtSignal(pdb_pe_thread, PDB_EVT_PE_HARD_SENT);
 
     return PRLHRWaitPE;
 }
 
-static enum hardrst_state hardrst_wait_pe(void)
+static enum hardrst_state hardrst_wait_pe(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Wait for the PE to tell us that it's done */
     chEvtWaitAny(PDB_EVT_HARDRST_DONE);
 
     return PRLHRComplete;
 }
 
-static enum hardrst_state hardrst_complete(void)
+static enum hardrst_state hardrst_complete(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* I'm not aware of anything we have to tell the FUSB302B, so just finish
      * the reset routine. */
     return PRLHRResetLayer;
@@ -122,31 +128,30 @@ static enum hardrst_state hardrst_complete(void)
  * Hard Reset state machine thread
  */
 static THD_FUNCTION(HardReset, cfg) {
-    (void) cfg;
     enum hardrst_state state = PRLHRResetLayer;
 
     while (true) {
         switch (state) {
             case PRLHRResetLayer:
-                state = hardrst_reset_layer();
+                state = hardrst_reset_layer(cfg);
                 break;
             case PRLHRIndicateHardReset:
-                state = hardrst_indicate_hard_reset();
+                state = hardrst_indicate_hard_reset(cfg);
                 break;
             case PRLHRRequestHardReset:
-                state = hardrst_request_hard_reset();
+                state = hardrst_request_hard_reset(cfg);
                 break;
             case PRLHRWaitPHY:
-                state = hardrst_wait_phy();
+                state = hardrst_wait_phy(cfg);
                 break;
             case PRLHRHardResetRequested:
-                state = hardrst_hard_reset_requested();
+                state = hardrst_hard_reset_requested(cfg);
                 break;
             case PRLHRWaitPE:
-                state = hardrst_wait_pe();
+                state = hardrst_wait_pe(cfg);
                 break;
             case PRLHRComplete:
-                state = hardrst_complete();
+                state = hardrst_complete(cfg);
                 break;
             default:
                 /* This is an error.  It really shouldn't happen.  We might

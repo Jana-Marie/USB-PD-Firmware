@@ -60,8 +60,9 @@ int8_t pdb_prltx_messageidcounter = 0;
 /*
  * PRL_Tx_PHY_Layer_Reset state
  */
-static enum protocol_tx_state protocol_tx_phy_reset(void)
+static enum protocol_tx_state protocol_tx_phy_reset(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Reset the PHY */
     fusb_reset();
 
@@ -81,8 +82,9 @@ static enum protocol_tx_state protocol_tx_phy_reset(void)
 /*
  * PRL_Tx_Wait_for_Message_Request state
  */
-static enum protocol_tx_state protocol_tx_wait_message(void)
+static enum protocol_tx_state protocol_tx_wait_message(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Wait for an event */
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PRLTX_RESET | PDB_EVT_PRLTX_DISCARD
             | PDB_EVT_PRLTX_MSG_TX);
@@ -112,13 +114,13 @@ static enum protocol_tx_state protocol_tx_wait_message(void)
     return PRLTxDiscardMessage;
 }
 
-static enum protocol_tx_state protocol_tx_reset(void)
+static enum protocol_tx_state protocol_tx_reset(struct pdb_config *cfg)
 {
     /* Clear MessageIDCounter */
     pdb_prltx_messageidcounter = 0;
 
     /* Tell the Protocol RX thread to reset */
-    chEvtSignal(pdb_prlrx_thread, PDB_EVT_PRLRX_RESET);
+    chEvtSignal(cfg->prl.rx_thread, PDB_EVT_PRLRX_RESET);
     chThdYield();
 
     return PRLTxConstructMessage;
@@ -127,8 +129,9 @@ static enum protocol_tx_state protocol_tx_reset(void)
 /*
  * PRL_Tx_Construct_Message state
  */
-static enum protocol_tx_state protocol_tx_construct_message(void)
+static enum protocol_tx_state protocol_tx_construct_message(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Make sure nobody wants us to reset */
     eventmask_t evt = chEvtGetAndClearEvents(PDB_EVT_PRLTX_RESET | PDB_EVT_PRLTX_DISCARD);
 
@@ -152,8 +155,9 @@ static enum protocol_tx_state protocol_tx_construct_message(void)
 /*
  * PRL_Tx_Wait_for_PHY_Response state
  */
-static enum protocol_tx_state protocol_tx_wait_response(void)
+static enum protocol_tx_state protocol_tx_wait_response(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Wait for an event.  There is no need to run CRCReceiveTimer, since the
      * FUSB302B handles that as part of its retry mechanism. */
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PRLTX_RESET | PDB_EVT_PRLTX_DISCARD
@@ -182,8 +186,9 @@ static enum protocol_tx_state protocol_tx_wait_response(void)
 /*
  * PRL_Tx_Match_MessageID state
  */
-static enum protocol_tx_state protocol_tx_match_messageid(void)
+static enum protocol_tx_state protocol_tx_match_messageid(struct pdb_config *cfg)
 {
+    (void) cfg;
     union pd_msg goodcrc;
 
     /* Read the GoodCRC */
@@ -199,8 +204,9 @@ static enum protocol_tx_state protocol_tx_match_messageid(void)
     }
 }
 
-static enum protocol_tx_state protocol_tx_transmission_error(void)
+static enum protocol_tx_state protocol_tx_transmission_error(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Increment MessageIDCounter */
     pdb_prltx_messageidcounter = (pdb_prltx_messageidcounter + 1) % 8;
 
@@ -211,8 +217,9 @@ static enum protocol_tx_state protocol_tx_transmission_error(void)
     return PRLTxWaitMessage;
 }
 
-static enum protocol_tx_state protocol_tx_message_sent(void)
+static enum protocol_tx_state protocol_tx_message_sent(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Increment MessageIDCounter */
     pdb_prltx_messageidcounter = (pdb_prltx_messageidcounter + 1) % 8;
 
@@ -223,8 +230,9 @@ static enum protocol_tx_state protocol_tx_message_sent(void)
     return PRLTxWaitMessage;
 }
 
-static enum protocol_tx_state protocol_tx_discard_message(void)
+static enum protocol_tx_state protocol_tx_discard_message(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* If we were working on sending a message, increment MessageIDCounter */
     if (protocol_tx_message != NULL) {
         pdb_prltx_messageidcounter = (pdb_prltx_messageidcounter + 1) % 8;
@@ -237,7 +245,6 @@ static enum protocol_tx_state protocol_tx_discard_message(void)
  * Protocol layer TX state machine thread
  */
 static THD_FUNCTION(ProtocolTX, cfg) {
-    (void) cfg;
 
     enum protocol_tx_state state = PRLTxPHYReset;
 
@@ -247,31 +254,31 @@ static THD_FUNCTION(ProtocolTX, cfg) {
     while (true) {
         switch (state) {
             case PRLTxPHYReset:
-                state = protocol_tx_phy_reset();
+                state = protocol_tx_phy_reset(cfg);
                 break;
             case PRLTxWaitMessage:
-                state = protocol_tx_wait_message();
+                state = protocol_tx_wait_message(cfg);
                 break;
             case PRLTxReset:
-                state = protocol_tx_reset();
+                state = protocol_tx_reset(cfg);
                 break;
             case PRLTxConstructMessage:
-                state = protocol_tx_construct_message();
+                state = protocol_tx_construct_message(cfg);
                 break;
             case PRLTxWaitResponse:
-                state = protocol_tx_wait_response();
+                state = protocol_tx_wait_response(cfg);
                 break;
             case PRLTxMatchMessageID:
-                state = protocol_tx_match_messageid();
+                state = protocol_tx_match_messageid(cfg);
                 break;
             case PRLTxTransmissionError:
-                state = protocol_tx_transmission_error();
+                state = protocol_tx_transmission_error(cfg);
                 break;
             case PRLTxMessageSent:
-                state = protocol_tx_message_sent();
+                state = protocol_tx_message_sent(cfg);
                 break;
             case PRLTxDiscardMessage:
-                state = protocol_tx_discard_message();
+                state = protocol_tx_discard_message(cfg);
                 break;
             default:
                 /* This is an error.  It really shouldn't happen.  We might

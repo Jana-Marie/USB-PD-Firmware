@@ -30,9 +30,6 @@
 #define PDB_EVT_PRLRX_RESET EVENT_MASK(0)
 #define PDB_EVT_PRLRX_I_GCRCSENT EVENT_MASK(1)
 
-/* The Protocol RX thread object */
-extern thread_t *pdb_prlrx_thread;
-
 /* The last received MessageID */
 extern int8_t pdb_prlrx_messageid;
 
