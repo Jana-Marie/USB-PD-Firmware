@@ -123,9 +123,8 @@ static enum hardrst_state hardrst_complete(void)
 /*
  * Hard Reset state machine thread
  */
-static THD_WORKING_AREA(waHardReset, 128);
-static THD_FUNCTION(HardReset, arg) {
-    (void) arg;
+static THD_FUNCTION(HardReset, cfg) {
+    (void) cfg;
     enum hardrst_state state = PRLHRResetLayer;
 
     while (true) {
@@ -159,8 +158,8 @@ static THD_FUNCTION(HardReset, arg) {
     }
 }
 
-void pdb_hardrst_run(void)
+void pdb_hardrst_run(struct pdb_config *cfg)
 {
-    pdb_hardrst_thread = chThdCreateStatic(waHardReset, sizeof(waHardReset),
-            PDB_PRIO_PRL, HardReset, NULL);
+    pdb_hardrst_thread = chThdCreateStatic(cfg->prl._hardrst_wa,
+            sizeof(cfg->prl._hardrst_wa), PDB_PRIO_PRL, HardReset, cfg);
 }

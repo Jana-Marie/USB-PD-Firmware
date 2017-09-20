@@ -34,9 +34,9 @@ void pdb_init(struct pdb_config *cfg)
     pdb_pe_run(cfg);
 
     /* Create the protocol layer threads. */
-    pdb_prlrx_run(/*cfg*/);
-    pdb_prltx_run(/*cfg*/);
-    pdb_hardrst_run(/*cfg*/);
+    pdb_prlrx_run(cfg);
+    pdb_prltx_run(cfg);
+    pdb_hardrst_run(cfg);
 
     /* Create the INT_N thread. */
     pdb_int_n_run(cfg);

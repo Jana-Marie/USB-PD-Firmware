@@ -23,6 +23,8 @@
 
 #include <ch.h>
 
+#include <pdb.h>
+
 
 /* Events for the Protocol RX thread */
 #define PDB_EVT_PRLRX_RESET EVENT_MASK(0)
@@ -37,7 +39,7 @@ extern int8_t pdb_prlrx_messageid;
 /*
  * Start the Protocol RX thread
  */
-void pdb_prlrx_run(void);
+void pdb_prlrx_run(struct pdb_config *cfg);
 
 
 #endif /* PDB_PROTOCOL_RX_H */

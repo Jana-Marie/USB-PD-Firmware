@@ -236,9 +236,8 @@ static enum protocol_tx_state protocol_tx_discard_message(void)
 /*
  * Protocol layer TX state machine thread
  */
-static THD_WORKING_AREA(waProtocolTX, 128);
-static THD_FUNCTION(ProtocolTX, arg) {
-    (void) arg;
+static THD_FUNCTION(ProtocolTX, cfg) {
+    (void) cfg;
 
     enum protocol_tx_state state = PRLTxPHYReset;
 
@@ -282,8 +281,8 @@ static THD_FUNCTION(ProtocolTX, arg) {
     }
 }
 
-void pdb_prltx_run(void)
+void pdb_prltx_run(struct pdb_config *cfg)
 {
-    pdb_prltx_thread = chThdCreateStatic(waProtocolTX, sizeof(waProtocolTX),
-            PDB_PRIO_PRL, ProtocolTX, NULL);
+    pdb_prltx_thread = chThdCreateStatic(cfg->prl._tx_wa,
+            sizeof(cfg->prl._tx_wa), PDB_PRIO_PRL, ProtocolTX, cfg);
 }

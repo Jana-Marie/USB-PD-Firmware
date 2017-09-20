@@ -156,9 +156,8 @@ static enum protocol_rx_state protocol_rx_store_messageid(void)
 /*
  * Protocol layer RX state machine thread
  */
-static THD_WORKING_AREA(waProtocolRX, 128);
-static THD_FUNCTION(ProtocolRX, arg) {
-    (void) arg;
+static THD_FUNCTION(ProtocolRX, cfg) {
+    (void) cfg;
     enum protocol_rx_state state = PRLRxWaitPHY;
 
     while (true) {
@@ -183,8 +182,8 @@ static THD_FUNCTION(ProtocolRX, arg) {
     }
 }
 
-void pdb_prlrx_run(void)
+void pdb_prlrx_run(struct pdb_config *cfg)
 {
-    pdb_prlrx_thread = chThdCreateStatic(waProtocolRX, sizeof(waProtocolRX),
-            PDB_PRIO_PRL, ProtocolRX, NULL);
+    pdb_prlrx_thread = chThdCreateStatic(cfg->prl._rx_wa,
+            sizeof(cfg->prl._rx_wa), PDB_PRIO_PRL, ProtocolRX, cfg);
 }

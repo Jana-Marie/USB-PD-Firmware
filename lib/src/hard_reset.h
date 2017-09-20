@@ -21,6 +21,8 @@
 
 #include <ch.h>
 
+#include <pdb.h>
+
 
 /* Events for the Hard Reset thread */
 #define PDB_EVT_HARDRST_RESET EVENT_MASK(0)
@@ -34,7 +36,7 @@ extern thread_t *pdb_hardrst_thread;
 /*
  * Start the Hard Reset thread
  */
-void pdb_hardrst_run(void);
+void pdb_hardrst_run(struct pdb_config *cfg);
 
 
 #endif /* PDB_HARD_RESET_H */

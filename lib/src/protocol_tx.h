@@ -23,6 +23,8 @@
 
 #include <ch.h>
 
+#include <pdb.h>
+
 
 /* Events for the Protocol TX thread */
 #define PDB_EVT_PRLTX_RESET EVENT_MASK(0)
@@ -43,7 +45,7 @@ extern int8_t pdb_prltx_messageidcounter;
 /*
  * Start the Protocol TX thread
  */
-void pdb_prltx_run(void);
+void pdb_prltx_run(struct pdb_config *cfg);
 
 
 #endif /* PDB_PROTOCOL_TX_H */
