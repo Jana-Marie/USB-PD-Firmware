@@ -82,6 +82,7 @@ static enum policy_engine_state pe_sink_startup(struct pdb_config *cfg)
 
 static enum policy_engine_state pe_sink_discovery(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Wait for VBUS.  Since it's our only power source, we already know that
      * we have it, so just move on. */
 
