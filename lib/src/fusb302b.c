@@ -142,9 +142,9 @@ void fusb_send_hardrst(void)
     i2cReleaseBus(&I2CD2);
 }
 
-void fusb_setup(void)
+void fusb_setup(struct pdb_fusb_config *cfg)
 {
-    i2cAcquireBus(&I2CD2);
+    i2cAcquireBus(cfg->i2cp);
 
     /* Fully reset the FUSB302B */
     fusb_write_byte(FUSB_RESET, FUSB_RESET_SW_RES);
@@ -186,7 +186,7 @@ void fusb_setup(void)
     /* Reset the PD logic */
     fusb_write_byte(FUSB_RESET, FUSB_RESET_PD_RESET);
 
-    i2cReleaseBus(&I2CD2);
+    i2cReleaseBus(cfg->i2cp);
 }
 
 void fusb_get_status(union fusb_status *status)

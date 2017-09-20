@@ -22,7 +22,6 @@
 
 #include "messages.h"
 #include "priorities.h"
-#include "device_policy_manager.h"
 #include "protocol_tx.h"
 #include "hard_reset.h"
 #include "fusb302b.h"
@@ -65,12 +64,12 @@ static int hard_reset_counter = 0;
 static msg_t pdb_pe_mailbox_queue[PDB_MSG_POOL_SIZE];
 mailbox_t pdb_pe_mailbox;
 
-static enum policy_engine_state pe_sink_startup(void)
+static enum policy_engine_state pe_sink_startup(struct pdb_config *cfg)
 {
     /* We don't have an explicit contract currently */
     explicit_contract = false;
     /* Tell the DPM that we've started negotiations */
-    pdb_dpm_pd_start();
+    cfg->dpm.pd_start(cfg);
 
     /* No need to reset the protocol layer here.  There are two ways into this
      * state: startup and exiting hard reset.  On startup, the protocol layer
@@ -81,7 +80,7 @@ static enum policy_engine_state pe_sink_startup(void)
     return PESinkDiscovery;
 }
 
-static enum policy_engine_state pe_sink_discovery(void)
+static enum policy_engine_state pe_sink_discovery(struct pdb_config *cfg)
 {
     /* Wait for VBUS.  Since it's our only power source, we already know that
      * we have it, so just move on. */
@@ -89,7 +88,7 @@ static enum policy_engine_state pe_sink_discovery(void)
     return PESinkWaitCap;
 }
 
-static enum policy_engine_state pe_sink_wait_cap(void)
+static enum policy_engine_state pe_sink_wait_cap(struct pdb_config *cfg)
 {
     /* Fetch a message from the protocol layer */
     eventmask_t evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX
@@ -134,14 +133,14 @@ static enum policy_engine_state pe_sink_wait_cap(void)
     return PESinkHardReset;
 }
 
-static enum policy_engine_state pe_sink_eval_cap(void)
+static enum policy_engine_state pe_sink_eval_cap(struct pdb_config *cfg)
 {
     /* Get a message object for the request if we don't have one already */
     if (last_dpm_request == NULL) {
         last_dpm_request = chPoolAlloc(&pdb_msg_pool);
     }
     /* Ask the DPM what to request */
-    capability_match = pdb_dpm_evaluate_capability(policy_engine_message,
+    capability_match = cfg->dpm.evaluate_capability(cfg, policy_engine_message,
             last_dpm_request);
     /* It's up to the DPM to free the Source_Capabilities message, which it can
      * do whenever it sees fit.  Just remove our reference to it since we won't
@@ -151,7 +150,7 @@ static enum policy_engine_state pe_sink_eval_cap(void)
     return PESinkSelectCap;
 }
 
-static enum policy_engine_state pe_sink_select_cap(void)
+static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
 {
     /* Transmit the request */
     chMBPost(&pdb_prltx_mailbox, (msg_t) last_dpm_request, TIME_IMMEDIATE);
@@ -186,7 +185,7 @@ static enum policy_engine_state pe_sink_select_cap(void)
         if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_ACCEPT
                 && PD_NUMOBJ_GET(policy_engine_message) == 0) {
             /* Transition to Sink Standby if necessary */
-            pdb_dpm_sink_standby();
+            cfg->dpm.transition_standby(cfg);
 
             min_power = false;
 
@@ -227,7 +226,7 @@ static enum policy_engine_state pe_sink_select_cap(void)
     return PESinkHardReset;
 }
 
-static enum policy_engine_state pe_sink_transition_sink(void)
+static enum policy_engine_state pe_sink_transition_sink(struct pdb_config *cfg)
 {
     /* Wait for the PS_RDY message */
     eventmask_t evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET,
@@ -251,7 +250,7 @@ static enum policy_engine_state pe_sink_transition_sink(void)
 
             /* Set the output appropriately */
             if (!min_power) {
-                pdb_dpm_output_set(capability_match);
+                cfg->dpm.transition_requested(cfg);
             }
 
             chPoolFree(&pdb_msg_pool, policy_engine_message);
@@ -262,7 +261,7 @@ static enum policy_engine_state pe_sink_transition_sink(void)
             /* Turn off the power output before this hard reset to make sure we
              * don't supply an incorrect voltage to the device we're powering.
              */
-            pdb_dpm_output_set(false);
+            cfg->dpm.transition_default(cfg);
 
             chPoolFree(&pdb_msg_pool, policy_engine_message);
             policy_engine_message = NULL;
@@ -273,7 +272,7 @@ static enum policy_engine_state pe_sink_transition_sink(void)
     return PESinkHardReset;
 }
 
-static enum policy_engine_state pe_sink_ready(void)
+static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
 {
     eventmask_t evt;
 
@@ -376,9 +375,9 @@ static enum policy_engine_state pe_sink_ready(void)
             /* Handle GotoMin messages */
             } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_GOTOMIN
                     && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                if (pdb_dpm_giveback_enabled()) {
-                    /* We support GiveBack, so go to minimum power */
-                    pdb_dpm_output_set(false);
+                if (cfg->dpm.giveback_enabled(cfg)) {
+                    /* Transition to the minimum current level */
+                    cfg->dpm.transition_min(cfg);
                     min_power = true;
 
                     chPoolFree(&pdb_msg_pool, policy_engine_message);
@@ -420,7 +419,7 @@ static enum policy_engine_state pe_sink_ready(void)
     return PESinkReady;
 }
 
-static enum policy_engine_state pe_sink_get_source_cap(void)
+static enum policy_engine_state pe_sink_get_source_cap(struct pdb_config *cfg)
 {
     /* Get a message object */
     union pd_msg *get_source_cap = chPoolAlloc(&pdb_msg_pool);
@@ -447,12 +446,12 @@ static enum policy_engine_state pe_sink_get_source_cap(void)
     return PESinkReady;
 }
 
-static enum policy_engine_state pe_sink_give_sink_cap(void)
+static enum policy_engine_state pe_sink_give_sink_cap(struct pdb_config *cfg)
 {
     /* Get a message object */
     union pd_msg *snk_cap = chPoolAlloc(&pdb_msg_pool);
     /* Get our capabilities from the DPM */
-    pdb_dpm_get_sink_capability(snk_cap);
+    cfg->dpm.get_sink_capability(cfg, snk_cap);
 
     /* Transmit our capabilities */
     chMBPost(&pdb_prltx_mailbox, (msg_t) snk_cap, TIME_IMMEDIATE);
@@ -476,7 +475,7 @@ static enum policy_engine_state pe_sink_give_sink_cap(void)
     return PESinkReady;
 }
 
-static enum policy_engine_state pe_sink_hard_reset(void)
+static enum policy_engine_state pe_sink_hard_reset(struct pdb_config *cfg)
 {
     /* If we've already sent the maximum number of hard resets, assume the
      * source is unresponsive. */
@@ -494,12 +493,12 @@ static enum policy_engine_state pe_sink_hard_reset(void)
     return PESinkTransitionDefault;
 }
 
-static enum policy_engine_state pe_sink_transition_default(void)
+static enum policy_engine_state pe_sink_transition_default(struct pdb_config *cfg)
 {
     explicit_contract = false;
 
     /* Tell the DPM to transition to default power */
-    pdb_dpm_output_default();
+    cfg->dpm.transition_default(cfg);
 
     /* There is no local hardware to reset. */
     /* Since we never change our data role from UFP, there is no reason to set
@@ -511,7 +510,7 @@ static enum policy_engine_state pe_sink_transition_default(void)
     return PESinkStartup;
 }
 
-static enum policy_engine_state pe_sink_soft_reset(void)
+static enum policy_engine_state pe_sink_soft_reset(struct pdb_config *cfg)
 {
     /* No need to explicitly reset the protocol layer here.  It resets itself
      * when a Soft_Reset message is received. */
@@ -541,7 +540,7 @@ static enum policy_engine_state pe_sink_soft_reset(void)
     return PESinkWaitCap;
 }
 
-static enum policy_engine_state pe_sink_send_soft_reset(void)
+static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
 {
     /* No need to explicitly reset the protocol layer here.  It resets itself
      * just before a Soft_Reset message is transmitted. */
@@ -604,7 +603,7 @@ static enum policy_engine_state pe_sink_send_soft_reset(void)
     return PESinkHardReset;
 }
 
-static enum policy_engine_state pe_sink_send_reject(void)
+static enum policy_engine_state pe_sink_send_reject(struct pdb_config *cfg)
 {
     /* Get a message object */
     union pd_msg *reject = chPoolAlloc(&pdb_msg_pool);
@@ -637,14 +636,14 @@ static enum policy_engine_state pe_sink_send_reject(void)
 /*
  * When Power Delivery is unresponsive, fall back to Type-C Current
  */
-static enum policy_engine_state pe_sink_source_unresponsive(void)
+static enum policy_engine_state pe_sink_source_unresponsive(struct pdb_config *cfg)
 {
     static int old_tcc_match = -1;
-    int tcc_match = pdb_dpm_evaluate_typec_current(fusb_get_typec_current());
+    int tcc_match = cfg->dpm.evaluate_typec_current(cfg, fusb_get_typec_current());
 
     /* If the last two readings are the same, set the output */
     if (old_tcc_match == tcc_match) {
-        pdb_dpm_output_set(tcc_match);
+        cfg->dpm.transition_typec(cfg);
     }
 
     /* Remember whether or not the last measurement succeeded */
@@ -660,8 +659,7 @@ static enum policy_engine_state pe_sink_source_unresponsive(void)
  * Policy Engine state machine thread
  */
 static THD_WORKING_AREA(waPolicyEngine, 128);
-static THD_FUNCTION(PolicyEngine, arg) {
-    (void) arg;
+static THD_FUNCTION(PolicyEngine, cfg) {
     enum policy_engine_state state = PESinkStartup;
 
     /* Initialize the mailbox */
@@ -670,49 +668,49 @@ static THD_FUNCTION(PolicyEngine, arg) {
     while (true) {
         switch (state) {
             case PESinkStartup:
-                state = pe_sink_startup();
+                state = pe_sink_startup(cfg);
                 break;
             case PESinkDiscovery:
-                state = pe_sink_discovery();
+                state = pe_sink_discovery(cfg);
                 break;
             case PESinkWaitCap:
-                state = pe_sink_wait_cap();
+                state = pe_sink_wait_cap(cfg);
                 break;
             case PESinkEvalCap:
-                state = pe_sink_eval_cap();
+                state = pe_sink_eval_cap(cfg);
                 break;
             case PESinkSelectCap:
-                state = pe_sink_select_cap();
+                state = pe_sink_select_cap(cfg);
                 break;
             case PESinkTransitionSink:
-                state = pe_sink_transition_sink();
+                state = pe_sink_transition_sink(cfg);
                 break;
             case PESinkReady:
-                state = pe_sink_ready();
+                state = pe_sink_ready(cfg);
                 break;
             case PESinkGetSourceCap:
-                state = pe_sink_get_source_cap();
+                state = pe_sink_get_source_cap(cfg);
                 break;
             case PESinkGiveSinkCap:
-                state = pe_sink_give_sink_cap();
+                state = pe_sink_give_sink_cap(cfg);
                 break;
             case PESinkHardReset:
-                state = pe_sink_hard_reset();
+                state = pe_sink_hard_reset(cfg);
                 break;
             case PESinkTransitionDefault:
-                state = pe_sink_transition_default();
+                state = pe_sink_transition_default(cfg);
                 break;
             case PESinkSoftReset:
-                state = pe_sink_soft_reset();
+                state = pe_sink_soft_reset(cfg);
                 break;
             case PESinkSendSoftReset:
-                state = pe_sink_send_soft_reset();
+                state = pe_sink_send_soft_reset(cfg);
                 break;
             case PESinkSendReject:
-                state = pe_sink_send_reject();
+                state = pe_sink_send_reject(cfg);
                 break;
             case PESinkSourceUnresponsive:
-                state = pe_sink_source_unresponsive();
+                state = pe_sink_source_unresponsive(cfg);
                 break;
             default:
                 /* This is an error.  It really shouldn't happen.  We might
@@ -723,8 +721,8 @@ static THD_FUNCTION(PolicyEngine, arg) {
     }
 }
 
-void pdb_pe_run(void)
+void pdb_pe_run(struct pdb_config *cfg)
 {
     pdb_pe_thread = chThdCreateStatic(waPolicyEngine, sizeof(waPolicyEngine),
-            PDB_PRIO_PE, PolicyEngine, NULL);
+            PDB_PRIO_PE, PolicyEngine, cfg);
 }

@@ -34,7 +34,7 @@
  */
 struct pdb_config {
     /* Configuration information for the FUSB302B* chip */
-    struct pdb_fusb_config fusb_config;
+    struct pdb_fusb_config fusb;
     /* DPM callbacks */
     struct pdb_dpm_callbacks dpm;
     /* Pointer to port-specific DPM data */

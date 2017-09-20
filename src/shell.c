@@ -48,8 +48,8 @@
 
 
 /* Buffer for unwritten configuration */
-static struct pdb_config tmpcfg = {
-    .status = PDB_CONFIG_STATUS_VALID
+static struct pdbs_config tmpcfg = {
+    .status = PDBS_CONFIG_STATUS_VALID
 };
 
 /*
@@ -162,7 +162,7 @@ static void cmd_erase(BaseSequentialStream *chp, int argc, char *argv[])
         return;
     }
 
-    pdb_config_flash_erase();
+    pdbs_config_flash_erase();
 }
 
 static void cmd_write(BaseSequentialStream *chp, int argc, char *argv[])
@@ -173,7 +173,7 @@ static void cmd_write(BaseSequentialStream *chp, int argc, char *argv[])
         return;
     }
 
-    pdb_config_flash_update(&tmpcfg);
+    pdbs_config_flash_update(&tmpcfg);
 
     chEvtSignal(pdb_pe_thread, PDB_EVT_PE_NEW_POWER);
 }
@@ -187,7 +187,7 @@ static void cmd_load(BaseSequentialStream *chp, int argc, char *argv[])
     }
 
     /* Get the current configuration */
-    struct pdb_config *cfg = pdb_config_flash_read();
+    struct pdbs_config *cfg = pdbs_config_flash_read();
     if (cfg == NULL) {
         chprintf(chp, "No configuration\r\n");
         return;
@@ -204,7 +204,7 @@ static void cmd_load(BaseSequentialStream *chp, int argc, char *argv[])
 
 static void cmd_get_cfg(BaseSequentialStream *chp, int argc, char *argv[])
 {
-    struct pdb_config *cfg = NULL;
+    struct pdbs_config *cfg = NULL;
 
     if (argc > 1) {
         chprintf(chp, "Usage: get_cfg [index]\r\n");
@@ -213,7 +213,7 @@ static void cmd_get_cfg(BaseSequentialStream *chp, int argc, char *argv[])
 
     /* With no arguments, find the current configuration */
     if (argc == 0) {
-        cfg = pdb_config_flash_read();
+        cfg = pdbs_config_flash_read();
         if (cfg == NULL) {
             chprintf(chp, "No configuration\r\n");
             return;
@@ -222,15 +222,15 @@ static void cmd_get_cfg(BaseSequentialStream *chp, int argc, char *argv[])
     } else if (argc == 1) {
         char *endptr;
         long i = strtol(argv[0], &endptr, 0);
-        if (i >= 0 && i < PDB_CONFIG_ARRAY_LEN && endptr > argv[0]) {
-            cfg = &pdb_config_array[i];
+        if (i >= 0 && i < PDBS_CONFIG_ARRAY_LEN && endptr > argv[0]) {
+            cfg = &pdbs_config_array[i];
         } else {
             chprintf(chp, "Invalid index\r\n");
             return;
         }
     }
     /* Print the configuration */
-    pdb_config_print(chp, cfg);
+    pdbs_config_print(chp, cfg);
 }
 
 static void cmd_get_tmpcfg(BaseSequentialStream *chp, int argc, char *argv[])
@@ -241,7 +241,7 @@ static void cmd_get_tmpcfg(BaseSequentialStream *chp, int argc, char *argv[])
         return;
     }
 
-    pdb_config_print(chp, &tmpcfg);
+    pdbs_config_print(chp, &tmpcfg);
 }
 
 static void cmd_clear_flags(BaseSequentialStream *chp, int argc, char *argv[])
@@ -265,7 +265,7 @@ static void cmd_toggle_giveback(BaseSequentialStream *chp, int argc, char *argv[
     }
 
     /* Toggle the GiveBack flag */
-    tmpcfg.flags ^= PDB_CONFIG_FLAGS_GIVEBACK;
+    tmpcfg.flags ^= PDBS_CONFIG_FLAGS_GIVEBACK;
 }
 
 static void cmd_set_v(BaseSequentialStream *chp, int argc, char *argv[])

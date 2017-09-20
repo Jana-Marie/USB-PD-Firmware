@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PDB_INT_N_H
-#define PDB_INT_N_H
+#ifndef PDB_INT_N_OLD_H
+#define PDB_INT_N_OLD_H
 
 
 /*
@@ -26,4 +26,4 @@
 void pdb_int_n_run(void);
 
 
-#endif /* PDB_INT_N_H */
+#endif /* PDB_INT_N_OLD_H */

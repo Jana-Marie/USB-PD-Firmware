@@ -195,7 +195,7 @@ CPPWARN = -Wall -Wextra -Wundef
 #
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS = -DPDB_CONFIG_BASE=0x0800F800
+UDEFS = -DPDBS_CONFIG_BASE=0x0800F800
 
 # Define ASM defines here
 UADEFS =

@@ -27,7 +27,7 @@
 /*
  * PD Buddy Sink configuration structure
  */
-struct pdb_config {
+struct pdbs_config {
     uint16_t status;
     uint16_t flags;
     uint16_t v;
@@ -41,40 +41,40 @@ struct pdb_config {
  * ready to be written, including a status update to VALID.  Once the struct is
  * no longer needed, the status is updated to INVALID.  Erasing the flash page
  * resets all structures to EMPTY. */
-#define PDB_CONFIG_STATUS_INVALID 0x0000
-#define PDB_CONFIG_STATUS_VALID 0xBEEF
-#define PDB_CONFIG_STATUS_EMPTY 0xFFFF
+#define PDBS_CONFIG_STATUS_INVALID 0x0000
+#define PDBS_CONFIG_STATUS_VALID 0xBEEF
+#define PDBS_CONFIG_STATUS_EMPTY 0xFFFF
 
 /* Flags for configuration structures. */
 /* GiveBack supported */
-#define PDB_CONFIG_FLAGS_GIVEBACK 0x0001
+#define PDBS_CONFIG_FLAGS_GIVEBACK 0x0001
 /* Variable and battery PDOs supported (v_min and v_max valid) */
-#define PDB_CONFIG_FLAGS_VAR_BAT 0x0002
+#define PDBS_CONFIG_FLAGS_VAR_BAT 0x0002
 
 
 /* Flash configuration array */
-extern struct pdb_config *pdb_config_array;
+extern struct pdbs_config *pdbs_config_array;
 
 /* The number of elements in the pdb_config_array */
-#define PDB_CONFIG_ARRAY_LEN 128
+#define PDBS_CONFIG_ARRAY_LEN 128
 
 
 /*
  * Print a struct pdb_config to the given BaseSequentialStream
  */
-void pdb_config_print(BaseSequentialStream *chp, const struct pdb_config *cfg);
+void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg);
 
 /*
  * Erase the flash page used for configuration
  */
-void pdb_config_flash_erase(void);
+void pdbs_config_flash_erase(void);
 
 /*
  * Write a configuration structure to flash, invalidating the previous
  * configuration.  If necessary, the flash page is erased before writing the
  * new structure.
  */
-void pdb_config_flash_update(const struct pdb_config *cfg);
+void pdbs_config_flash_update(const struct pdbs_config *cfg);
 
 /*
  * Get the first valid configuration strucure.  If the flash page is empty,
@@ -85,7 +85,7 @@ void pdb_config_flash_update(const struct pdb_config *cfg);
  * lookup is only performed the first time this function is called, so there's
  * very little penalty to calling it repeatedly.
  */
-struct pdb_config *pdb_config_flash_read(void);
+struct pdbs_config *pdbs_config_flash_read(void);
 
 
 #endif /* PDB_CONFIG_H */

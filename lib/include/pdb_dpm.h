@@ -34,7 +34,8 @@ typedef void (*pdb_dpm_func)(struct pdb_config *);
 typedef bool (*pdb_dpm_eval_cap_func)(struct pdb_config *,
         const union pd_msg *, union pd_msg *);
 typedef void (*pdb_dpm_get_sink_cap_func)(struct pdb_config *, union pd_msg *);
-typedef void (*pdb_dpm_tcc_func)(struct pdb_config *, enum fusb_typec_current);
+typedef bool (*pdb_dpm_giveback_func)(struct pdb_config *);
+typedef bool (*pdb_dpm_tcc_func)(struct pdb_config *, enum fusb_typec_current);
 
 /*
  * PD Buddy firmware library device policy manager callback structure
@@ -45,7 +46,7 @@ typedef void (*pdb_dpm_tcc_func)(struct pdb_config *, enum fusb_typec_current);
 struct pdb_dpm_callbacks {
     pdb_dpm_eval_cap_func evaluate_capability;
     pdb_dpm_get_sink_cap_func get_sink_capability;
-    pdb_dpm_func giveback_enabled;
+    pdb_dpm_giveback_func giveback_enabled;
     pdb_dpm_tcc_func evaluate_typec_current; /* Optional */
     pdb_dpm_func pd_start; /* Optional */
     /* dpm_sink_standby is called in PE_SNK_Select_Capability to ensure power

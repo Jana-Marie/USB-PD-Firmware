@@ -21,6 +21,8 @@
 
 #include <ch.h>
 
+#include <pdb.h>
+
 
 /* Events for the Policy Engine thread */
 #define PDB_EVT_PE_RESET EVENT_MASK(0)
@@ -41,7 +43,7 @@ extern mailbox_t pdb_pe_mailbox;
 /*
  * Start the Policy Engine thread
  */
-void pdb_pe_run(void);
+void pdb_pe_run(struct pdb_config *cfg);
 
 
 #endif /* PDB_POLICY_ENGINE_H */

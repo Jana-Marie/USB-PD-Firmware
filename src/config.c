@@ -23,27 +23,27 @@
 #include "pd.h"
 
 
-/* Initialize the location of the configuration array.  PDB_CONFIG_BASE is set
+/* Initialize the location of the configuration array.  PDBS_CONFIG_BASE is set
  * in the Makefile. */
-struct pdb_config *pdb_config_array = (struct pdb_config *) PDB_CONFIG_BASE;
+struct pdbs_config *pdbs_config_array = (struct pdbs_config *) PDBS_CONFIG_BASE;
 
 /* The location of the current configuration object.  NULL if not known or
  * there is no current configuration. */
-struct pdb_config *config_cur = NULL;
+struct pdbs_config *config_cur = NULL;
 
 
-void pdb_config_print(BaseSequentialStream *chp, const struct pdb_config *cfg)
+void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
 {
     /* Print the status */
     chprintf(chp, "status: ");
     switch (cfg->status) {
-        case PDB_CONFIG_STATUS_INVALID:
+        case PDBS_CONFIG_STATUS_INVALID:
             chprintf(chp, "in");
             /* fall-through */
-        case PDB_CONFIG_STATUS_VALID:
+        case PDBS_CONFIG_STATUS_VALID:
             chprintf(chp, "valid\r\n");
             break;
-        case PDB_CONFIG_STATUS_EMPTY:
+        case PDBS_CONFIG_STATUS_EMPTY:
             chprintf(chp, "empty\r\n");
             /* Stop early because the rest of the information is meaningless in
              * this case. */
@@ -58,10 +58,10 @@ void pdb_config_print(BaseSequentialStream *chp, const struct pdb_config *cfg)
     if (cfg->flags == 0) {
         chprintf(chp, "(none)");
     }
-    if (cfg->flags & PDB_CONFIG_FLAGS_GIVEBACK) {
+    if (cfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK) {
         chprintf(chp, "GiveBack ");
     }
-    if (cfg->flags & PDB_CONFIG_FLAGS_VAR_BAT) {
+    if (cfg->flags & PDBS_CONFIG_FLAGS_VAR_BAT) {
         chprintf(chp, "Var/Bat ");
     }
     chprintf(chp, "\r\n");
@@ -69,7 +69,7 @@ void pdb_config_print(BaseSequentialStream *chp, const struct pdb_config *cfg)
     /* Print voltages and current */
     chprintf(chp, "v: %d.%02d V\r\n", PD_PDV_V(cfg->v), PD_PDV_CV(cfg->v));
     chprintf(chp, "i: %d.%02d A\r\n", PD_PDI_A(cfg->i), PD_PDI_CA(cfg->i));
-    if (cfg->flags & PDB_CONFIG_FLAGS_VAR_BAT) {
+    if (cfg->flags & PDBS_CONFIG_FLAGS_VAR_BAT) {
         chprintf(chp, "v_min: %d.%02d V\r\n", PD_PDV_V(cfg->v_min),
                  PD_PDV_CV(cfg->v_min));
         chprintf(chp, "v_max: %d.%02d V\r\n", PD_PDV_V(cfg->v_max),
@@ -144,7 +144,7 @@ static void flash_erase(void)
     /* Set the PER bit in the FLASH_CR register to enable page erasing */
     FLASH->CR |= FLASH_CR_PER;
     /* Program the FLASH_AR register to select a page to erase */
-    FLASH->AR = (int) pdb_config_array;
+    FLASH->AR = (int) pdbs_config_array;
     /* Set the STRT bit in the FLASH_CR register to start the erasing */
     FLASH->CR |= FLASH_CR_STRT;
     /* Wait till no operation is on going */
@@ -162,7 +162,7 @@ static void flash_erase(void)
     FLASH->CR &= ~FLASH_CR_PER;
 }
 
-void pdb_config_flash_erase(void)
+void pdbs_config_flash_erase(void)
 {
     /* Enter a critical zone */
     chSysLock();
@@ -181,7 +181,7 @@ void pdb_config_flash_erase(void)
     chSysUnlock();
 }
 
-void pdb_config_flash_update(const struct pdb_config *cfg)
+void pdbs_config_flash_update(const struct pdbs_config *cfg)
 {
     /* Enter a critical zone */
     chSysLock();
@@ -189,17 +189,17 @@ void pdb_config_flash_update(const struct pdb_config *cfg)
     flash_unlock();
 
     /* If there is an old entry, invalidate it. */
-    struct pdb_config *old = pdb_config_flash_read();
+    struct pdbs_config *old = pdbs_config_flash_read();
     if (old != NULL) {
-        flash_write_halfword(&(old->status), PDB_CONFIG_STATUS_INVALID);
+        flash_write_halfword(&(old->status), PDBS_CONFIG_STATUS_INVALID);
     }
 
     /* Find the first empty entry */
-    struct pdb_config *empty = NULL;
-    for (int i = 0; i < PDB_CONFIG_ARRAY_LEN; i++) {
+    struct pdbs_config *empty = NULL;
+    for (int i = 0; i < PDBS_CONFIG_ARRAY_LEN; i++) {
         /* If we've found it, return it. */
-        if (pdb_config_array[i].status == PDB_CONFIG_STATUS_EMPTY) {
-            empty = &pdb_config_array[i];
+        if (pdbs_config_array[i].status == PDBS_CONFIG_STATUS_EMPTY) {
+            empty = &pdbs_config_array[i];
             break;
         }
     }
@@ -207,7 +207,7 @@ void pdb_config_flash_update(const struct pdb_config *cfg)
     if (empty == NULL) {
         flash_erase();
         /* Write to the first element */
-        empty = &pdb_config_array[0];
+        empty = &pdbs_config_array[0];
     }
 
     /* Write the new configuration */
@@ -227,7 +227,7 @@ void pdb_config_flash_update(const struct pdb_config *cfg)
     chSysUnlock();
 }
 
-struct pdb_config *pdb_config_flash_read(void)
+struct pdbs_config *pdbs_config_flash_read(void)
 {
     /* If we already know where the configuration is, return its location */
     if (config_cur != NULL) {
@@ -238,15 +238,15 @@ struct pdb_config *pdb_config_flash_read(void)
      * need to find it and store its location if applicable. */
 
     /* If the first element is empty, there is no valid structure. */
-    if (pdb_config_array[0].status == PDB_CONFIG_STATUS_EMPTY) {
+    if (pdbs_config_array[0].status == PDBS_CONFIG_STATUS_EMPTY) {
         return NULL;
     }
 
     /* Find the valid structure, if there is one. */
-    for (int i = 0; i < PDB_CONFIG_ARRAY_LEN; i++) {
+    for (int i = 0; i < PDBS_CONFIG_ARRAY_LEN; i++) {
         /* If we've found it, return it. */
-        if (pdb_config_array[i].status == PDB_CONFIG_STATUS_VALID) {
-            config_cur = &pdb_config_array[i];
+        if (pdbs_config_array[i].status == PDBS_CONFIG_STATUS_VALID) {
+            config_cur = &pdbs_config_array[i];
             return config_cur;
         }
     }

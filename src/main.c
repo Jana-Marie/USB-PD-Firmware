@@ -57,6 +57,28 @@ static const I2CConfig i2c2config = {
 };
 
 /*
+ * PD Buddy firmware library configuration object
+ */
+static struct pdb_config pdb_config = {
+    .fusb = {
+        &I2CD2,
+        FUSB302B_ADDR
+    },
+    .dpm = {
+        pdbs_dpm_evaluate_capability,
+        pdbs_dpm_get_sink_capability,
+        pdbs_dpm_giveback_enabled,
+        pdbs_dpm_evaluate_typec_current,
+        pdbs_dpm_pd_start,
+        pdbs_dpm_transition_default,
+        pdbs_dpm_transition_min,
+        pdbs_dpm_transition_standby,
+        pdbs_dpm_transition_requested,
+        pdbs_dpm_transition_requested /* XXX type-c current */
+    }
+};
+
+/*
  * Enter setup mode
  */
 static void setup(void)
@@ -67,7 +89,7 @@ static void setup(void)
     pdb_dpm_usb_comms = true;
 
     /* Start the USB Power Delivery threads */
-    pdb_init();
+    pdb_init(&pdb_config);
 
     /* Indicate that we're in setup mode */
     chEvtSignal(pdb_led_thread, PDB_EVT_LED_CONFIG);
@@ -94,7 +116,7 @@ static void setup(void)
 static void sink(void)
 {
     /* Start the USB Power Delivery threads */
-    pdb_init();
+    pdb_init(&pdb_config);
 
     /* Wait, letting all the other threads do their work. */
     while (true) {

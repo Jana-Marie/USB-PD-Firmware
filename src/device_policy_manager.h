@@ -21,6 +21,7 @@
 
 #include <stdbool.h>
 
+#include <pdb.h>
 #include "fusb302b.h"
 #include "messages.h"
 
@@ -48,17 +49,18 @@ extern enum fusb_typec_current pdb_dpm_typec_current;
  *
  * Returns true if sufficient power is available, false otherwise.
  */
-bool pdb_dpm_evaluate_capability(const union pd_msg *capabilities, union pd_msg *request);
+bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
+        const union pd_msg *capabilities, union pd_msg *request);
 
 /*
  * Create a Sink_Capabilities message for our current capabilities.
  */
-void pdb_dpm_get_sink_capability(union pd_msg *cap);
+void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap);
 
 /*
  * Return whether or not GiveBack support is enabled.
  */
-bool pdb_dpm_giveback_enabled(void);
+bool pdbs_dpm_giveback_enabled(struct pdb_config *cfg);
 
 /*
  * Evaluate whether or not the currently offered Type-C Current can fulfill our
@@ -66,27 +68,32 @@ bool pdb_dpm_giveback_enabled(void);
  *
  * Returns true if sufficient power is available, false otherwise.
  */
-bool pdb_dpm_evaluate_typec_current(enum fusb_typec_current tcc);
+bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg, enum fusb_typec_current tcc);
 
 /*
  * Indicate that power negotiations are starting.
  */
-void pdb_dpm_pd_start(void);
-
-/*
- * Transition to Sink Standby if necessary.
- */
-void pdb_dpm_sink_standby(void);
-
-/*
- * Set the output state, with LED indication.
- */
-void pdb_dpm_output_set(bool state);
+void pdbs_dpm_pd_start(struct pdb_config *cfg);
 
 /*
  * Transition the sink to default power.
  */
-void pdb_dpm_output_default(void);
+void pdbs_dpm_transition_default(struct pdb_config *cfg);
+
+/*
+ * Transition to the requested minimum current.
+ */
+void pdbs_dpm_transition_min(struct pdb_config *cfg);
+
+/*
+ * Transition to Sink Standby if necessary.
+ */
+void pdbs_dpm_transition_standby(struct pdb_config *cfg);
+
+/*
+ * Transition to the requested power level
+ */
+void pdbs_dpm_transition_requested(struct pdb_config *cfg);
 
 
 #endif /* PDB_DEVICE_POLICY_MANAGER_H */

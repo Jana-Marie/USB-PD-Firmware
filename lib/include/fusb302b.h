@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include <pdb_fusb.h>
+
 #include "messages.h"
 
 
@@ -306,7 +308,7 @@ enum fusb_typec_current fusb_get_typec_current(void);
 /*
  * Initialization routine for the FUSB302B
  */
-void fusb_setup(void);
+void fusb_setup(struct pdb_fusb_config *);
 
 /*
  * Reset the FUSB302B
