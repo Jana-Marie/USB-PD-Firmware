@@ -32,7 +32,7 @@
 #define LED_FAST_BLINKS 8
 
 
-thread_t *pdb_led_thread;
+thread_t *pdbs_led_thread;
 
 /*
  * LED blinker thread.
@@ -41,7 +41,7 @@ static THD_WORKING_AREA(waLED, 128);
 static THD_FUNCTION(LED, arg) {
     (void) arg;
     /* LED starts turned off */
-    eventmask_t state = PDB_EVT_LED_OFF;
+    eventmask_t state = PDBS_EVT_LED_OFF;
     /* The event just received */
     eventmask_t newstate;
     /* Timeout.  TIME_INFINITE for steady modes, other values for blinking
@@ -66,15 +66,15 @@ static THD_FUNCTION(LED, arg) {
         }
 
         switch (state) {
-            case PDB_EVT_LED_OFF:
+            case PDBS_EVT_LED_OFF:
                 timeout = TIME_INFINITE;
                 palClearLine(LINE_LED);
                 break;
-            case PDB_EVT_LED_ON:
+            case PDBS_EVT_LED_ON:
                 timeout = TIME_INFINITE;
                 palSetLine(LINE_LED);
                 break;
-            case PDB_EVT_LED_FAST_BLINK:
+            case PDBS_EVT_LED_FAST_BLINK:
                 timeout = LED_FAST;
                 if (i == 0) {
                     palSetLine(LINE_LED);
@@ -82,7 +82,7 @@ static THD_FUNCTION(LED, arg) {
                     palToggleLine(LINE_LED);
                 }
                 break;
-            case PDB_EVT_LED_MEDIUM_BLINK_OFF:
+            case PDBS_EVT_LED_MEDIUM_BLINK_OFF:
                 timeout = LED_MEDIUM;
                 if (i == 0) {
                     palSetLine(LINE_LED);
@@ -93,7 +93,7 @@ static THD_FUNCTION(LED, arg) {
                     timeout = TIME_INFINITE;
                 }
                 break;
-            case PDB_EVT_LED_SLOW_BLINK:
+            case PDBS_EVT_LED_SLOW_BLINK:
                 timeout = LED_SLOW;
                 if (i == 0) {
                     palSetLine(LINE_LED);
@@ -101,7 +101,7 @@ static THD_FUNCTION(LED, arg) {
                     palToggleLine(LINE_LED);
                 }
                 break;
-            case PDB_EVT_LED_FAST_BLINK_SLOW:
+            case PDBS_EVT_LED_FAST_BLINK_SLOW:
                 timeout = LED_FAST;
                 if (i == 0) {
                     palSetLine(LINE_LED);
@@ -110,7 +110,7 @@ static THD_FUNCTION(LED, arg) {
                 } else {
                     palClearLine(LINE_LED);
                     timeout = TIME_INFINITE;
-                    chEvtSignal(pdb_led_thread, PDB_EVT_LED_SLOW_BLINK);
+                    chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_SLOW_BLINK);
                 }
                 break;
             default:
@@ -122,8 +122,8 @@ static THD_FUNCTION(LED, arg) {
     }
 }
 
-void pdb_led_run(void)
+void pdbs_led_run(void)
 {
-    pdb_led_thread = chThdCreateStatic(waLED, sizeof(waLED), PDBS_PRIO_LED, LED,
-            NULL);
+    pdbs_led_thread = chThdCreateStatic(waLED, sizeof(waLED), PDBS_PRIO_LED,
+            LED, NULL);
 }

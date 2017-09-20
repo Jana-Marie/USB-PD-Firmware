@@ -313,7 +313,7 @@ static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
         return;
     }
 
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_IDENTIFY);
+    chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_IDENTIFY);
 }
 
 static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])

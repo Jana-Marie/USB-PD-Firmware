@@ -16,34 +16,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PDB_LED_H
-#define PDB_LED_H
+#ifndef PDBS_LED_H
+#define PDBS_LED_H
 
 #include <ch.h>
 
 
 /* Events for the LED thread */
-#define PDB_EVT_LED_OFF EVENT_MASK(0)
-#define PDB_EVT_LED_ON EVENT_MASK(1)
-#define PDB_EVT_LED_FAST_BLINK EVENT_MASK(2)
-#define PDB_EVT_LED_MEDIUM_BLINK_OFF EVENT_MASK(3)
-#define PDB_EVT_LED_SLOW_BLINK EVENT_MASK(4)
-#define PDB_EVT_LED_FAST_BLINK_SLOW EVENT_MASK(5)
+#define PDBS_EVT_LED_OFF EVENT_MASK(0)
+#define PDBS_EVT_LED_ON EVENT_MASK(1)
+#define PDBS_EVT_LED_FAST_BLINK EVENT_MASK(2)
+#define PDBS_EVT_LED_MEDIUM_BLINK_OFF EVENT_MASK(3)
+#define PDBS_EVT_LED_SLOW_BLINK EVENT_MASK(4)
+#define PDBS_EVT_LED_FAST_BLINK_SLOW EVENT_MASK(5)
 
 /* Semantic LED event names */
-#define PDB_EVT_LED_CONFIG PDB_EVT_LED_SLOW_BLINK
-#define PDB_EVT_LED_IDENTIFY PDB_EVT_LED_FAST_BLINK_SLOW
-#define PDB_EVT_LED_NEGOTIATING PDB_EVT_LED_FAST_BLINK
-#define PDB_EVT_LED_OUTPUT_ON PDB_EVT_LED_MEDIUM_BLINK_OFF
-#define PDB_EVT_LED_OUTPUT_OFF PDB_EVT_LED_ON
+#define PDBS_EVT_LED_CONFIG PDBS_EVT_LED_SLOW_BLINK
+#define PDBS_EVT_LED_IDENTIFY PDBS_EVT_LED_FAST_BLINK_SLOW
+#define PDBS_EVT_LED_NEGOTIATING PDBS_EVT_LED_FAST_BLINK
+#define PDBS_EVT_LED_OUTPUT_ON PDBS_EVT_LED_MEDIUM_BLINK_OFF
+#define PDBS_EVT_LED_OUTPUT_OFF PDBS_EVT_LED_ON
 
 /* The LED thread object */
-extern thread_t *pdb_led_thread;
+extern thread_t *pdbs_led_thread;
 
 /*
  * Start the LED thread
  */
-void pdb_led_run(void);
+void pdbs_led_run(void);
 
 
-#endif /* PDB_LED_H */
+#endif /* PDBS_LED_H */

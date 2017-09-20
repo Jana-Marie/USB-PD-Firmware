@@ -92,7 +92,7 @@ static void setup(void)
     pdb_init(&pdb_config);
 
     /* Indicate that we're in setup mode */
-    chEvtSignal(pdb_led_thread, PDB_EVT_LED_CONFIG);
+    chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_CONFIG);
 
     /* Disconnect from USB */
     usbDisconnectBus(serusbcfg.usbp);
@@ -143,7 +143,7 @@ int main(void) {
     pdb_msg_pool_init();
 
     /* Create the LED thread. */
-    pdb_led_run();
+    pdbs_led_run();
 
     /* Start I2C2 to make communication with the PHY possible */
     i2cStart(&I2CD2, &i2c2config);

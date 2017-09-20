@@ -71,7 +71,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
 
     /* Make the LED blink to indicate ongoing power negotiations */
     if (pdb_dpm_led_pd_status) {
-        chEvtSignal(pdb_led_thread, PDB_EVT_LED_NEGOTIATING);
+        chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_NEGOTIATING);
     }
 
     /* Get whether or not the power supply is constrained */
@@ -232,7 +232,7 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
 void pdbs_dpm_pd_start(struct pdb_config *cfg)
 {
     if (pdb_dpm_led_pd_status) {
-        chEvtSignal(pdb_led_thread, PDB_EVT_LED_NEGOTIATING);
+        chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_NEGOTIATING);
     }
 }
 
@@ -248,13 +248,13 @@ static void dpm_output_set(bool state)
     if (state && pdb_dpm_output_enabled) {
         /* Turn the output on */
         if (pdb_dpm_led_pd_status) {
-            chEvtSignal(pdb_led_thread, PDB_EVT_LED_OUTPUT_ON);
+            chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_OUTPUT_ON);
         }
         palSetLine(LINE_OUT_CTRL);
     } else {
         /* Turn the output off */
         if (pdb_dpm_led_pd_status) {
-            chEvtSignal(pdb_led_thread, PDB_EVT_LED_OUTPUT_OFF);
+            chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_OUTPUT_OFF);
         }
         palClearLine(LINE_OUT_CTRL);
     }
