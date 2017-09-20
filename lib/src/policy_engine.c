@@ -658,7 +658,6 @@ static enum policy_engine_state pe_sink_source_unresponsive(struct pdb_config *c
 /*
  * Policy Engine state machine thread
  */
-static THD_WORKING_AREA(waPolicyEngine, 128);
 static THD_FUNCTION(PolicyEngine, cfg) {
     enum policy_engine_state state = PESinkStartup;
 
@@ -723,6 +722,6 @@ static THD_FUNCTION(PolicyEngine, cfg) {
 
 void pdb_pe_run(struct pdb_config *cfg)
 {
-    pdb_pe_thread = chThdCreateStatic(waPolicyEngine, sizeof(waPolicyEngine),
+    pdb_pe_thread = chThdCreateStatic(cfg->pe._wa, sizeof(cfg->pe._wa),
             PDB_PRIO_PE, PolicyEngine, cfg);
 }
