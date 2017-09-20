@@ -26,9 +26,6 @@
 #include "pd.h"
 
 
-/* Protocol layer TX thread mailbox */
-mailbox_t pdb_prltx_mailbox;
-
 /*
  * Protocol TX machine states
  *
@@ -81,7 +78,6 @@ static enum protocol_tx_state protocol_tx_phy_reset(struct pdb_config *cfg)
  */
 static enum protocol_tx_state protocol_tx_wait_message(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* Wait for an event */
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PRLTX_RESET | PDB_EVT_PRLTX_DISCARD
             | PDB_EVT_PRLTX_MSG_TX);
@@ -96,7 +92,7 @@ static enum protocol_tx_state protocol_tx_wait_message(struct pdb_config *cfg)
     /* If the policy engine is trying to send a message */
     if (evt & PDB_EVT_PRLTX_MSG_TX) {
         /* Get the message */
-        chMBFetch(&pdb_prltx_mailbox, (msg_t *) &protocol_tx_message, TIME_IMMEDIATE);
+        chMBFetch(&cfg->prl.tx_mailbox, (msg_t *) &protocol_tx_message, TIME_IMMEDIATE);
         /* If it's a Soft_Reset, reset the TX layer first */
         if (PD_MSGTYPE_GET(protocol_tx_message) == PD_MSGTYPE_SOFT_RESET
                 && PD_NUMOBJ_GET(protocol_tx_message) == 0) {
@@ -247,7 +243,7 @@ static THD_FUNCTION(ProtocolTX, vcfg) {
     enum protocol_tx_state state = PRLTxPHYReset;
 
     /* Initialize the mailbox */
-    chMBObjectInit(&pdb_prltx_mailbox, cfg->prl._tx_mailbox_queue, PDB_MSG_POOL_SIZE);
+    chMBObjectInit(&cfg->prl.tx_mailbox, cfg->prl._tx_mailbox_queue, PDB_MSG_POOL_SIZE);
 
     while (true) {
         switch (state) {

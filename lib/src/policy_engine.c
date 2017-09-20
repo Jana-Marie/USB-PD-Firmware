@@ -153,7 +153,7 @@ static enum policy_engine_state pe_sink_eval_cap(struct pdb_config *cfg)
 static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
 {
     /* Transmit the request */
-    chMBPost(&pdb_prltx_mailbox, (msg_t) last_dpm_request, TIME_IMMEDIATE);
+    chMBPost(&cfg->prl.tx_mailbox, (msg_t) last_dpm_request, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -427,7 +427,7 @@ static enum policy_engine_state pe_sink_get_source_cap(struct pdb_config *cfg)
     get_source_cap->hdr = PD_MSGTYPE_GET_SOURCE_CAP | PD_DATAROLE_UFP
         | PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(0);
     /* Transmit the Get_Source_Cap */
-    chMBPost(&pdb_prltx_mailbox, (msg_t) get_source_cap, TIME_IMMEDIATE);
+    chMBPost(&cfg->prl.tx_mailbox, (msg_t) get_source_cap, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -454,7 +454,7 @@ static enum policy_engine_state pe_sink_give_sink_cap(struct pdb_config *cfg)
     cfg->dpm.get_sink_capability(cfg, snk_cap);
 
     /* Transmit our capabilities */
-    chMBPost(&pdb_prltx_mailbox, (msg_t) snk_cap, TIME_IMMEDIATE);
+    chMBPost(&cfg->prl.tx_mailbox, (msg_t) snk_cap, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -521,7 +521,7 @@ static enum policy_engine_state pe_sink_soft_reset(struct pdb_config *cfg)
     accept->hdr = PD_MSGTYPE_ACCEPT | PD_DATAROLE_UFP | PD_SPECREV_2_0
         | PD_POWERROLE_SINK | PD_NUMOBJ(0);
     /* Transmit the Accept */
-    chMBPost(&pdb_prltx_mailbox, (msg_t) accept, TIME_IMMEDIATE);
+    chMBPost(&cfg->prl.tx_mailbox, (msg_t) accept, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -551,7 +551,7 @@ static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
     softrst->hdr = PD_MSGTYPE_SOFT_RESET | PD_DATAROLE_UFP | PD_SPECREV_2_0
         | PD_POWERROLE_SINK | PD_NUMOBJ(0);
     /* Transmit the soft reset */
-    chMBPost(&pdb_prltx_mailbox, (msg_t) softrst, TIME_IMMEDIATE);
+    chMBPost(&cfg->prl.tx_mailbox, (msg_t) softrst, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -612,7 +612,7 @@ static enum policy_engine_state pe_sink_send_reject(struct pdb_config *cfg)
         | PD_POWERROLE_SINK | PD_NUMOBJ(0);
 
     /* Transmit the message */
-    chMBPost(&pdb_prltx_mailbox, (msg_t) reject, TIME_IMMEDIATE);
+    chMBPost(&cfg->prl.tx_mailbox, (msg_t) reject, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);

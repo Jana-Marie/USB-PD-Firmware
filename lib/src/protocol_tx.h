@@ -33,9 +33,6 @@
 #define PDB_EVT_PRLTX_DISCARD EVENT_MASK(3)
 #define PDB_EVT_PRLTX_MSG_TX EVENT_MASK(4)
 
-/* Protocol layer TX thread mailbox */
-extern mailbox_t pdb_prltx_mailbox;
-
 /* The ID to be used in transmission */
 extern int8_t pdb_prltx_messageidcounter;
 
