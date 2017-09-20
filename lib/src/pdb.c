@@ -39,5 +39,5 @@ void pdb_init(struct pdb_config *cfg)
     pdb_hardrst_run(/*cfg*/);
 
     /* Create the INT_N thread. */
-    pdb_int_n_run(/*cfg*/);
+    pdb_int_n_run(cfg);
 }

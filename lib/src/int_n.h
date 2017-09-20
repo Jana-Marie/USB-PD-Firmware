@@ -19,11 +19,13 @@
 #ifndef PDB_INT_N_OLD_H
 #define PDB_INT_N_OLD_H
 
+#include <pdb.h>
+
 
 /*
  * Start the INT_N polling thread
  */
-void pdb_int_n_run(void);
+void pdb_int_n_run(struct pdb_config *cfg);
 
 
 #endif /* PDB_INT_N_OLD_H */

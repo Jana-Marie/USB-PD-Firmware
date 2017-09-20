@@ -32,9 +32,8 @@
 /*
  * INT_N polling thread
  */
-static THD_WORKING_AREA(waIntNPoll, 128);
-static THD_FUNCTION(IntNPoll, arg) {
-    (void) arg;
+static THD_FUNCTION(IntNPoll, cfg) {
+    (void) cfg;
 
     union fusb_status status;
     eventmask_t events;
@@ -84,8 +83,8 @@ static THD_FUNCTION(IntNPoll, arg) {
     }
 }
 
-void pdb_int_n_run(void)
+void pdb_int_n_run(struct pdb_config *cfg)
 {
-    chThdCreateStatic(waIntNPoll, sizeof(waIntNPoll), PDB_PRIO_PRL_INT_N,
-            IntNPoll, NULL);
+    cfg->int_n.thread = chThdCreateStatic(cfg->int_n._wa,
+            sizeof(cfg->int_n._wa), PDB_PRIO_PRL_INT_N, IntNPoll, cfg);
 }
