@@ -41,17 +41,11 @@ enum protocol_rx_state {
     PRLRxStoreMessageID
 };
 
-/* The received message we're currently working with */
-static union pd_msg *protocol_rx_message = NULL;
-/* The ID of the last received message */
-int8_t pdb_prlrx_messageid = -1;
-
 /*
  * PRL_Rx_Wait_for_PHY_Message state
  */
 static enum protocol_rx_state protocol_rx_wait_phy(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* Wait for an event */
     eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
 
@@ -63,12 +57,12 @@ static enum protocol_rx_state protocol_rx_wait_phy(struct pdb_config *cfg)
     if (evt & PDB_EVT_PRLRX_I_GCRCSENT) {
         /* Get a buffer to read the message into.  Guaranteed to not fail
          * because we have a big enough pool and are careful. */
-        protocol_rx_message = chPoolAlloc(&pdb_msg_pool);
+        cfg->prl._rx_message = chPoolAlloc(&pdb_msg_pool);
         /* Read the message */
-        fusb_read_message(protocol_rx_message);
+        fusb_read_message(cfg->prl._rx_message);
         /* If it's a Soft_Reset, go to the soft reset state */
-        if (PD_MSGTYPE_GET(protocol_rx_message) == PD_MSGTYPE_SOFT_RESET
-                && PD_NUMOBJ_GET(protocol_rx_message) == 0) {
+        if (PD_MSGTYPE_GET(cfg->prl._rx_message) == PD_MSGTYPE_SOFT_RESET
+                && PD_NUMOBJ_GET(cfg->prl._rx_message) == 0) {
             return PRLRxReset;
         /* Otherwise, check the message ID */
         } else {
@@ -89,7 +83,7 @@ static enum protocol_rx_state protocol_rx_reset(struct pdb_config *cfg)
     pdb_prltx_messageidcounter = 0;
 
     /* Clear stored MessageID */
-    pdb_prlrx_messageid = -1;
+    cfg->prl._rx_messageid = -1;
 
     /* TX transitions to its reset state */
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_RESET);
@@ -97,8 +91,8 @@ static enum protocol_rx_state protocol_rx_reset(struct pdb_config *cfg)
 
     /* If we got a RESET signal, reset the machine */
     if (chEvtGetAndClearEvents(PDB_EVT_PRLRX_RESET) != 0) {
-        chPoolFree(&pdb_msg_pool, protocol_rx_message);
-        protocol_rx_message = NULL;
+        chPoolFree(&pdb_msg_pool, cfg->prl._rx_message);
+        cfg->prl._rx_message = NULL;
         return PRLRxWaitPHY;
     }
 
@@ -111,19 +105,18 @@ static enum protocol_rx_state protocol_rx_reset(struct pdb_config *cfg)
  */
 static enum protocol_rx_state protocol_rx_check_messageid(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* If we got a RESET signal, reset the machine */
     if (chEvtGetAndClearEvents(PDB_EVT_PRLRX_RESET) != 0) {
-        chPoolFree(&pdb_msg_pool, protocol_rx_message);
-        protocol_rx_message = NULL;
+        chPoolFree(&pdb_msg_pool, cfg->prl._rx_message);
+        cfg->prl._rx_message = NULL;
         return PRLRxWaitPHY;
     }
 
     /* If the message has the stored ID, we've seen this message before.  Free
      * it and don't pass it to the policy engine. */
-    if (PD_MESSAGEID_GET(protocol_rx_message) == pdb_prlrx_messageid) {
-        chPoolFree(&pdb_msg_pool, protocol_rx_message);
-        protocol_rx_message = NULL;
+    if (PD_MESSAGEID_GET(cfg->prl._rx_message) == cfg->prl._rx_messageid) {
+        chPoolFree(&pdb_msg_pool, cfg->prl._rx_message);
+        cfg->prl._rx_message = NULL;
         return PRLRxWaitPHY;
     /* Otherwise, there's either no stored ID or this message has an ID we
      * haven't just seen.  Transition to the Store_MessageID state. */
@@ -142,10 +135,10 @@ static enum protocol_rx_state protocol_rx_store_messageid(struct pdb_config *cfg
     chThdYield();
 
     /* Update the stored MessageID */
-    pdb_prlrx_messageid = PD_MESSAGEID_GET(protocol_rx_message);
+    cfg->prl._rx_messageid = PD_MESSAGEID_GET(cfg->prl._rx_message);
 
     /* Pass the message to the policy engine. */
-    chMBPost(&pdb_pe_mailbox, (msg_t) protocol_rx_message, TIME_IMMEDIATE);
+    chMBPost(&pdb_pe_mailbox, (msg_t) cfg->prl._rx_message, TIME_IMMEDIATE);
     chEvtSignal(pdb_pe_thread, PDB_EVT_PE_MSG_RX);
 
     /* Don't check if we got a RESET because we'd do nothing different. */
@@ -183,6 +176,8 @@ static THD_FUNCTION(ProtocolRX, cfg) {
 
 void pdb_prlrx_run(struct pdb_config *cfg)
 {
+    cfg->prl._rx_messageid = -1;
+
     cfg->prl.rx_thread = chThdCreateStatic(cfg->prl._rx_wa,
             sizeof(cfg->prl._rx_wa), PDB_PRIO_PRL, ProtocolRX, cfg);
 }
