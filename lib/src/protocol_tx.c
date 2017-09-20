@@ -27,7 +27,6 @@
 
 
 /* Protocol layer TX thread mailbox */
-static msg_t pdb_prltx_mailbox_queue[PDB_MSG_POOL_SIZE];
 mailbox_t pdb_prltx_mailbox;
 
 /*
@@ -242,12 +241,13 @@ static enum protocol_tx_state protocol_tx_discard_message(struct pdb_config *cfg
 /*
  * Protocol layer TX state machine thread
  */
-static THD_FUNCTION(ProtocolTX, cfg) {
+static THD_FUNCTION(ProtocolTX, vcfg) {
+    struct pdb_config *cfg = vcfg;
 
     enum protocol_tx_state state = PRLTxPHYReset;
 
     /* Initialize the mailbox */
-    chMBObjectInit(&pdb_prltx_mailbox, pdb_prltx_mailbox_queue, PDB_MSG_POOL_SIZE);
+    chMBObjectInit(&pdb_prltx_mailbox, cfg->prl._tx_mailbox_queue, PDB_MSG_POOL_SIZE);
 
     while (true) {
         switch (state) {
