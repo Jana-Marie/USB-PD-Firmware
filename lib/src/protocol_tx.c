@@ -26,8 +26,6 @@
 #include "pd.h"
 
 
-thread_t *pdb_prltx_thread;
-
 /* Protocol layer TX thread mailbox */
 static msg_t pdb_prltx_mailbox_queue[PDB_MSG_POOL_SIZE];
 mailbox_t pdb_prltx_mailbox;
@@ -290,6 +288,6 @@ static THD_FUNCTION(ProtocolTX, cfg) {
 
 void pdb_prltx_run(struct pdb_config *cfg)
 {
-    pdb_prltx_thread = chThdCreateStatic(cfg->prl._tx_wa,
+    cfg->prl.tx_thread = chThdCreateStatic(cfg->prl._tx_wa,
             sizeof(cfg->prl._tx_wa), PDB_PRIO_PRL, ProtocolTX, cfg);
 }

@@ -57,7 +57,7 @@ static enum hardrst_state hardrst_reset_layer(struct pdb_config *cfg)
     chThdYield();
 
     /* Reset the Protocol TX machine */
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_RESET);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_RESET);
     chThdYield();
 
     /* Continue the process based on what event started the reset. */

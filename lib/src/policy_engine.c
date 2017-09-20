@@ -154,7 +154,7 @@ static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
 {
     /* Transmit the request */
     chMBPost(&pdb_prltx_mailbox, (msg_t) last_dpm_request, TIME_IMMEDIATE);
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
     /* Don't free the request; we might need it again */
@@ -428,7 +428,7 @@ static enum policy_engine_state pe_sink_get_source_cap(struct pdb_config *cfg)
         | PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(0);
     /* Transmit the Get_Source_Cap */
     chMBPost(&pdb_prltx_mailbox, (msg_t) get_source_cap, TIME_IMMEDIATE);
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
     /* Free the sent message */
@@ -455,7 +455,7 @@ static enum policy_engine_state pe_sink_give_sink_cap(struct pdb_config *cfg)
 
     /* Transmit our capabilities */
     chMBPost(&pdb_prltx_mailbox, (msg_t) snk_cap, TIME_IMMEDIATE);
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
 
@@ -522,7 +522,7 @@ static enum policy_engine_state pe_sink_soft_reset(struct pdb_config *cfg)
         | PD_POWERROLE_SINK | PD_NUMOBJ(0);
     /* Transmit the Accept */
     chMBPost(&pdb_prltx_mailbox, (msg_t) accept, TIME_IMMEDIATE);
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
     /* Free the sent message */
@@ -552,7 +552,7 @@ static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
         | PD_POWERROLE_SINK | PD_NUMOBJ(0);
     /* Transmit the soft reset */
     chMBPost(&pdb_prltx_mailbox, (msg_t) softrst, TIME_IMMEDIATE);
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
     /* Free the sent message */
@@ -613,7 +613,7 @@ static enum policy_engine_state pe_sink_send_reject(struct pdb_config *cfg)
 
     /* Transmit the message */
     chMBPost(&pdb_prltx_mailbox, (msg_t) reject, TIME_IMMEDIATE);
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_MSG_TX);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
 

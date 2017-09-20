@@ -49,8 +49,9 @@ int8_t pdb_prlrx_messageid = -1;
 /*
  * PRL_Rx_Wait_for_PHY_Message state
  */
-static enum protocol_rx_state protocol_rx_wait_phy(void)
+static enum protocol_rx_state protocol_rx_wait_phy(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* Wait for an event */
     eventmask_t evt = chEvtWaitAny(ALL_EVENTS);
 
@@ -82,7 +83,7 @@ static enum protocol_rx_state protocol_rx_wait_phy(void)
 /*
  * PRL_Rx_Layer_Reset_for_Receive state
  */
-static enum protocol_rx_state protocol_rx_reset(void)
+static enum protocol_rx_state protocol_rx_reset(struct pdb_config *cfg)
 {
     /* Reset MessageIDCounter */
     pdb_prltx_messageidcounter = 0;
@@ -91,7 +92,7 @@ static enum protocol_rx_state protocol_rx_reset(void)
     pdb_prlrx_messageid = -1;
 
     /* TX transitions to its reset state */
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_RESET);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_RESET);
     chThdYield();
 
     /* If we got a RESET signal, reset the machine */
@@ -108,8 +109,9 @@ static enum protocol_rx_state protocol_rx_reset(void)
 /*
  * PRL_Rx_Check_MessageID state
  */
-static enum protocol_rx_state protocol_rx_check_messageid(void)
+static enum protocol_rx_state protocol_rx_check_messageid(struct pdb_config *cfg)
 {
+    (void) cfg;
     /* If we got a RESET signal, reset the machine */
     if (chEvtGetAndClearEvents(PDB_EVT_PRLRX_RESET) != 0) {
         chPoolFree(&pdb_msg_pool, protocol_rx_message);
@@ -133,10 +135,10 @@ static enum protocol_rx_state protocol_rx_check_messageid(void)
 /*
  * PRL_Rx_Store_MessageID state
  */
-static enum protocol_rx_state protocol_rx_store_messageid(void)
+static enum protocol_rx_state protocol_rx_store_messageid(struct pdb_config *cfg)
 {
     /* Tell ProtocolTX to discard the message being transmitted */
-    chEvtSignal(pdb_prltx_thread, PDB_EVT_PRLTX_DISCARD);
+    chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_DISCARD);
     chThdYield();
 
     /* Update the stored MessageID */
@@ -155,22 +157,21 @@ static enum protocol_rx_state protocol_rx_store_messageid(void)
  * Protocol layer RX state machine thread
  */
 static THD_FUNCTION(ProtocolRX, cfg) {
-    (void) cfg;
     enum protocol_rx_state state = PRLRxWaitPHY;
 
     while (true) {
         switch (state) {
             case PRLRxWaitPHY:
-                state = protocol_rx_wait_phy();
+                state = protocol_rx_wait_phy(cfg);
                 break;
             case PRLRxReset:
-                state = protocol_rx_reset();
+                state = protocol_rx_reset(cfg);
                 break;
             case PRLRxCheckMessageID:
-                state = protocol_rx_check_messageid();
+                state = protocol_rx_check_messageid(cfg);
                 break;
             case PRLRxStoreMessageID:
-                state = protocol_rx_store_messageid();
+                state = protocol_rx_store_messageid(cfg);
                 break;
             default:
                 /* This is an error.  It really shouldn't happen.  We might

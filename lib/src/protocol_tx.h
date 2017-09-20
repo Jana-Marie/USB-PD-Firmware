@@ -33,9 +33,6 @@
 #define PDB_EVT_PRLTX_DISCARD EVENT_MASK(3)
 #define PDB_EVT_PRLTX_MSG_TX EVENT_MASK(4)
 
-/* The Protocol TX thread object */
-extern thread_t *pdb_prltx_thread;
-
 /* Protocol layer TX thread mailbox */
 extern mailbox_t pdb_prltx_mailbox;
 

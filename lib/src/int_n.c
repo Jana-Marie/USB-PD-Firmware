@@ -59,7 +59,7 @@ static THD_FUNCTION(IntNPoll, vcfg) {
             if (status.interrupta & FUSB_INTERRUPTA_I_TXSENT) {
                 events |= PDB_EVT_PRLTX_I_TXSENT;
             }
-            chEvtSignal(pdb_prltx_thread, events);
+            chEvtSignal(cfg->prl.tx_thread, events);
 
             /* If the I_HARDRST or I_HARDSENT flag is set, tell the Hard Reset
              * thread */
