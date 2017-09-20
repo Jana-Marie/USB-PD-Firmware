@@ -30,9 +30,6 @@
 #define PDB_EVT_HARDRST_I_HARDSENT EVENT_MASK(2)
 #define PDB_EVT_HARDRST_DONE EVENT_MASK(3)
 
-/* The Hard Reset thread object */
-extern thread_t *pdb_hardrst_thread;
-
 /*
  * Start the Hard Reset thread
  */

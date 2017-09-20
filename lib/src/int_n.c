@@ -21,6 +21,7 @@
 #include <ch.h>
 #include <hal.h>
 
+#include <pdb.h>
 #include "priorities.h"
 #include "fusb302b.h"
 #include "protocol_rx.h"
@@ -32,8 +33,8 @@
 /*
  * INT_N polling thread
  */
-static THD_FUNCTION(IntNPoll, cfg) {
-    (void) cfg;
+static THD_FUNCTION(IntNPoll, vcfg) {
+    struct pdb_config *cfg = vcfg;
 
     union fusb_status status;
     eventmask_t events;
@@ -69,7 +70,7 @@ static THD_FUNCTION(IntNPoll, cfg) {
             if (status.interrupta & FUSB_INTERRUPTA_I_HARDSENT) {
                 events |= PDB_EVT_HARDRST_I_HARDSENT;
             }
-            chEvtSignal(pdb_hardrst_thread, events);
+            chEvtSignal(cfg->prl.hardrst_thread, events);
 
             /* If the I_OCP_TEMP and OVRTEMP flags are set, tell the Policy
              * Engine thread */

@@ -484,7 +484,7 @@ static enum policy_engine_state pe_sink_hard_reset(struct pdb_config *cfg)
     }
 
     /* Generate a hard reset signal */
-    chEvtSignal(pdb_hardrst_thread, PDB_EVT_HARDRST_RESET);
+    chEvtSignal(cfg->prl.hardrst_thread, PDB_EVT_HARDRST_RESET);
     chEvtWaitAny(PDB_EVT_PE_HARD_SENT);
 
     /* Increment HardResetCounter */
@@ -505,7 +505,7 @@ static enum policy_engine_state pe_sink_transition_default(struct pdb_config *cf
      * it here. */
 
     /* Tell the protocol layer we're done with the reset */
-    chEvtSignal(pdb_hardrst_thread, PDB_EVT_HARDRST_DONE);
+    chEvtSignal(cfg->prl.hardrst_thread, PDB_EVT_HARDRST_DONE);
 
     return PESinkStartup;
 }

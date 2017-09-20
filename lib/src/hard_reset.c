@@ -26,8 +26,6 @@
 #include "pd.h"
 
 
-thread_t *pdb_hardrst_thread;
-
 /*
  * Hard Reset machine states
  */
@@ -160,6 +158,6 @@ static THD_FUNCTION(HardReset, cfg) {
 
 void pdb_hardrst_run(struct pdb_config *cfg)
 {
-    pdb_hardrst_thread = chThdCreateStatic(cfg->prl._hardrst_wa,
+    cfg->prl.hardrst_thread = chThdCreateStatic(cfg->prl._hardrst_wa,
             sizeof(cfg->prl._hardrst_wa), PDB_PRIO_PRL, HardReset, cfg);
 }
