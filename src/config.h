@@ -55,12 +55,12 @@ struct pdbs_config {
 /* Flash configuration array */
 extern struct pdbs_config *pdbs_config_array;
 
-/* The number of elements in the pdb_config_array */
+/* The number of elements in the pdbs_config_array */
 #define PDBS_CONFIG_ARRAY_LEN 128
 
 
 /*
- * Print a struct pdb_config to the given BaseSequentialStream
+ * Print a struct pdbs_config to the given BaseSequentialStream
  */
 void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg);
 
@@ -81,7 +81,7 @@ void pdbs_config_flash_update(const struct pdbs_config *cfg);
  * return NULL instead.
  *
  * The location of the configuration is cached, and the cache is updated when
- * pdb_config_flash_erase and pdb_config_flash_update are called.  The full
+ * pdbs_config_flash_erase and pdbs_config_flash_update are called.  The full
  * lookup is only performed the first time this function is called, so there's
  * very little penalty to calling it repeatedly.
  */
