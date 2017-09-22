@@ -35,8 +35,6 @@
 #include <ch.h>
 #include <hal.h>
 
-#include "chprintf.h"
-
 #include "shell.h"
 #include "usbcfg.h"
 
