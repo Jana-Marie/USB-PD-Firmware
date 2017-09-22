@@ -23,10 +23,14 @@
 #include "hard_reset.h"
 #include "int_n.h"
 #include "fusb302b.h"
+#include "messages.h"
 
 
 void pdb_init(struct pdb_config *cfg)
 {
+    /* Initialize the empty message pool */
+    pdb_msg_pool_init(/*TODO cfg*/);
+
     /* Initialize the FUSB302B */
     fusb_setup(&cfg->fusb);
 

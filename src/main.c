@@ -43,7 +43,6 @@
 #include <pdb.h>
 #include "led.h"
 #include "device_policy_manager.h"
-#include "messages.h"
 
 /*
  * I2C configuration object.
@@ -138,9 +137,6 @@ int main(void) {
      */
     halInit();
     chSysInit();
-
-    /* Set up the free messages mailbox */
-    pdb_msg_pool_init();
 
     /* Create the LED thread. */
     pdbs_led_run();
