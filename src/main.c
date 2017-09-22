@@ -107,7 +107,7 @@ static void setup(void)
     usbConnectBus(serusbcfg.usbp);
 
     /* Start the shell */
-    pdb_shell();
+    pdbs_shell();
 }
 
 /*

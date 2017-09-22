@@ -42,20 +42,20 @@
 
 
 /* Structure for PD Buddy shell commands */
-struct pdb_shell_cmd {
+struct pdbs_shell_cmd {
     char *cmd;
     void (*func)(BaseSequentialStream *chp, int argc, char *argv[]);
     char *desc;
 };
 
 /* Structure for PD Buddy shell configuration */
-struct pdb_shell_cfg {
+struct pdbs_shell_cfg {
     BaseSequentialStream *io;
-    const struct pdb_shell_cmd *commands;
+    const struct pdbs_shell_cmd *commands;
 };
 
 
-void pdb_shell(void);
+void pdbs_shell(void);
 
 bool shellGetLine(BaseSequentialStream *chp, char *line, unsigned size);
 

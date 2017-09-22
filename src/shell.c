@@ -382,7 +382,7 @@ static void cmd_get_source_cap(BaseSequentialStream *chp, int argc, char *argv[]
 /*
  * List of shell commands
  */
-static const struct pdb_shell_cmd commands[] = {
+static const struct pdbs_shell_cmd commands[] = {
     {"license", cmd_license, "Show copyright and license information"},
     {"erase", cmd_erase, "Erase all stored configuration"},
     {"write", cmd_write, "Store the configuration buffer"},
@@ -404,7 +404,7 @@ static const struct pdb_shell_cmd commands[] = {
 /*
  * The shell's configuration
  */
-const struct pdb_shell_cfg shell_cfg = {
+const struct pdbs_shell_cfg shell_cfg = {
     (BaseSequentialStream *)&SDU1,
     commands
 };
@@ -430,7 +430,7 @@ static char *_strtok(char *str, const char *delim, char **saveptr)
     return *token ? token : NULL;
 }
 
-static void list_commands(BaseSequentialStream *chp, const struct pdb_shell_cmd *scp)
+static void list_commands(BaseSequentialStream *chp, const struct pdbs_shell_cmd *scp)
 {
     while (scp->cmd != NULL) {
         chprintf(chp, "\t%s: %s\r\n", scp->cmd, scp->desc);
@@ -438,7 +438,7 @@ static void list_commands(BaseSequentialStream *chp, const struct pdb_shell_cmd 
     }
 }
 
-static bool cmdexec(const struct pdb_shell_cmd *scp, BaseSequentialStream *chp,
+static bool cmdexec(const struct pdbs_shell_cmd *scp, BaseSequentialStream *chp,
         char *name, int argc, char *argv[])
 {
     while (scp->cmd != NULL) {
@@ -454,11 +454,11 @@ static bool cmdexec(const struct pdb_shell_cmd *scp, BaseSequentialStream *chp,
 /*
  * PD Buddy Sink configuration shell
  */
-void pdb_shell(void)
+void pdbs_shell(void)
 {
     int n;
     BaseSequentialStream *chp = shell_cfg.io;
-    const struct pdb_shell_cmd *scp = shell_cfg.commands;
+    const struct pdbs_shell_cmd *scp = shell_cfg.commands;
     char *lp, *cmd, *tokp, line[PDB_SHELL_MAX_LINE_LENGTH];
     char *args[PDB_SHELL_MAX_ARGUMENTS + 1];
 
