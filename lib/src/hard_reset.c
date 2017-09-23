@@ -50,7 +50,7 @@ static enum hardrst_state hardrst_reset_layer(struct pdb_config *cfg)
 
     /* Reset the stored message IDs */
     cfg->prl._rx_messageid = 0;
-    pdb_prltx_messageidcounter = 0;
+    cfg->prl._tx_messageidcounter = 0;
 
     /* Reset the Protocol RX machine */
     chEvtSignal(cfg->prl.rx_thread, PDB_EVT_PRLRX_RESET);

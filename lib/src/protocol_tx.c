@@ -47,8 +47,6 @@ enum protocol_tx_state {
 
 /* The message we're currently working on transmitting */
 static union pd_msg *protocol_tx_message = NULL;
-/* The ID to be used in transmission */
-int8_t pdb_prltx_messageidcounter = 0;
 
 
 /*
@@ -110,7 +108,7 @@ static enum protocol_tx_state protocol_tx_wait_message(struct pdb_config *cfg)
 static enum protocol_tx_state protocol_tx_reset(struct pdb_config *cfg)
 {
     /* Clear MessageIDCounter */
-    pdb_prltx_messageidcounter = 0;
+    cfg->prl._tx_messageidcounter = 0;
 
     /* Tell the Protocol RX thread to reset */
     chEvtSignal(cfg->prl.rx_thread, PDB_EVT_PRLRX_RESET);
@@ -137,7 +135,7 @@ static enum protocol_tx_state protocol_tx_construct_message(struct pdb_config *c
 
     /* Set the correct MessageID in the message */
     protocol_tx_message->hdr &= ~PD_HDR_MESSAGEID;
-    protocol_tx_message->hdr |= pdb_prltx_messageidcounter << PD_HDR_MESSAGEID_SHIFT;
+    protocol_tx_message->hdr |= (cfg->prl._tx_messageidcounter % 8) << PD_HDR_MESSAGEID_SHIFT;
 
     /* Send the message to the PHY */
     fusb_send_message(protocol_tx_message);
@@ -190,7 +188,7 @@ static enum protocol_tx_state protocol_tx_match_messageid(struct pdb_config *cfg
     /* Check that the message is correct */
     if (PD_MSGTYPE_GET(&goodcrc) == PD_MSGTYPE_GOODCRC
             && PD_NUMOBJ_GET(&goodcrc) == 0
-            && PD_MESSAGEID_GET(&goodcrc) == pdb_prltx_messageidcounter) {
+            && PD_MESSAGEID_GET(&goodcrc) == cfg->prl._tx_messageidcounter) {
         return PRLTxMessageSent;
     } else {
         return PRLTxTransmissionError;
@@ -201,7 +199,7 @@ static enum protocol_tx_state protocol_tx_transmission_error(struct pdb_config *
 {
     (void) cfg;
     /* Increment MessageIDCounter */
-    pdb_prltx_messageidcounter = (pdb_prltx_messageidcounter + 1) % 8;
+    cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
 
     /* Tell the policy engine that we failed */
     chEvtSignal(pdb_pe_thread, PDB_EVT_PE_TX_ERR);
@@ -214,7 +212,7 @@ static enum protocol_tx_state protocol_tx_message_sent(struct pdb_config *cfg)
 {
     (void) cfg;
     /* Increment MessageIDCounter */
-    pdb_prltx_messageidcounter = (pdb_prltx_messageidcounter + 1) % 8;
+    cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
 
     /* Tell the policy engine that we succeeded */
     chEvtSignal(pdb_pe_thread, PDB_EVT_PE_TX_DONE);
@@ -228,7 +226,7 @@ static enum protocol_tx_state protocol_tx_discard_message(struct pdb_config *cfg
     (void) cfg;
     /* If we were working on sending a message, increment MessageIDCounter */
     if (protocol_tx_message != NULL) {
-        pdb_prltx_messageidcounter = (pdb_prltx_messageidcounter + 1) % 8;
+        cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
     }
 
     return PRLTxPHYReset;

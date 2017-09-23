@@ -80,7 +80,7 @@ static enum protocol_rx_state protocol_rx_wait_phy(struct pdb_config *cfg)
 static enum protocol_rx_state protocol_rx_reset(struct pdb_config *cfg)
 {
     /* Reset MessageIDCounter */
-    pdb_prltx_messageidcounter = 0;
+    cfg->prl._tx_messageidcounter = 0;
 
     /* Clear stored MessageID */
     cfg->prl._rx_messageid = -1;

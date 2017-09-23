@@ -25,11 +25,11 @@
 
 
 struct pdb_prl {
-    THD_WORKING_AREA(_rx_wa, 128);
+    THD_WORKING_AREA(_rx_wa, 256);
     thread_t *rx_thread;
-    THD_WORKING_AREA(_tx_wa, 128);
+    THD_WORKING_AREA(_tx_wa, 256);
     thread_t *tx_thread;
-    THD_WORKING_AREA(_hardrst_wa, 128);
+    THD_WORKING_AREA(_hardrst_wa, 256);
     thread_t *hardrst_thread;
 
     mailbox_t tx_mailbox;
