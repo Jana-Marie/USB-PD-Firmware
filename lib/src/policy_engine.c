@@ -28,8 +28,6 @@
 #include "pd.h"
 
 
-thread_t *pdb_pe_thread;
-
 enum policy_engine_state {
     PESinkStartup,
     PESinkDiscovery,
@@ -709,6 +707,6 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
 
 void pdb_pe_run(struct pdb_config *cfg)
 {
-    pdb_pe_thread = chThdCreateStatic(cfg->pe._wa, sizeof(cfg->pe._wa),
+    cfg->pe.thread = chThdCreateStatic(cfg->pe._wa, sizeof(cfg->pe._wa),
             PDB_PRIO_PE, PolicyEngine, cfg);
 }

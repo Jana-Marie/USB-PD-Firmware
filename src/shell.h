@@ -37,6 +37,8 @@
 
 #include <ch.h>
 
+#include <pdb.h>
+
 #define PDB_SHELL_MAX_LINE_LENGTH 64
 #define PDB_SHELL_MAX_ARGUMENTS 2
 
@@ -55,7 +57,7 @@ struct pdbs_shell_cfg {
 };
 
 
-void pdbs_shell(void);
+void pdbs_shell(struct pdb_config *cfg);
 
 bool shellGetLine(BaseSequentialStream *chp, char *line, unsigned size);
 

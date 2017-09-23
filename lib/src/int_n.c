@@ -76,7 +76,7 @@ static THD_FUNCTION(IntNPoll, vcfg) {
              * Engine thread */
             if (status.interrupta & FUSB_INTERRUPTA_I_OCP_TEMP
                     && status.status1 & FUSB_STATUS1_OVRTEMP) {
-                chEvtSignal(pdb_pe_thread, PDB_EVT_PE_I_OVRTEMP);
+                chEvtSignal(cfg->pe.thread, PDB_EVT_PE_I_OVRTEMP);
             }
 
         }

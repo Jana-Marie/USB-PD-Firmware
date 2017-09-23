@@ -52,6 +52,9 @@ static struct pdbs_config tmpcfg = {
     .status = PDBS_CONFIG_STATUS_VALID
 };
 
+/* Pointer to the PD Buddy firmware library configuration */
+static struct pdb_config *pdb_config;
+
 /*
  * Helper functions for printing PDOs
  */
@@ -175,7 +178,7 @@ static void cmd_write(BaseSequentialStream *chp, int argc, char *argv[])
 
     pdbs_config_flash_update(&tmpcfg);
 
-    chEvtSignal(pdb_pe_thread, PDB_EVT_PE_NEW_POWER);
+    chEvtSignal(pdb_config->pe.thread, PDB_EVT_PE_NEW_POWER);
 }
 
 static void cmd_load(BaseSequentialStream *chp, int argc, char *argv[])
@@ -329,10 +332,10 @@ static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
         /* Set the output status and re-negotiate power */
         if (strcmp(argv[0], "enable") == 0) {
             pdb_dpm_output_enabled = true;
-            chEvtSignal(pdb_pe_thread, PDB_EVT_PE_NEW_POWER);
+            chEvtSignal(pdb_config->pe.thread, PDB_EVT_PE_NEW_POWER);
         } else if (strcmp(argv[0], "disable") == 0) {
             pdb_dpm_output_enabled = false;
-            chEvtSignal(pdb_pe_thread, PDB_EVT_PE_NEW_POWER);
+            chEvtSignal(pdb_config->pe.thread, PDB_EVT_PE_NEW_POWER);
         } else {
             /* Or, if the argument was invalid, print a usage message */
             chprintf(chp, "Usage: output [enable|disable]\r\n");
@@ -454,13 +457,15 @@ static bool cmdexec(const struct pdbs_shell_cmd *scp, BaseSequentialStream *chp,
 /*
  * PD Buddy Sink configuration shell
  */
-void pdbs_shell(void)
+void pdbs_shell(struct pdb_config *cfg)
 {
     int n;
     BaseSequentialStream *chp = shell_cfg.io;
     const struct pdbs_shell_cmd *scp = shell_cfg.commands;
     char *lp, *cmd, *tokp, line[PDB_SHELL_MAX_LINE_LENGTH];
     char *args[PDB_SHELL_MAX_ARGUMENTS + 1];
+
+    pdb_config = cfg;
 
     while (true) {
         /* Print the prompt */

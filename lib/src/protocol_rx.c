@@ -139,7 +139,7 @@ static enum protocol_rx_state protocol_rx_store_messageid(struct pdb_config *cfg
 
     /* Pass the message to the policy engine. */
     chMBPost(&cfg->pe.mailbox, (msg_t) cfg->prl._rx_message, TIME_IMMEDIATE);
-    chEvtSignal(pdb_pe_thread, PDB_EVT_PE_MSG_RX);
+    chEvtSignal(cfg->pe.thread, PDB_EVT_PE_MSG_RX);
 
     /* Don't check if we got a RESET because we'd do nothing different. */
 

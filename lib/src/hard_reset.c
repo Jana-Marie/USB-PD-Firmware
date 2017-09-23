@@ -72,9 +72,8 @@ static enum hardrst_state hardrst_reset_layer(struct pdb_config *cfg)
 
 static enum hardrst_state hardrst_indicate_hard_reset(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* Tell the PE that we're doing a hard reset */
-    chEvtSignal(pdb_pe_thread, PDB_EVT_PE_RESET);
+    chEvtSignal(cfg->pe.thread, PDB_EVT_PE_RESET);
 
     return PRLHRWaitPE;
 }
@@ -100,9 +99,8 @@ static enum hardrst_state hardrst_wait_phy(struct pdb_config *cfg)
 
 static enum hardrst_state hardrst_hard_reset_requested(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* Tell the PE that the hard reset was sent */
-    chEvtSignal(pdb_pe_thread, PDB_EVT_PE_HARD_SENT);
+    chEvtSignal(cfg->pe.thread, PDB_EVT_PE_HARD_SENT);
 
     return PRLHRWaitPE;
 }

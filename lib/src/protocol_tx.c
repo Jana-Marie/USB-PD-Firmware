@@ -58,7 +58,7 @@ static enum protocol_tx_state protocol_tx_phy_reset(struct pdb_config *cfg)
      * we failed to send it */
     if (cfg->prl._tx_message != NULL) {
         /* Tell the policy engine that we failed */
-        chEvtSignal(pdb_pe_thread, PDB_EVT_PE_TX_ERR);
+        chEvtSignal(cfg->pe.thread, PDB_EVT_PE_TX_ERR);
         /* Finish failing to send the message */
         cfg->prl._tx_message = NULL;
     }
@@ -195,7 +195,7 @@ static enum protocol_tx_state protocol_tx_transmission_error(struct pdb_config *
     cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
 
     /* Tell the policy engine that we failed */
-    chEvtSignal(pdb_pe_thread, PDB_EVT_PE_TX_ERR);
+    chEvtSignal(cfg->pe.thread, PDB_EVT_PE_TX_ERR);
 
     cfg->prl._tx_message = NULL;
     return PRLTxWaitMessage;
@@ -207,7 +207,7 @@ static enum protocol_tx_state protocol_tx_message_sent(struct pdb_config *cfg)
     cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
 
     /* Tell the policy engine that we succeeded */
-    chEvtSignal(pdb_pe_thread, PDB_EVT_PE_TX_DONE);
+    chEvtSignal(cfg->pe.thread, PDB_EVT_PE_TX_DONE);
 
     cfg->prl._tx_message = NULL;
     return PRLTxWaitMessage;
