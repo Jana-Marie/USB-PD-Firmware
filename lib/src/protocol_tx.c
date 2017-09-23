@@ -45,9 +45,6 @@ enum protocol_tx_state {
     PRLTxDiscardMessage
 };
 
-/* The message we're currently working on transmitting */
-static union pd_msg *protocol_tx_message = NULL;
-
 
 /*
  * PRL_Tx_PHY_Layer_Reset state
@@ -60,11 +57,11 @@ static enum protocol_tx_state protocol_tx_phy_reset(struct pdb_config *cfg)
 
     /* If a message was pending when we got here, tell the policy engine that
      * we failed to send it */
-    if (protocol_tx_message != NULL) {
+    if (cfg->prl._tx_message != NULL) {
         /* Tell the policy engine that we failed */
         chEvtSignal(pdb_pe_thread, PDB_EVT_PE_TX_ERR);
         /* Finish failing to send the message */
-        protocol_tx_message = NULL;
+        cfg->prl._tx_message = NULL;
     }
 
     /* Wait for a message request */
@@ -90,10 +87,10 @@ static enum protocol_tx_state protocol_tx_wait_message(struct pdb_config *cfg)
     /* If the policy engine is trying to send a message */
     if (evt & PDB_EVT_PRLTX_MSG_TX) {
         /* Get the message */
-        chMBFetch(&cfg->prl.tx_mailbox, (msg_t *) &protocol_tx_message, TIME_IMMEDIATE);
+        chMBFetch(&cfg->prl.tx_mailbox, (msg_t *) &cfg->prl._tx_message, TIME_IMMEDIATE);
         /* If it's a Soft_Reset, reset the TX layer first */
-        if (PD_MSGTYPE_GET(protocol_tx_message) == PD_MSGTYPE_SOFT_RESET
-                && PD_NUMOBJ_GET(protocol_tx_message) == 0) {
+        if (PD_MSGTYPE_GET(cfg->prl._tx_message) == PD_MSGTYPE_SOFT_RESET
+                && PD_NUMOBJ_GET(cfg->prl._tx_message) == 0) {
             return PRLTxReset;
         /* Otherwise, just send the message */
         } else {
@@ -134,11 +131,11 @@ static enum protocol_tx_state protocol_tx_construct_message(struct pdb_config *c
     }
 
     /* Set the correct MessageID in the message */
-    protocol_tx_message->hdr &= ~PD_HDR_MESSAGEID;
-    protocol_tx_message->hdr |= (cfg->prl._tx_messageidcounter % 8) << PD_HDR_MESSAGEID_SHIFT;
+    cfg->prl._tx_message->hdr &= ~PD_HDR_MESSAGEID;
+    cfg->prl._tx_message->hdr |= (cfg->prl._tx_messageidcounter % 8) << PD_HDR_MESSAGEID_SHIFT;
 
     /* Send the message to the PHY */
-    fusb_send_message(protocol_tx_message);
+    fusb_send_message(cfg->prl._tx_message);
 
     return PRLTxWaitResponse;
 }
@@ -204,7 +201,7 @@ static enum protocol_tx_state protocol_tx_transmission_error(struct pdb_config *
     /* Tell the policy engine that we failed */
     chEvtSignal(pdb_pe_thread, PDB_EVT_PE_TX_ERR);
 
-    protocol_tx_message = NULL;
+    cfg->prl._tx_message = NULL;
     return PRLTxWaitMessage;
 }
 
@@ -217,7 +214,7 @@ static enum protocol_tx_state protocol_tx_message_sent(struct pdb_config *cfg)
     /* Tell the policy engine that we succeeded */
     chEvtSignal(pdb_pe_thread, PDB_EVT_PE_TX_DONE);
 
-    protocol_tx_message = NULL;
+    cfg->prl._tx_message = NULL;
     return PRLTxWaitMessage;
 }
 
@@ -225,7 +222,7 @@ static enum protocol_tx_state protocol_tx_discard_message(struct pdb_config *cfg
 {
     (void) cfg;
     /* If we were working on sending a message, increment MessageIDCounter */
-    if (protocol_tx_message != NULL) {
+    if (cfg->prl._tx_message != NULL) {
         cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
     }
 

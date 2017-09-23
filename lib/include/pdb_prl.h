@@ -38,6 +38,7 @@ struct pdb_prl {
     union pd_msg *_rx_message;
 
     int8_t _tx_messageidcounter;
+    union pd_msg *_tx_message;
     msg_t _tx_mailbox_queue[PDB_MSG_POOL_SIZE];
 };
 
