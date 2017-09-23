@@ -37,9 +37,6 @@
 /* The Policy Engine thread object */
 extern thread_t *pdb_pe_thread;
 
-/* Policy Engine thread mailbox */
-extern mailbox_t pdb_pe_mailbox;
-
 /*
  * Start the Policy Engine thread
  */

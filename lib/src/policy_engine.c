@@ -60,9 +60,6 @@ static bool explicit_contract = false;
 static bool min_power = false;
 /* Keep track of how many hard resets we've sent */
 static int hard_reset_counter = 0;
-/* Policy Engine thread mailbox */
-static msg_t pdb_pe_mailbox_queue[PDB_MSG_POOL_SIZE];
-mailbox_t pdb_pe_mailbox;
 
 static enum policy_engine_state pe_sink_startup(struct pdb_config *cfg)
 {
@@ -110,7 +107,7 @@ static enum policy_engine_state pe_sink_wait_cap(struct pdb_config *cfg)
     /* If we got a message */
     if (evt & PDB_EVT_PE_MSG_RX) {
         /* Get the message */
-        if (chMBFetch(&pdb_pe_mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+        if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
             /* If we got a Source_Capabilities message, read it. */
             if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOURCE_CAPABILITIES
                     && PD_NUMOBJ_GET(policy_engine_message) > 0) {
@@ -181,7 +178,7 @@ static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
     }
 
     /* Get the response message */
-    if (chMBFetch(&pdb_pe_mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
         /* If the source accepted our request, wait for the new power */
         if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_ACCEPT
                 && PD_NUMOBJ_GET(policy_engine_message) == 0) {
@@ -242,7 +239,7 @@ static enum policy_engine_state pe_sink_transition_sink(struct pdb_config *cfg)
     }
 
     /* If we received a message, read it */
-    if (chMBFetch(&pdb_pe_mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
         /* If we got a PS_RDY, handle it */
         if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_PS_RDY
                 && PD_NUMOBJ_GET(policy_engine_message) == 0) {
@@ -324,7 +321,7 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
 
     /* If we received a message */
     if (evt & PDB_EVT_PE_MSG_RX) {
-        if (chMBFetch(&pdb_pe_mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+        if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
             /* Ignore vendor-defined messages */
             if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_VENDOR_DEFINED
                     && PD_NUMOBJ_GET(policy_engine_message) > 0) {
@@ -581,7 +578,7 @@ static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
     }
 
     /* Get the response message */
-    if (chMBFetch(&pdb_pe_mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
         /* If the source accepted our soft reset, wait for capabilities. */
         if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_ACCEPT
                 && PD_NUMOBJ_GET(policy_engine_message) == 0) {
@@ -659,11 +656,12 @@ static enum policy_engine_state pe_sink_source_unresponsive(struct pdb_config *c
 /*
  * Policy Engine state machine thread
  */
-static THD_FUNCTION(PolicyEngine, cfg) {
+static THD_FUNCTION(PolicyEngine, vcfg) {
+    struct pdb_config *cfg = vcfg;
     enum policy_engine_state state = PESinkStartup;
 
     /* Initialize the mailbox */
-    chMBObjectInit(&pdb_pe_mailbox, pdb_pe_mailbox_queue, PDB_MSG_POOL_SIZE);
+    chMBObjectInit(&cfg->pe.mailbox, cfg->pe._mailbox_queue, PDB_MSG_POOL_SIZE);
 
     while (true) {
         switch (state) {
