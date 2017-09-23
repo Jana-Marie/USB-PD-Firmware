@@ -42,6 +42,8 @@ struct pdb_pe {
     bool _min_power;
     /* The number of hard resets we've sent */
     int8_t _hard_reset_counter;
+    /* The result of the last Type-C Current match comparison */
+    int8_t _old_tcc_match;
     /* Queue for the PE mailbox */
     msg_t _mailbox_queue[PDB_MSG_POOL_SIZE];
 };

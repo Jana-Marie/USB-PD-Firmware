@@ -623,16 +623,15 @@ static enum policy_engine_state pe_sink_send_reject(struct pdb_config *cfg)
  */
 static enum policy_engine_state pe_sink_source_unresponsive(struct pdb_config *cfg)
 {
-    static int old_tcc_match = -1;
     int tcc_match = cfg->dpm.evaluate_typec_current(cfg, fusb_get_typec_current());
 
     /* If the last two readings are the same, set the output */
-    if (old_tcc_match == tcc_match) {
+    if (cfg->pe._old_tcc_match == tcc_match) {
         cfg->dpm.transition_typec(cfg);
     }
 
     /* Remember whether or not the last measurement succeeded */
-    old_tcc_match = tcc_match;
+    cfg->pe._old_tcc_match = tcc_match;
 
     /* Wait tPDDebounce between measurements */
     chThdSleep(PD_T_PD_DEBOUNCE);
@@ -649,6 +648,8 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
 
     /* Initialize the mailbox */
     chMBObjectInit(&cfg->pe.mailbox, cfg->pe._mailbox_queue, PDB_MSG_POOL_SIZE);
+    /* Initialize the old_tcc_match */
+    cfg->pe._old_tcc_match = -1;
 
     while (true) {
         switch (state) {
