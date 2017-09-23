@@ -51,7 +51,6 @@ enum protocol_tx_state {
  */
 static enum protocol_tx_state protocol_tx_phy_reset(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* Reset the PHY */
     fusb_reset();
 
@@ -119,7 +118,6 @@ static enum protocol_tx_state protocol_tx_reset(struct pdb_config *cfg)
  */
 static enum protocol_tx_state protocol_tx_construct_message(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* Make sure nobody wants us to reset */
     eventmask_t evt = chEvtGetAndClearEvents(PDB_EVT_PRLTX_RESET | PDB_EVT_PRLTX_DISCARD);
 
@@ -176,7 +174,6 @@ static enum protocol_tx_state protocol_tx_wait_response(struct pdb_config *cfg)
  */
 static enum protocol_tx_state protocol_tx_match_messageid(struct pdb_config *cfg)
 {
-    (void) cfg;
     union pd_msg goodcrc;
 
     /* Read the GoodCRC */
@@ -194,7 +191,6 @@ static enum protocol_tx_state protocol_tx_match_messageid(struct pdb_config *cfg
 
 static enum protocol_tx_state protocol_tx_transmission_error(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* Increment MessageIDCounter */
     cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
 
@@ -207,7 +203,6 @@ static enum protocol_tx_state protocol_tx_transmission_error(struct pdb_config *
 
 static enum protocol_tx_state protocol_tx_message_sent(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* Increment MessageIDCounter */
     cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
 
@@ -220,7 +215,6 @@ static enum protocol_tx_state protocol_tx_message_sent(struct pdb_config *cfg)
 
 static enum protocol_tx_state protocol_tx_discard_message(struct pdb_config *cfg)
 {
-    (void) cfg;
     /* If we were working on sending a message, increment MessageIDCounter */
     if (cfg->prl._tx_message != NULL) {
         cfg->prl._tx_messageidcounter = (cfg->prl._tx_messageidcounter + 1) % 8;
