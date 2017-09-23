@@ -48,23 +48,10 @@ enum policy_engine_state {
     PESinkSourceUnresponsive
 };
 
-/* The received message we're currently working with */
-static union pd_msg *policy_engine_message = NULL;
-/* The most recent Request from the DPM */
-static union pd_msg *last_dpm_request = NULL;
-/* Whether or not the source capabilities match our required power */
-static bool capability_match = false;
-/* Whether or not we have an explicit contract */
-static bool explicit_contract = false;
-/* Whether or not we're receiving minimum power*/
-static bool min_power = false;
-/* Keep track of how many hard resets we've sent */
-static int hard_reset_counter = 0;
-
 static enum policy_engine_state pe_sink_startup(struct pdb_config *cfg)
 {
     /* We don't have an explicit contract currently */
-    explicit_contract = false;
+    cfg->pe._explicit_contract = false;
     /* Tell the DPM that we've started negotiations */
     cfg->dpm.pd_start(cfg);
 
@@ -107,21 +94,21 @@ static enum policy_engine_state pe_sink_wait_cap(struct pdb_config *cfg)
     /* If we got a message */
     if (evt & PDB_EVT_PE_MSG_RX) {
         /* Get the message */
-        if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+        if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
             /* If we got a Source_Capabilities message, read it. */
-            if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOURCE_CAPABILITIES
-                    && PD_NUMOBJ_GET(policy_engine_message) > 0) {
+            if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOURCE_CAPABILITIES
+                    && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
                 return PESinkEvalCap;
             /* If the message was a Soft_Reset, do the soft reset procedure */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOFT_RESET
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOFT_RESET
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSoftReset;
             /* If we got an unexpected message, reset */
             } else {
                 /* Free the received message */
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 return PESinkHardReset;
             }
         }
@@ -134,16 +121,16 @@ static enum policy_engine_state pe_sink_wait_cap(struct pdb_config *cfg)
 static enum policy_engine_state pe_sink_eval_cap(struct pdb_config *cfg)
 {
     /* Get a message object for the request if we don't have one already */
-    if (last_dpm_request == NULL) {
-        last_dpm_request = chPoolAlloc(&pdb_msg_pool);
+    if (cfg->pe._last_dpm_request == NULL) {
+        cfg->pe._last_dpm_request = chPoolAlloc(&pdb_msg_pool);
     }
     /* Ask the DPM what to request */
-    capability_match = cfg->dpm.evaluate_capability(cfg, policy_engine_message,
-            last_dpm_request);
+    cfg->dpm.evaluate_capability(cfg, cfg->pe._message,
+            cfg->pe._last_dpm_request);
     /* It's up to the DPM to free the Source_Capabilities message, which it can
      * do whenever it sees fit.  Just remove our reference to it since we won't
      * know when it's no longer valid. */
-    policy_engine_message = NULL;
+    cfg->pe._message = NULL;
 
     return PESinkSelectCap;
 }
@@ -151,7 +138,7 @@ static enum policy_engine_state pe_sink_eval_cap(struct pdb_config *cfg)
 static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
 {
     /* Transmit the request */
-    chMBPost(&cfg->prl.tx_mailbox, (msg_t) last_dpm_request, TIME_IMMEDIATE);
+    chMBPost(&cfg->prl.tx_mailbox, (msg_t) cfg->pe._last_dpm_request, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -178,46 +165,46 @@ static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
     }
 
     /* Get the response message */
-    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
         /* If the source accepted our request, wait for the new power */
-        if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_ACCEPT
-                && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+        if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_ACCEPT
+                && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
             /* Transition to Sink Standby if necessary */
             cfg->dpm.transition_standby(cfg);
 
-            min_power = false;
+            cfg->pe._min_power = false;
 
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
             return PESinkTransitionSink;
         /* If the message was a Soft_Reset, do the soft reset procedure */
-        } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOFT_RESET
-                && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+        } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOFT_RESET
+                && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
             return PESinkSoftReset;
         /* If the message was Wait or Reject */
-        } else if ((PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_REJECT
-                    || PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_WAIT)
-                && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+        } else if ((PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_REJECT
+                    || PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_WAIT)
+                && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
             /* If we don't have an explicit contract, wait for capabilities */
-            if (!explicit_contract) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            if (!cfg->pe._explicit_contract) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkWaitCap;
             /* If we do have an explicit contract, go to the ready state */
             } else {
                 /* If we got here from a Wait message, we Should run
                  * SinkRequestTimer in the Ready state. */
-                min_power = (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_WAIT);
+                cfg->pe._min_power = (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_WAIT);
 
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkReady;
             }
         } else {
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
             return PESinkSendSoftReset;
         }
     }
@@ -239,20 +226,20 @@ static enum policy_engine_state pe_sink_transition_sink(struct pdb_config *cfg)
     }
 
     /* If we received a message, read it */
-    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
         /* If we got a PS_RDY, handle it */
-        if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_PS_RDY
-                && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+        if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_PS_RDY
+                && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
             /* We just finished negotiating an explicit contract */
-            explicit_contract = true;
+            cfg->pe._explicit_contract = true;
 
             /* Set the output appropriately */
-            if (!min_power) {
+            if (!cfg->pe._min_power) {
                 cfg->dpm.transition_requested(cfg);
             }
 
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
             return PESinkReady;
         /* If there was a protocol error, send a hard reset */
         } else {
@@ -261,8 +248,8 @@ static enum policy_engine_state pe_sink_transition_sink(struct pdb_config *cfg)
              */
             cfg->dpm.transition_default(cfg);
 
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
             return PESinkHardReset;
         }
     }
@@ -275,7 +262,7 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
     eventmask_t evt;
 
     /* Wait for an event */
-    if (min_power) {
+    if (cfg->pe._min_power) {
         evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
                 | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP
                 | PDB_EVT_PE_NEW_POWER, PD_T_SINK_REQUEST);
@@ -306,9 +293,9 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
      * design of this firmware. */
     if (evt & PDB_EVT_PE_NEW_POWER) {
         /* Make sure we're evaluating NULL capabilities to use the old ones */
-        if (policy_engine_message != NULL) {
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+        if (cfg->pe._message != NULL) {
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
         }
         return PESinkEvalCap;
     }
@@ -321,94 +308,94 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
 
     /* If we received a message */
     if (evt & PDB_EVT_PE_MSG_RX) {
-        if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+        if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
             /* Ignore vendor-defined messages */
-            if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_VENDOR_DEFINED
-                    && PD_NUMOBJ_GET(policy_engine_message) > 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_VENDOR_DEFINED
+                    && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkReady;
             /* Ignore Ping messages */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_PING
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_PING
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkReady;
             /* Reject DR_Swap messages */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_DR_SWAP
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_DR_SWAP
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSendReject;
             /* Reject Get_Source_Cap messages */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_GET_SOURCE_CAP
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_GET_SOURCE_CAP
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSendReject;
             /* Reject PR_Swap messages */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_PR_SWAP
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_PR_SWAP
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSendReject;
             /* Reject VCONN_Swap messages */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_VCONN_SWAP
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_VCONN_SWAP
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSendReject;
             /* Reject Request messages */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_REQUEST
-                    && PD_NUMOBJ_GET(policy_engine_message) > 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_REQUEST
+                    && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSendReject;
             /* Reject Sink_Capabilities messages */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SINK_CAPABILITIES
-                    && PD_NUMOBJ_GET(policy_engine_message) > 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SINK_CAPABILITIES
+                    && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSendReject;
             /* Handle GotoMin messages */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_GOTOMIN
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_GOTOMIN
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
                 if (cfg->dpm.giveback_enabled(cfg)) {
                     /* Transition to the minimum current level */
                     cfg->dpm.transition_min(cfg);
-                    min_power = true;
+                    cfg->pe._min_power = true;
 
-                    chPoolFree(&pdb_msg_pool, policy_engine_message);
-                    policy_engine_message = NULL;
+                    chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                    cfg->pe._message = NULL;
                     return PESinkTransitionSink;
                 } else {
                     /* We don't support GiveBack, so send a Reject */
-                    chPoolFree(&pdb_msg_pool, policy_engine_message);
-                    policy_engine_message = NULL;
+                    chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                    cfg->pe._message = NULL;
                     return PESinkSendReject;
                 }
             /* Evaluate new Source_Capabilities */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOURCE_CAPABILITIES
-                    && PD_NUMOBJ_GET(policy_engine_message) > 0) {
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOURCE_CAPABILITIES
+                    && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
                 /* Don't free the message: we need to keep the
                  * Source_Capabilities message so we can evaluate it. */
                 return PESinkEvalCap;
             /* Give sink capabilities when asked */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_GET_SINK_CAP
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_GET_SINK_CAP
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkGiveSinkCap;
             /* If the message was a Soft_Reset, do the soft reset procedure */
-            } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOFT_RESET
-                    && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+            } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOFT_RESET
+                    && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSoftReset;
             /* If we got an unknown message, send a soft reset */
             } else {
-                chPoolFree(&pdb_msg_pool, policy_engine_message);
-                policy_engine_message = NULL;
+                chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                cfg->pe._message = NULL;
                 return PESinkSendSoftReset;
             }
         }
@@ -477,7 +464,7 @@ static enum policy_engine_state pe_sink_hard_reset(struct pdb_config *cfg)
 {
     /* If we've already sent the maximum number of hard resets, assume the
      * source is unresponsive. */
-    if (hard_reset_counter > PD_N_HARD_RESET_COUNT) {
+    if (cfg->pe._hard_reset_counter > PD_N_HARD_RESET_COUNT) {
         return PESinkSourceUnresponsive;
     }
 
@@ -486,14 +473,14 @@ static enum policy_engine_state pe_sink_hard_reset(struct pdb_config *cfg)
     chEvtWaitAny(PDB_EVT_PE_HARD_SENT);
 
     /* Increment HardResetCounter */
-    hard_reset_counter++;
+    cfg->pe._hard_reset_counter++;
 
     return PESinkTransitionDefault;
 }
 
 static enum policy_engine_state pe_sink_transition_default(struct pdb_config *cfg)
 {
-    explicit_contract = false;
+    cfg->pe._explicit_contract = false;
 
     /* Tell the DPM to transition to default power */
     cfg->dpm.transition_default(cfg);
@@ -578,23 +565,23 @@ static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
     }
 
     /* Get the response message */
-    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &policy_engine_message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
         /* If the source accepted our soft reset, wait for capabilities. */
-        if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_ACCEPT
-                && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+        if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_ACCEPT
+                && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
             return PESinkWaitCap;
         /* If the message was a Soft_Reset, do the soft reset procedure */
-        } else if (PD_MSGTYPE_GET(policy_engine_message) == PD_MSGTYPE_SOFT_RESET
-                && PD_NUMOBJ_GET(policy_engine_message) == 0) {
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+        } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOFT_RESET
+                && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
             return PESinkSoftReset;
         /* Otherwise, send a hard reset */
         } else {
-            chPoolFree(&pdb_msg_pool, policy_engine_message);
-            policy_engine_message = NULL;
+            chPoolFree(&pdb_msg_pool, cfg->pe._message);
+            cfg->pe._message = NULL;
             return PESinkHardReset;
         }
     }

@@ -29,14 +29,20 @@ struct pdb_pe {
     THD_WORKING_AREA(_wa, 128);
     thread_t *thread;
 
+    /* PE mailbox for received PD messages */
     mailbox_t mailbox;
 
-    union pd_msg *_policy_engine_message;
+    /* The received message we're currently working with */
+    union pd_msg *_message;
+    /* The most recent Request from the DPM */
     union pd_msg *_last_dpm_request;
-    bool _capability_match;
+    /* Whether or not we have an explicit contract */
     bool _explicit_contract;
+    /* Whether or not we're receiving minimum power */
     bool _min_power;
+    /* The number of hard resets we've sent */
     int8_t _hard_reset_counter;
+    /* Queue for the PE mailbox */
     msg_t _mailbox_queue[PDB_MSG_POOL_SIZE];
 };
 
