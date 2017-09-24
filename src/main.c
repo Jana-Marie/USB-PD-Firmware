@@ -59,7 +59,7 @@ static const I2CConfig i2c2config = {
  */
 static struct pdbs_dpm_data dpm_data = {
     NULL,
-    None,
+    fusb_tcc_none,
     true,
     true,
     false,

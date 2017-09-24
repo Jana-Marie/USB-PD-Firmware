@@ -271,10 +271,10 @@ union fusb_status {
  * FUSB Type-C Current level enum
  */
 enum fusb_typec_current {
-    None = 0,
-    Default = 1,
-    OnePointFiveAmps = 2,
-    ThreePointZeroAmps = 3
+    fusb_tcc_none = 0,
+    fusb_tcc_default = 1,
+    fusb_tcc_1_5 = 2,
+    fusb_tcc_3_0 = 3
 };
 
 

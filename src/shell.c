@@ -358,14 +358,14 @@ static void cmd_get_source_cap(BaseSequentialStream *chp, int argc, char *argv[]
     /* If we haven't seen any Source_Capabilities */
     if (pdbs_dpm_data->capabilities == NULL) {
         /* Have we started reading Type-C Current advertisements? */
-        if (pdbs_dpm_data->typec_current != None) {
+        if (pdbs_dpm_data->typec_current != fusb_tcc_none) {
             /* Type-C Current is available, so report it */
             chprintf(chp, "PDO 1: typec_virtual\r\n");
-            if (pdbs_dpm_data->typec_current == Default) {
+            if (pdbs_dpm_data->typec_current == fusb_tcc_default) {
                 chprintf(chp, "\ti: 0.50 A\r\n");
-            } else if (pdbs_dpm_data->typec_current == OnePointFiveAmps) {
+            } else if (pdbs_dpm_data->typec_current == fusb_tcc_1_5) {
                 chprintf(chp, "\ti: 1.50 A\r\n");
-            } else if (pdbs_dpm_data->typec_current == ThreePointZeroAmps) {
+            } else if (pdbs_dpm_data->typec_current == fusb_tcc_3_0) {
                 chprintf(chp, "\ti: 3.00 A\r\n");
             }
             return;

@@ -198,12 +198,12 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
     }
 
     /* If 1.5 A is available and we want no more than that, great. */
-    if (tcc == OnePointFiveAmps && scfg->i <= 150) {
+    if (tcc == fusb_tcc_1_5 && scfg->i <= 150) {
         dpm_data->_capability_match = true;
         return true;
     }
     /* If 3 A is available and we want no more than that, that's great too. */
-    if (tcc == ThreePointZeroAmps && scfg->i <= 300) {
+    if (tcc == fusb_tcc_3_0 && scfg->i <= 300) {
         dpm_data->_capability_match = true;
         return true;
     }
