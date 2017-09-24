@@ -18,11 +18,11 @@
 
 #include "protocol_tx.h"
 
+#include <pd.h>
 #include "priorities.h"
 #include "policy_engine.h"
 #include "protocol_rx.h"
 #include "fusb302b.h"
-#include "pd.h"
 
 
 /*

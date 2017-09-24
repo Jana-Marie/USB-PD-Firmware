@@ -22,9 +22,10 @@
 
 #include <hal.h>
 
+#include <pd.h>
+
 #include "led.h"
 #include "config.h"
-#include "pd.h"
 
 
 /* The current draw when the output is disabled */

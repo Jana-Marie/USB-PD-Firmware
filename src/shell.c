@@ -40,11 +40,11 @@
 #include "chprintf.h"
 
 #include <pdb.h>
+#include <pd.h>
 #include "usbcfg.h"
 #include "config.h"
 #include "led.h"
 #include "device_policy_manager.h"
-#include "pd.h"
 
 
 /* Buffer for unwritten configuration */

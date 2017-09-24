@@ -39,9 +39,9 @@
 #include "usbcfg.h"
 
 #include <pdb.h>
+#include <pd.h>
 #include "led.h"
 #include "device_policy_manager.h"
-#include "pd.h"
 
 /*
  * I2C configuration object.

@@ -22,7 +22,6 @@
 #include <stdbool.h>
 
 #include <pdb.h>
-#include "fusb302b.h"
 
 
 struct pdbs_dpm_data {

@@ -21,6 +21,12 @@
 
 #include <hal.h>
 
+/* I2C addresses of the FUSB302B chips */
+#define FUSB302B_ADDR 0x22
+#define FUSB302B01_ADDR 0x23
+#define FUSB302B10_ADDR 0x24
+#define FUSB302B11_ADDR 0x25
+
 
 /*
  * Configuration for the FUSB302B chip
@@ -30,6 +36,16 @@ struct pdb_fusb_config {
     I2CDriver *i2cp;
     /* The I2C address of the chip */
     i2caddr_t addr;
+};
+
+/*
+ * FUSB Type-C Current level enum
+ */
+enum fusb_typec_current {
+    fusb_tcc_none = 0,
+    fusb_tcc_default = 1,
+    fusb_tcc_1_5 = 2,
+    fusb_tcc_3_0 = 3
 };
 
 

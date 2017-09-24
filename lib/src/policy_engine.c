@@ -20,11 +20,11 @@
 
 #include <stdbool.h>
 
+#include <pd.h>
 #include "priorities.h"
 #include "protocol_tx.h"
 #include "hard_reset.h"
 #include "fusb302b.h"
-#include "pd.h"
 
 
 enum policy_engine_state {

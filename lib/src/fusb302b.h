@@ -26,12 +26,6 @@
 #include <pdb_msg.h>
 
 
-/* I2C addresses of the FUSB302B chips */
-#define FUSB302B_ADDR 0x22
-#define FUSB302B01_ADDR 0x23
-#define FUSB302B10_ADDR 0x24
-#define FUSB302B11_ADDR 0x25
-
 /* Device ID register */
 #define FUSB_DEVICE_ID 0x01
 #define FUSB_DEVICE_ID_VERSION_ID_SHIFT 4
@@ -265,16 +259,6 @@ union fusb_status {
         uint8_t status1;
         uint8_t interrupt;
     };
-};
-
-/*
- * FUSB Type-C Current level enum
- */
-enum fusb_typec_current {
-    fusb_tcc_none = 0,
-    fusb_tcc_default = 1,
-    fusb_tcc_1_5 = 2,
-    fusb_tcc_3_0 = 3
 };
 
 

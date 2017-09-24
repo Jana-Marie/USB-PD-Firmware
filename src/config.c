@@ -20,7 +20,7 @@
 
 #include "chprintf.h"
 
-#include "pd.h"
+#include <pd.h>
 
 
 /* Initialize the location of the configuration array.  PDBS_CONFIG_BASE is set

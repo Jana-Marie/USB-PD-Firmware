@@ -21,9 +21,8 @@
 
 #include <stdbool.h>
 
+#include <pdb_fusb.h>
 #include <pdb_msg.h>
-/* TODO: improve this include */
-#include "fusb302b.h"
 
 
 /* Forward declaration of struct pdb_config */
