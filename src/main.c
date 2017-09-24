@@ -41,6 +41,7 @@
 #include <pdb.h>
 #include "led.h"
 #include "device_policy_manager.h"
+#include "pd.h"
 
 /*
  * I2C configuration object.
@@ -61,7 +62,8 @@ static struct pdbs_dpm_data dpm_data = {
     None,
     true,
     true,
-    false
+    false,
+    ._present_voltage = PD_MV2PDV(5000)
 };
 
 /*

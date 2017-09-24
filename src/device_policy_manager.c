@@ -30,18 +30,6 @@
 /* The current draw when the output is disabled */
 #define DPM_MIN_CURRENT PD_MA2PDI(100)
 
-/* Whether or not the power supply is unconstrained */
-static bool dpm_unconstrained_power;
-
-/* The last explicitly or implicitly negotiated voltage in PDV */
-static int dpm_present_voltage = PD_MV2PDV(5000);
-
-/* The requested voltage */
-static int dpm_requested_voltage;
-
-/* Whether our capabilities matched or not */
-static bool dpm_capability_match;
-
 bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         const union pd_msg *capabilities, union pd_msg *request)
 {
@@ -70,7 +58,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     }
 
     /* Get whether or not the power supply is constrained */
-    dpm_unconstrained_power = capabilities->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
+    dpm_data->_unconstrained_power = capabilities->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
 
     /* Make sure we have configuration */
     if (scfg != NULL && dpm_data->output_enabled) {
@@ -105,9 +93,9 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
                 }
 
                 /* Update requested voltage */
-                dpm_requested_voltage = scfg->v;
+                dpm_data->_requested_voltage = scfg->v;
 
-                dpm_capability_match = true;
+                dpm_data->_capability_match = true;
                 return true;
             }
         }
@@ -130,10 +118,10 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     }
 
     /* Update requested voltage */
-    dpm_requested_voltage = PD_MV2PDV(5000);
+    dpm_data->_requested_voltage = PD_MV2PDV(5000);
 
     /* At this point, we have a capability match iff the output is disabled */
-    dpm_capability_match = !dpm_data->output_enabled;
+    dpm_data->_capability_match = !dpm_data->output_enabled;
     return !dpm_data->output_enabled;
 }
 
@@ -167,7 +155,7 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
     }
 
     /* Set the unconstrained power flag. */
-    if (dpm_unconstrained_power) {
+    if (dpm_data->_unconstrained_power) {
         cap->obj[0] |= PD_PDO_SNK_FIXED_UNCONSTRAINED;
     }
 
@@ -196,7 +184,7 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
     struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
 
     /* We don't control the voltage anymore; it will always be 5 V. */
-    dpm_requested_voltage = PD_MV2PDV(5000);
+    dpm_data->_requested_voltage = PD_MV2PDV(5000);
 
     /* Make the present Type-C Current advertisement available to the rest of
      * the DPM */
@@ -205,18 +193,18 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
     if (scfg == NULL || scfg->v != PD_MV2PDV(5000)) {
-        dpm_capability_match = false;
+        dpm_data->_capability_match = false;
         return false;
     }
 
     /* If 1.5 A is available and we want no more than that, great. */
     if (tcc == OnePointFiveAmps && scfg->i <= 150) {
-        dpm_capability_match = true;
+        dpm_data->_capability_match = true;
         return true;
     }
     /* If 3 A is available and we want no more than that, that's great too. */
     if (tcc == ThreePointZeroAmps && scfg->i <= 300) {
-        dpm_capability_match = true;
+        dpm_data->_capability_match = true;
         return true;
     }
     /* We're overly cautious if USB default current is available, since that
@@ -224,7 +212,7 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
      * and since we're really supposed to enumerate in order to request more
      * than 100 mA.  This could be changed in the future. */
 
-    dpm_capability_match = false;
+    dpm_data->_capability_match = false;
     return false;
 }
 
@@ -244,7 +232,7 @@ void pdbs_dpm_pd_start(struct pdb_config *cfg)
 static void dpm_output_set(struct pdbs_dpm_data *dpm_data, bool state)
 {
     /* Update the present voltage */
-    dpm_present_voltage = dpm_requested_voltage;
+    dpm_data->_present_voltage = dpm_data->_requested_voltage;
 
     /* Set the power output */
     if (state && dpm_data->output_enabled) {
@@ -264,8 +252,11 @@ static void dpm_output_set(struct pdbs_dpm_data *dpm_data, bool state)
 
 void pdbs_dpm_transition_default(struct pdb_config *cfg)
 {
+    /* Cast the dpm_data to the right type */
+    struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
+
     /* Pretend we requested 5 V */
-    dpm_requested_voltage = PD_MV2PDV(5000);
+    dpm_data->_requested_voltage = PD_MV2PDV(5000);
     /* Turn the output off */
     dpm_output_set(cfg->dpm_data, false);
 }
@@ -277,8 +268,11 @@ void pdbs_dpm_transition_min(struct pdb_config *cfg)
 
 void pdbs_dpm_transition_standby(struct pdb_config *cfg)
 {
+    /* Cast the dpm_data to the right type */
+    struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
+
     /* If the voltage is changing, enter Sink Standby */
-    if (dpm_requested_voltage != dpm_present_voltage) {
+    if (dpm_data->_requested_voltage != dpm_data->_present_voltage) {
         /* For the PD Buddy Sink, entering Sink Standby is equivalent to
          * turning the output off.  However, we don't want to change the LED
          * state for standby mode. */
@@ -288,5 +282,8 @@ void pdbs_dpm_transition_standby(struct pdb_config *cfg)
 
 void pdbs_dpm_transition_requested(struct pdb_config *cfg)
 {
-    dpm_output_set(cfg->dpm_data, dpm_capability_match);
+    /* Cast the dpm_data to the right type */
+    struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
+
+    dpm_output_set(cfg->dpm_data, dpm_data->_capability_match);
 }

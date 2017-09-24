@@ -37,6 +37,15 @@ struct pdbs_dpm_data {
     bool led_pd_status;
     /* Whether the device is capable of USB communications */
     bool usb_comms;
+
+    /* Whether or not the power supply is unconstrained */
+    bool _unconstrained_power;
+    /* Whether our capabilities matched or not */
+    bool _capability_match;
+    /* The last explicitly or implicitly negotiated voltage in PDV */
+    int _present_voltage;
+    /* The requested voltage */
+    int _requested_voltage;
 };
 
 
