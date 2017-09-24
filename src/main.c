@@ -140,7 +140,7 @@ int main(void) {
     pdbs_led_run();
 
     /* Start I2C2 to make communication with the PHY possible */
-    i2cStart(&I2CD2, &i2c2config);
+    i2cStart(pdb_config.fusb.i2cp, &i2c2config);
 
     /* Decide what mode to enter by the state of the button */
     if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
