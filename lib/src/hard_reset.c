@@ -82,7 +82,7 @@ static enum hardrst_state hardrst_request_hard_reset(struct pdb_config *cfg)
 {
     (void) cfg;
     /* Tell the PHY to send a hard reset */
-    fusb_send_hardrst();
+    fusb_send_hardrst(&cfg->fusb);
 
     return PRLHRWaitPHY;
 }

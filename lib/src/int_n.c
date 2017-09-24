@@ -43,7 +43,7 @@ static THD_FUNCTION(IntNPoll, vcfg) {
         /* If the INT_N line is low */
         if (palReadLine(LINE_INT_N) == PAL_LOW) {
             /* Read the FUSB302B status and interrupt registers */
-            fusb_get_status(&status);
+            fusb_get_status(&cfg->fusb, &status);
 
             /* If the I_GCRCSENT flag is set, tell the Protocol RX thread */
             if (status.interruptb & FUSB_INTERRUPTB_I_GCRCSENT) {

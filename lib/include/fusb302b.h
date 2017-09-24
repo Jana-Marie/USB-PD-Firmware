@@ -283,27 +283,27 @@ enum fusb_typec_current {
 /*
  * Send a USB Power Delivery message to the FUSB302B
  */
-void fusb_send_message(const union pd_msg *msg);
+void fusb_send_message(struct pdb_fusb_config *cfg, const union pd_msg *msg);
 
 /*
  * Read a USB Power Delivery message from the FUSB302B
  */
-uint8_t fusb_read_message(union pd_msg *msg);
+uint8_t fusb_read_message(struct pdb_fusb_config *cfg, union pd_msg *msg);
 
 /*
  * Tell the FUSB302B to send a hard reset signal
  */
-void fusb_send_hardrst(void);
+void fusb_send_hardrst(struct pdb_fusb_config *cfg);
 
 /*
  * Read the FUSB302B status and interrupt flags into *status
  */
-void fusb_get_status(union fusb_status *status);
+void fusb_get_status(struct pdb_fusb_config *cfg, union fusb_status *status);
 
 /*
  * Read the FUSB302B BC_LVL as an enum fusb_typec_current
  */
-enum fusb_typec_current fusb_get_typec_current(void);
+enum fusb_typec_current fusb_get_typec_current(struct pdb_fusb_config *cfg);
 
 /*
  * Initialization routine for the FUSB302B
@@ -313,7 +313,7 @@ void fusb_setup(struct pdb_fusb_config *);
 /*
  * Reset the FUSB302B
  */
-void fusb_reset(void);
+void fusb_reset(struct pdb_fusb_config *cfg);
 
 
 #endif /* PDB_FUSB302B_H */

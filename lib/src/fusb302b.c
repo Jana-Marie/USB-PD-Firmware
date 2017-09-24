@@ -67,7 +67,7 @@ static void fusb_write_buf(uint8_t addr, uint8_t size, const uint8_t *buf)
     i2cMasterTransmit(&I2CD2, FUSB302B_ADDR, txbuf, size + 1, NULL, 0);
 }
 
-void fusb_send_message(const union pd_msg *msg)
+void fusb_send_message(struct pdb_fusb_config *cfg, const union pd_msg *msg)
 {
     /* Token sequences for the FUSB302B */
     static uint8_t sop_seq[5] = {
@@ -85,7 +85,7 @@ void fusb_send_message(const union pd_msg *msg)
     };
 
     /* Take the I2C2 mutex now so there can't be a race condition on sop_seq */
-    i2cAcquireBus(&I2CD2);
+    i2cAcquireBus(cfg->i2cp);
 
     /* Get the length of the message: a two-octet header plus NUMOBJ four-octet
      * data objects */
@@ -99,15 +99,15 @@ void fusb_send_message(const union pd_msg *msg)
     fusb_write_buf(FUSB_FIFOS, msg_len, msg->bytes);
     fusb_write_buf(FUSB_FIFOS, 4, eop_seq);
 
-    i2cReleaseBus(&I2CD2);
+    i2cReleaseBus(cfg->i2cp);
 }
 
-uint8_t fusb_read_message(union pd_msg *msg)
+uint8_t fusb_read_message(struct pdb_fusb_config *cfg, union pd_msg *msg)
 {
     uint8_t garbage[4];
     uint8_t numobj;
 
-    i2cAcquireBus(&I2CD2);
+    i2cAcquireBus(cfg->i2cp);
 
     /* If this isn't an SOP message, return error.
      * Because of our configuration, we should be able to assume this means the
@@ -128,18 +128,18 @@ uint8_t fusb_read_message(union pd_msg *msg)
     /* Throw the CRC32 in the garbage, since the PHY already checked it. */
     fusb_read_buf(FUSB_FIFOS, 4, garbage);
 
-    i2cReleaseBus(&I2CD2);
+    i2cReleaseBus(cfg->i2cp);
     return 0;
 }
 
-void fusb_send_hardrst(void)
+void fusb_send_hardrst(struct pdb_fusb_config *cfg)
 {
-    i2cAcquireBus(&I2CD2);
+    i2cAcquireBus(cfg->i2cp);
 
     /* Send a hard reset */
     fusb_write_byte(FUSB_CONTROL3, 0x07 | FUSB_CONTROL3_SEND_HARD_RESET);
 
-    i2cReleaseBus(&I2CD2);
+    i2cReleaseBus(cfg->i2cp);
 }
 
 void fusb_setup(struct pdb_fusb_config *cfg)
@@ -189,32 +189,32 @@ void fusb_setup(struct pdb_fusb_config *cfg)
     i2cReleaseBus(cfg->i2cp);
 }
 
-void fusb_get_status(union fusb_status *status)
+void fusb_get_status(struct pdb_fusb_config *cfg, union fusb_status *status)
 {
-    i2cAcquireBus(&I2CD2);
+    i2cAcquireBus(cfg->i2cp);
 
     /* Read the interrupt and status flags into status */
     fusb_read_buf(FUSB_STATUS0A, 7, status->bytes);
 
-    i2cReleaseBus(&I2CD2);
+    i2cReleaseBus(cfg->i2cp);
 }
 
-enum fusb_typec_current fusb_get_typec_current(void)
+enum fusb_typec_current fusb_get_typec_current(struct pdb_fusb_config *cfg)
 {
-    i2cAcquireBus(&I2CD2);
+    i2cAcquireBus(cfg->i2cp);
 
     /* Read the BC_LVL into a variable */
     enum fusb_typec_current bc_lvl = fusb_read_byte(FUSB_STATUS0)
         & FUSB_STATUS0_BC_LVL;
 
-    i2cReleaseBus(&I2CD2);
+    i2cReleaseBus(cfg->i2cp);
 
     return bc_lvl;
 }
 
-void fusb_reset(void)
+void fusb_reset(struct pdb_fusb_config *cfg)
 {
-    i2cAcquireBus(&I2CD2);
+    i2cAcquireBus(cfg->i2cp);
 
     /* Flush the TX buffer */
     fusb_write_byte(FUSB_CONTROL0, 0x44);
@@ -223,5 +223,5 @@ void fusb_reset(void)
     /* Reset the PD logic */
     fusb_write_byte(FUSB_RESET, FUSB_RESET_PD_RESET);
 
-    i2cReleaseBus(&I2CD2);
+    i2cReleaseBus(cfg->i2cp);
 }

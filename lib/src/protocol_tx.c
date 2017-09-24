@@ -52,7 +52,7 @@ enum protocol_tx_state {
 static enum protocol_tx_state protocol_tx_phy_reset(struct pdb_config *cfg)
 {
     /* Reset the PHY */
-    fusb_reset();
+    fusb_reset(&cfg->fusb);
 
     /* If a message was pending when we got here, tell the policy engine that
      * we failed to send it */
@@ -133,7 +133,7 @@ static enum protocol_tx_state protocol_tx_construct_message(struct pdb_config *c
     cfg->prl._tx_message->hdr |= (cfg->prl._tx_messageidcounter % 8) << PD_HDR_MESSAGEID_SHIFT;
 
     /* Send the message to the PHY */
-    fusb_send_message(cfg->prl._tx_message);
+    fusb_send_message(&cfg->fusb, cfg->prl._tx_message);
 
     return PRLTxWaitResponse;
 }
@@ -177,7 +177,7 @@ static enum protocol_tx_state protocol_tx_match_messageid(struct pdb_config *cfg
     union pd_msg goodcrc;
 
     /* Read the GoodCRC */
-    fusb_read_message(&goodcrc);
+    fusb_read_message(&cfg->fusb, &goodcrc);
 
     /* Check that the message is correct */
     if (PD_MSGTYPE_GET(&goodcrc) == PD_MSGTYPE_GOODCRC

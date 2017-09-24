@@ -621,7 +621,7 @@ static enum policy_engine_state pe_sink_send_reject(struct pdb_config *cfg)
  */
 static enum policy_engine_state pe_sink_source_unresponsive(struct pdb_config *cfg)
 {
-    int tcc_match = cfg->dpm.evaluate_typec_current(cfg, fusb_get_typec_current());
+    int tcc_match = cfg->dpm.evaluate_typec_current(cfg, fusb_get_typec_current(&cfg->fusb));
 
     /* If the last two readings are the same, set the output */
     if (cfg->pe._old_tcc_match == tcc_match) {

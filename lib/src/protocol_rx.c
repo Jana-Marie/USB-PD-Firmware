@@ -59,7 +59,7 @@ static enum protocol_rx_state protocol_rx_wait_phy(struct pdb_config *cfg)
          * because we have a big enough pool and are careful. */
         cfg->prl._rx_message = chPoolAlloc(&pdb_msg_pool);
         /* Read the message */
-        fusb_read_message(cfg->prl._rx_message);
+        fusb_read_message(&cfg->fusb, cfg->prl._rx_message);
         /* If it's a Soft_Reset, go to the soft reset state */
         if (PD_MSGTYPE_GET(cfg->prl._rx_message) == PD_MSGTYPE_SOFT_RESET
                 && PD_NUMOBJ_GET(cfg->prl._rx_message) == 0) {
