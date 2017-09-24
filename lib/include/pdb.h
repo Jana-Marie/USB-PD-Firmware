@@ -34,12 +34,15 @@
  * be statically allocated!
  */
 struct pdb_config {
+    /* User-initialized fields */
     /* Configuration information for the FUSB302B* chip */
     struct pdb_fusb_config fusb;
     /* DPM callbacks */
     struct pdb_dpm_callbacks dpm;
     /* Pointer to port-specific DPM data */
     void *dpm_data;
+
+    /* Automatically initialized fields */
     /* Policy Engine thread and related variables */
     struct pdb_pe pe;
     /* Protocol layer threads and related variables */
