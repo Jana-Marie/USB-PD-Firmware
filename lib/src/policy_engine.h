@@ -23,16 +23,19 @@
 
 #include <pdb.h>
 
-
-/* Events for the Policy Engine thread */
+/*
+ * Events for the Policy Engine thread, used internally
+ *
+ * NOTE: If any more events are needed, make sure they don't overlap the ones
+ * in include/pdb_pe.h!
+ */
 #define PDB_EVT_PE_RESET EVENT_MASK(0)
 #define PDB_EVT_PE_MSG_RX EVENT_MASK(1)
 #define PDB_EVT_PE_TX_DONE EVENT_MASK(2)
 #define PDB_EVT_PE_TX_ERR EVENT_MASK(3)
 #define PDB_EVT_PE_HARD_SENT EVENT_MASK(4)
 #define PDB_EVT_PE_I_OVRTEMP EVENT_MASK(5)
-#define PDB_EVT_PE_GET_SOURCE_CAP EVENT_MASK(6)
-#define PDB_EVT_PE_NEW_POWER EVENT_MASK(7)
+
 
 /*
  * Start the Policy Engine thread

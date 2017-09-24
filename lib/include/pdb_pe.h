@@ -24,7 +24,18 @@
 
 #include <ch.h>
 
+/*
+ * Events for the Policy Engine thread, sent by user code
+ */
+/* Tell the PE to send a Get_Source_Cap message */
+#define PDB_EVT_PE_GET_SOURCE_CAP EVENT_MASK(6)
+/* Tell the PE that new power is required */
+#define PDB_EVT_PE_NEW_POWER EVENT_MASK(7)
 
+
+/*
+ * Structure for Policy Engine thread and variables
+ */
 struct pdb_pe {
     THD_WORKING_AREA(_wa, 256);
     thread_t *thread;
