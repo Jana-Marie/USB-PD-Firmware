@@ -40,19 +40,19 @@ typedef bool (*pdb_dpm_tcc_func)(struct pdb_config *, enum fusb_typec_current);
  * PD Buddy firmware library device policy manager callback structure
  *
  * Optional functions may be set to NULL if the associated functionality is not
- * required. (TODO)
+ * required.
  */
 struct pdb_dpm_callbacks {
     pdb_dpm_eval_cap_func evaluate_capability;
     pdb_dpm_get_sink_cap_func get_sink_capability;
-    pdb_dpm_giveback_func giveback_enabled;
-    pdb_dpm_tcc_func evaluate_typec_current; /* Optional */
+    pdb_dpm_giveback_func giveback_enabled; /* Optional (missing means no GiveBack) */
+    pdb_dpm_tcc_func evaluate_typec_current; /* Optional (missing means no Type-C Current) */
     pdb_dpm_func pd_start; /* Optional */
     pdb_dpm_func transition_default;
     pdb_dpm_func transition_min; /* Optional if no GiveBack */
     pdb_dpm_func transition_standby;
     pdb_dpm_func transition_requested;
-    pdb_dpm_func transition_typec; /* Optional */
+    pdb_dpm_func transition_typec; /* Optional if no Type-C Current */
 };
 
 

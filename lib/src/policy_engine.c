@@ -49,8 +49,10 @@ static enum policy_engine_state pe_sink_startup(struct pdb_config *cfg)
 {
     /* We don't have an explicit contract currently */
     cfg->pe._explicit_contract = false;
-    /* Tell the DPM that we've started negotiations */
-    cfg->dpm.pd_start(cfg);
+    /* Tell the DPM that we've started negotiations, if it cares */
+    if (cfg->dpm.pd_start != NULL) {
+        cfg->dpm.pd_start(cfg);
+    }
 
     /* No need to reset the protocol layer here.  There are two ways into this
      * state: startup and exiting hard reset.  On startup, the protocol layer
@@ -357,7 +359,8 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
             /* Handle GotoMin messages */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_GOTOMIN
                     && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
-                if (cfg->dpm.giveback_enabled(cfg)) {
+                if (cfg->dpm.giveback_enabled != NULL
+                        && cfg->dpm.giveback_enabled(cfg)) {
                     /* Transition to the minimum current level */
                     cfg->dpm.transition_min(cfg);
                     cfg->pe._min_power = true;
@@ -620,15 +623,20 @@ static enum policy_engine_state pe_sink_send_reject(struct pdb_config *cfg)
  */
 static enum policy_engine_state pe_sink_source_unresponsive(struct pdb_config *cfg)
 {
-    int tcc_match = cfg->dpm.evaluate_typec_current(cfg, fusb_get_typec_current(&cfg->fusb));
+    /* If the DPM can evaluate the Type-C Current advertisement */
+    if (cfg->dpm.evaluate_typec_current != NULL) {
+        /* Make the DPM evaluate the Type-C Current advertisement */
+        int tcc_match = cfg->dpm.evaluate_typec_current(cfg,
+                fusb_get_typec_current(&cfg->fusb));
 
-    /* If the last two readings are the same, set the output */
-    if (cfg->pe._old_tcc_match == tcc_match) {
-        cfg->dpm.transition_typec(cfg);
+        /* If the last two readings are the same, set the output */
+        if (cfg->pe._old_tcc_match == tcc_match) {
+            cfg->dpm.transition_typec(cfg);
+        }
+
+        /* Remember whether or not the last measurement succeeded */
+        cfg->pe._old_tcc_match = tcc_match;
     }
-
-    /* Remember whether or not the last measurement succeeded */
-    cfg->pe._old_tcc_match = tcc_match;
 
     /* Wait tPDDebounce between measurements */
     chThdSleep(PD_T_PD_DEBOUNCE);
