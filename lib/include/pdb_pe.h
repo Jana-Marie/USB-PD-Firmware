@@ -26,7 +26,7 @@
 
 
 struct pdb_pe {
-    THD_WORKING_AREA(_wa, 128);
+    THD_WORKING_AREA(_wa, 256);
     thread_t *thread;
 
     /* PE mailbox for received PD messages */

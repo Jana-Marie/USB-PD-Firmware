@@ -26,20 +26,18 @@
 #include "messages.h"
 
 
-/* Whether the DPM is able to turn on the output */
-extern bool pdb_dpm_output_enabled;
-
-/* Whether the DPM sets the LED to indicate the PD status */
-extern bool pdb_dpm_led_pd_status;
-
-/* Whether the device is capable of USB communications */
-extern bool pdb_dpm_usb_comms;
-
-/* The most recently received Source_Capabilities message */
-extern const union pd_msg *pdb_dpm_capabilities;
-
-/* The most recently received Type-C Current advertisement */
-extern enum fusb_typec_current pdb_dpm_typec_current;
+struct pdbs_dpm_data {
+    /* The most recently received Source_Capabilities message */
+    const union pd_msg *capabilities;
+    /* The most recently received Type-C Current advertisement */
+    enum fusb_typec_current typec_current;
+    /* Whether the DPM is able to turn on the output */
+    bool output_enabled;
+    /* Whether the DPM sets the LED to indicate the PD status */
+    bool led_pd_status;
+    /* Whether the device is capable of USB communications */
+    bool usb_comms;
+};
 
 
 /*

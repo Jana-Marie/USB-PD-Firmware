@@ -54,6 +54,17 @@ static const I2CConfig i2c2config = {
 };
 
 /*
+ * PD Buddy Sink DPM data
+ */
+static struct pdbs_dpm_data dpm_data = {
+    NULL,
+    None,
+    true,
+    true,
+    false
+};
+
+/*
  * PD Buddy firmware library configuration object
  */
 static struct pdb_config pdb_config = {
@@ -72,7 +83,8 @@ static struct pdb_config pdb_config = {
         pdbs_dpm_transition_standby,
         pdbs_dpm_transition_requested,
         pdbs_dpm_transition_requested /* XXX type-c current */
-    }
+    },
+    .dpm_data = &dpm_data
 };
 
 /*
@@ -81,9 +93,9 @@ static struct pdb_config pdb_config = {
 static void setup(void)
 {
     /* Configure the DPM to play nice with the shell */
-    pdb_dpm_output_enabled = false;
-    pdb_dpm_led_pd_status = false;
-    pdb_dpm_usb_comms = true;
+    dpm_data.output_enabled = false;
+    dpm_data.led_pd_status = false;
+    dpm_data.usb_comms = true;
 
     /* Start the USB Power Delivery threads */
     pdb_init(&pdb_config);

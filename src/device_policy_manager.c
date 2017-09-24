@@ -27,14 +27,6 @@
 #include "pd.h"
 
 
-bool pdb_dpm_output_enabled = true;
-bool pdb_dpm_led_pd_status = true;
-bool pdb_dpm_usb_comms = false;
-
-const union pd_msg *pdb_dpm_capabilities = NULL;
-enum fusb_typec_current pdb_dpm_typec_current = None;
-
-
 /* The current draw when the output is disabled */
 #define DPM_MIN_CURRENT PD_MA2PDI(100)
 
@@ -53,15 +45,18 @@ static bool dpm_capability_match;
 bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         const union pd_msg *capabilities, union pd_msg *request)
 {
+    /* Cast the dpm_data to the right type */
+    struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
+
     /* Update the stored Source_Capabilities */
     if (capabilities != NULL) {
-        if (pdb_dpm_capabilities != NULL) {
-            chPoolFree(&pdb_msg_pool, (union pd_msg *) pdb_dpm_capabilities);
+        if (dpm_data->capabilities != NULL) {
+            chPoolFree(&pdb_msg_pool, (union pd_msg *) dpm_data->capabilities);
         }
-        pdb_dpm_capabilities = capabilities;
+        dpm_data->capabilities = capabilities;
     } else {
         /* No new capabilities; use a shorter name for the stored ones. */
-        capabilities = pdb_dpm_capabilities;
+        capabilities = dpm_data->capabilities;
     }
 
     /* Get the current configuration */
@@ -70,7 +65,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     uint8_t numobj = PD_NUMOBJ_GET(capabilities);
 
     /* Make the LED blink to indicate ongoing power negotiations */
-    if (pdb_dpm_led_pd_status) {
+    if (dpm_data->led_pd_status) {
         chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_NEGOTIATING);
     }
 
@@ -78,7 +73,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     dpm_unconstrained_power = capabilities->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
 
     /* Make sure we have configuration */
-    if (scfg != NULL && pdb_dpm_output_enabled) {
+    if (scfg != NULL && dpm_data->output_enabled) {
         /* Look at the PDOs to see if one matches our desires */
         for (uint8_t i = 0; i < numobj; i++) {
             /* Fixed Supply PDOs come first, so when we see a PDO that isn't a
@@ -105,7 +100,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
                         | PD_RDO_FV_CURRENT_SET(scfg->i)
                         | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
                 }
-                if (pdb_dpm_usb_comms) {
+                if (dpm_data->usb_comms) {
                     request->obj[0] |= PD_RDO_USB_COMMS;
                 }
 
@@ -126,11 +121,11 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         | PD_RDO_OBJPOS_SET(1);
     /* If the output is enabled and we got here, it must be a capability
      * mismatch. */
-    if (pdb_dpm_output_enabled) {
+    if (dpm_data->output_enabled) {
         request->obj[0] |= PD_RDO_CAP_MISMATCH;
     }
     /* If we can do USB communications, tell the power supply */
-    if (pdb_dpm_usb_comms) {
+    if (dpm_data->usb_comms) {
         request->obj[0] |= PD_RDO_USB_COMMS;
     }
 
@@ -138,8 +133,8 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     dpm_requested_voltage = PD_MV2PDV(5000);
 
     /* At this point, we have a capability match iff the output is disabled */
-    dpm_capability_match = !pdb_dpm_output_enabled;
-    return !pdb_dpm_output_enabled;
+    dpm_capability_match = !dpm_data->output_enabled;
+    return !dpm_data->output_enabled;
 }
 
 void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
@@ -148,6 +143,8 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
     int numobj = 0;
     /* Get the current configuration */
     struct pdbs_config *scfg = pdbs_config_flash_read();
+    /* Cast the dpm_data to the right type */
+    struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
 
     /* If we have no configuration or want something other than 5 V, add a PDO
      * for vSafe5V */
@@ -175,7 +172,7 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
     }
 
     /* Set the USB communications capable flag. */
-    if (pdb_dpm_usb_comms) {
+    if (dpm_data->usb_comms) {
         cap->obj[0] |= PD_PDO_SNK_FIXED_USB_COMMS;
     }
 
@@ -195,13 +192,15 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
         enum fusb_typec_current tcc)
 {
     struct pdbs_config *scfg = pdbs_config_flash_read();
+    /* Cast the dpm_data to the right type */
+    struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
 
     /* We don't control the voltage anymore; it will always be 5 V. */
     dpm_requested_voltage = PD_MV2PDV(5000);
 
     /* Make the present Type-C Current advertisement available to the rest of
      * the DPM */
-    pdb_dpm_typec_current = tcc;
+    dpm_data->typec_current = tcc;
 
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
@@ -231,7 +230,10 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
 
 void pdbs_dpm_pd_start(struct pdb_config *cfg)
 {
-    if (pdb_dpm_led_pd_status) {
+    /* Cast the dpm_data to the right type */
+    struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
+
+    if (dpm_data->led_pd_status) {
         chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_NEGOTIATING);
     }
 }
@@ -239,21 +241,21 @@ void pdbs_dpm_pd_start(struct pdb_config *cfg)
 /*
  * Set the output state, with LED indication.
  */
-static void dpm_output_set(bool state)
+static void dpm_output_set(struct pdbs_dpm_data *dpm_data, bool state)
 {
     /* Update the present voltage */
     dpm_present_voltage = dpm_requested_voltage;
 
     /* Set the power output */
-    if (state && pdb_dpm_output_enabled) {
+    if (state && dpm_data->output_enabled) {
         /* Turn the output on */
-        if (pdb_dpm_led_pd_status) {
+        if (dpm_data->led_pd_status) {
             chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_OUTPUT_ON);
         }
         palSetLine(LINE_OUT_CTRL);
     } else {
         /* Turn the output off */
-        if (pdb_dpm_led_pd_status) {
+        if (dpm_data->led_pd_status) {
             chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_OUTPUT_OFF);
         }
         palClearLine(LINE_OUT_CTRL);
@@ -265,12 +267,12 @@ void pdbs_dpm_transition_default(struct pdb_config *cfg)
     /* Pretend we requested 5 V */
     dpm_requested_voltage = PD_MV2PDV(5000);
     /* Turn the output off */
-    dpm_output_set(false);
+    dpm_output_set(cfg->dpm_data, false);
 }
 
 void pdbs_dpm_transition_min(struct pdb_config *cfg)
 {
-    dpm_output_set(false);
+    dpm_output_set(cfg->dpm_data, false);
 }
 
 void pdbs_dpm_transition_standby(struct pdb_config *cfg)
@@ -286,5 +288,5 @@ void pdbs_dpm_transition_standby(struct pdb_config *cfg)
 
 void pdbs_dpm_transition_requested(struct pdb_config *cfg)
 {
-    dpm_output_set(dpm_capability_match);
+    dpm_output_set(cfg->dpm_data, dpm_capability_match);
 }

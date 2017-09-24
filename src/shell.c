@@ -54,6 +54,7 @@ static struct pdbs_config tmpcfg = {
 
 /* Pointer to the PD Buddy firmware library configuration */
 static struct pdb_config *pdb_config;
+static struct pdbs_dpm_data *pdbs_dpm_data;
 
 /*
  * Helper functions for printing PDOs
@@ -323,7 +324,7 @@ static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
 {
     if (argc == 0) {
         /* With no arguments, print the output status */
-        if (pdb_dpm_output_enabled) {
+        if (pdbs_dpm_data->output_enabled) {
             chprintf(chp, "enabled\r\n");
         } else {
             chprintf(chp, "disabled\r\n");
@@ -331,10 +332,10 @@ static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
     } else if (argc == 1) {
         /* Set the output status and re-negotiate power */
         if (strcmp(argv[0], "enable") == 0) {
-            pdb_dpm_output_enabled = true;
+            pdbs_dpm_data->output_enabled = true;
             chEvtSignal(pdb_config->pe.thread, PDB_EVT_PE_NEW_POWER);
         } else if (strcmp(argv[0], "disable") == 0) {
-            pdb_dpm_output_enabled = false;
+            pdbs_dpm_data->output_enabled = false;
             chEvtSignal(pdb_config->pe.thread, PDB_EVT_PE_NEW_POWER);
         } else {
             /* Or, if the argument was invalid, print a usage message */
@@ -355,16 +356,16 @@ static void cmd_get_source_cap(BaseSequentialStream *chp, int argc, char *argv[]
     }
 
     /* If we haven't seen any Source_Capabilities */
-    if (pdb_dpm_capabilities == NULL) {
+    if (pdbs_dpm_data->capabilities == NULL) {
         /* Have we started reading Type-C Current advertisements? */
-        if (pdb_dpm_typec_current != None) {
+        if (pdbs_dpm_data->typec_current != None) {
             /* Type-C Current is available, so report it */
             chprintf(chp, "PDO 1: typec_virtual\r\n");
-            if (pdb_dpm_typec_current == Default) {
+            if (pdbs_dpm_data->typec_current == Default) {
                 chprintf(chp, "\ti: 0.50 A\r\n");
-            } else if (pdb_dpm_typec_current == OnePointFiveAmps) {
+            } else if (pdbs_dpm_data->typec_current == OnePointFiveAmps) {
                 chprintf(chp, "\ti: 1.50 A\r\n");
-            } else if (pdb_dpm_typec_current == ThreePointZeroAmps) {
+            } else if (pdbs_dpm_data->typec_current == ThreePointZeroAmps) {
                 chprintf(chp, "\ti: 3.00 A\r\n");
             }
             return;
@@ -376,9 +377,9 @@ static void cmd_get_source_cap(BaseSequentialStream *chp, int argc, char *argv[]
     }
 
     /* Print all the PDOs */
-    uint8_t numobj = PD_NUMOBJ_GET(pdb_dpm_capabilities);
+    uint8_t numobj = PD_NUMOBJ_GET(pdbs_dpm_data->capabilities);
     for (uint8_t i = 0; i < numobj; i++) {
-        print_src_pdo(chp, pdb_dpm_capabilities->obj[i], i+1);
+        print_src_pdo(chp, pdbs_dpm_data->capabilities->obj[i], i+1);
     }
 }
 
@@ -466,6 +467,7 @@ void pdbs_shell(struct pdb_config *cfg)
     char *args[PDB_SHELL_MAX_ARGUMENTS + 1];
 
     pdb_config = cfg;
+    pdbs_dpm_data = cfg->dpm_data;
 
     while (true) {
         /* Print the prompt */
