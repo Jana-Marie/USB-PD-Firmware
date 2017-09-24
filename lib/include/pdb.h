@@ -24,6 +24,7 @@
 #include <pdb_pe.h>
 #include <pdb_prl.h>
 #include <pdb_int_n.h>
+#include <pdb_msg.h>
 
 
 /*

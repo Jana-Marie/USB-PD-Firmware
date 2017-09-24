@@ -22,7 +22,6 @@
 #include "policy_engine.h"
 #include "protocol_rx.h"
 #include "fusb302b.h"
-#include "messages.h"
 #include "pd.h"
 
 

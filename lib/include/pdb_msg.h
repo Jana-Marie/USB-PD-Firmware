@@ -16,33 +16,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PDB_PRL_H
-#define PDB_PRL_H
+#ifndef PDB_MSG_H
+#define PDB_MSG_H
 
 #include <stdint.h>
 
 #include <ch.h>
 
-#include "pdb_conf.h"
 
-
-struct pdb_prl {
-    THD_WORKING_AREA(_rx_wa, PDB_PRLRX_WA_SIZE);
-    thread_t *rx_thread;
-    THD_WORKING_AREA(_tx_wa, PDB_PRLTX_WA_SIZE);
-    thread_t *tx_thread;
-    THD_WORKING_AREA(_hardrst_wa, PDB_HARDRST_WA_SIZE);
-    thread_t *hardrst_thread;
-
-    mailbox_t tx_mailbox;
-
-    int8_t _rx_messageid;
-    union pd_msg *_rx_message;
-
-    int8_t _tx_messageidcounter;
-    union pd_msg *_tx_message;
-    msg_t _tx_mailbox_queue[PDB_MSG_POOL_SIZE];
+/*
+ * PD message union
+ *
+ * This can be safely read from or written to in either form without any
+ * transformations because everything in the system is little-endian.
+ *
+ * Two bytes of padding are required at the start to prevent problems due to
+ * alignment.  Specifically, without the padding, &obj[0] != &bytes[2], making
+ * the statement in the previous paragraph invalid.
+ */
+union pd_msg {
+    struct {
+        uint8_t _pad1[2];
+        uint8_t bytes[30];
+    } __attribute__((packed));
+    struct {
+        uint8_t _pad2[2];
+        uint16_t hdr;
+        uint32_t obj[7];
+    } __attribute__((packed));
 };
 
+/*
+ * The pool of messages used by the library
+ */
+extern memory_pool_t pdb_msg_pool;
 
-#endif /* PDB_PRL_H */
+
+#endif /* PDB_MSG_H */

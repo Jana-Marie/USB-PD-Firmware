@@ -23,7 +23,6 @@
 
 #include <pdb.h>
 #include "fusb302b.h"
-#include "messages.h"
 
 
 struct pdbs_dpm_data {

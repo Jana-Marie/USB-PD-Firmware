@@ -20,7 +20,6 @@
 
 #include <stdbool.h>
 
-#include "messages.h"
 #include "priorities.h"
 #include "protocol_tx.h"
 #include "hard_reset.h"

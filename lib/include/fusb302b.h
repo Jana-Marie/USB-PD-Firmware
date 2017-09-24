@@ -23,7 +23,7 @@
 
 #include <pdb_fusb.h>
 
-#include "messages.h"
+#include <pdb_msg.h>
 
 
 /* I2C addresses of the FUSB302B chips */

@@ -19,40 +19,9 @@
 #ifndef PDB_MESSAGES_H
 #define PDB_MESSAGES_H
 
-#include <stdint.h>
-
-#include <ch.h>
-
 
 /*
- * PD message union
- *
- * This can be safely read from or written to in either form without any
- * transformations because everything in the system is little-endian.
- *
- * Two bytes of padding are required at the start to prevent problems due to
- * alignment.  Specifically, without the padding, &obj[0] != &bytes[2], making
- * the statement in the previous paragraph invalid.
- */
-union pd_msg {
-    struct {
-        uint8_t _pad1[2];
-        uint8_t bytes[30];
-    } __attribute__((packed));
-    struct {
-        uint8_t _pad2[2];
-        uint16_t hdr;
-        uint32_t obj[7];
-    } __attribute__((packed));
-};
-
-/* Available messages */
-#define PDB_MSG_POOL_SIZE 4
-
-extern memory_pool_t pdb_msg_pool;
-
-/*
- * Initialize the msg_pool
+ * Initialize the pdb_msg_pool
  */
 void pdb_msg_pool_init(void);
 

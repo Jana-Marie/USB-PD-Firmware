@@ -24,6 +24,8 @@
 
 #include <ch.h>
 
+#include "pdb_conf.h"
+
 /*
  * Events for the Policy Engine thread, sent by user code
  */
@@ -37,7 +39,7 @@
  * Structure for Policy Engine thread and variables
  */
 struct pdb_pe {
-    THD_WORKING_AREA(_wa, 256);
+    THD_WORKING_AREA(_wa, PDB_PE_WA_SIZE);
     thread_t *thread;
 
     /* PE mailbox for received PD messages */

@@ -16,18 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PDB_INT_N_H
-#define PDB_INT_N_H
-
-#include <ch.h>
-
-#include "pdb_conf.h"
+#ifndef PDB_CONF_H
+#define PDB_CONF_H
 
 
-struct pdb_int_n {
-    THD_WORKING_AREA(_wa, PDB_INT_N_WA_SIZE);
-    thread_t *thread;
-};
+/* Number of messages in the message pool */
+#define PDB_MSG_POOL_SIZE 4
+
+/* Size of the Policy Engine thread's working area */
+#define PDB_PE_WA_SIZE 256
+
+/* Size of the protocol layer RX thread's working area */
+#define PDB_PRLRX_WA_SIZE 256
+
+/* Size of the protocol layer TX thread's working area */
+#define PDB_PRLTX_WA_SIZE 256
+
+/* Size of the protocol layer hard reset thread's working area */
+#define PDB_HARDRST_WA_SIZE 256
+
+/* Size of the INT_N thread's working area */
+#define PDB_INT_N_WA_SIZE 128
 
 
-#endif /* PDB_INT_N_H */
+#endif /* PDB_CONF_H */

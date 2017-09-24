@@ -29,7 +29,7 @@
 void pdb_init(struct pdb_config *cfg)
 {
     /* Initialize the empty message pool */
-    pdb_msg_pool_init(/*TODO cfg*/);
+    pdb_msg_pool_init();
 
     /* Initialize the FUSB302B */
     fusb_setup(&cfg->fusb);
