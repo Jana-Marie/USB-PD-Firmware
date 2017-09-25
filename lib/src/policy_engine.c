@@ -409,8 +409,8 @@ static enum policy_engine_state pe_sink_get_source_cap(struct pdb_config *cfg)
     /* Get a message object */
     union pd_msg *get_source_cap = chPoolAlloc(&pdb_msg_pool);
     /* Make a Get_Source_Cap message */
-    get_source_cap->hdr = PD_MSGTYPE_GET_SOURCE_CAP | PD_DATAROLE_UFP
-        | PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(0);
+    get_source_cap->hdr = cfg->pe.hdr_template | PD_MSGTYPE_GET_SOURCE_CAP
+        | PD_NUMOBJ(0);
     /* Transmit the Get_Source_Cap */
     chMBPost(&cfg->prl.tx_mailbox, (msg_t) get_source_cap, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
@@ -503,8 +503,7 @@ static enum policy_engine_state pe_sink_soft_reset(struct pdb_config *cfg)
     /* Get a message object */
     union pd_msg *accept = chPoolAlloc(&pdb_msg_pool);
     /* Make an Accept message */
-    accept->hdr = PD_MSGTYPE_ACCEPT | PD_DATAROLE_UFP | PD_SPECREV_2_0
-        | PD_POWERROLE_SINK | PD_NUMOBJ(0);
+    accept->hdr = cfg->pe.hdr_template | PD_MSGTYPE_ACCEPT | PD_NUMOBJ(0);
     /* Transmit the Accept */
     chMBPost(&cfg->prl.tx_mailbox, (msg_t) accept, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
@@ -533,8 +532,7 @@ static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
     /* Get a message object */
     union pd_msg *softrst = chPoolAlloc(&pdb_msg_pool);
     /* Make a Soft_Reset message */
-    softrst->hdr = PD_MSGTYPE_SOFT_RESET | PD_DATAROLE_UFP | PD_SPECREV_2_0
-        | PD_POWERROLE_SINK | PD_NUMOBJ(0);
+    softrst->hdr = cfg->pe.hdr_template | PD_MSGTYPE_SOFT_RESET | PD_NUMOBJ(0);
     /* Transmit the soft reset */
     chMBPost(&cfg->prl.tx_mailbox, (msg_t) softrst, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
@@ -593,8 +591,7 @@ static enum policy_engine_state pe_sink_send_reject(struct pdb_config *cfg)
     /* Get a message object */
     union pd_msg *reject = chPoolAlloc(&pdb_msg_pool);
     /* Make a Reject message */
-    reject->hdr = PD_MSGTYPE_REJECT | PD_DATAROLE_UFP | PD_SPECREV_2_0
-        | PD_POWERROLE_SINK | PD_NUMOBJ(0);
+    reject->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REJECT | PD_NUMOBJ(0);
 
     /* Transmit the message */
     chMBPost(&cfg->prl.tx_mailbox, (msg_t) reject, TIME_IMMEDIATE);
@@ -655,6 +652,8 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
     chMBObjectInit(&cfg->pe.mailbox, cfg->pe._mailbox_queue, PDB_MSG_POOL_SIZE);
     /* Initialize the old_tcc_match */
     cfg->pe._old_tcc_match = -1;
+    /* Initialize the PD message header template */
+    cfg->pe.hdr_template = PD_DATAROLE_UFP | PD_SPECREV_2_0 | PD_POWERROLE_SINK;
 
     while (true) {
         switch (state) {

@@ -45,6 +45,8 @@ struct pdb_pe {
 
     /* PE mailbox for received PD messages */
     mailbox_t mailbox;
+    /* PD message header template */
+    uint16_t hdr_template;
 
     /* The received message we're currently working with */
     union pd_msg *_message;

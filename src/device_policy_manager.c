@@ -75,8 +75,8 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
             if (PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) == scfg->v
                     && PD_PDO_SRC_FIXED_CURRENT_GET(capabilities, i) >= scfg->i) {
                 /* We got what we wanted, so build a request for that */
-                request->hdr = PD_MSGTYPE_REQUEST | PD_DATAROLE_UFP |
-                    PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
+                request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
+                    | PD_NUMOBJ(1);
                 if (scfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK) {
                     /* GiveBack enabled */
                     request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(DPM_MIN_CURRENT)
@@ -102,8 +102,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         }
     }
     /* Nothing matched (or no configuration), so get 5 V at low current */
-    request->hdr = PD_MSGTYPE_REQUEST | PD_DATAROLE_UFP |
-        PD_SPECREV_2_0 | PD_POWERROLE_SINK | PD_NUMOBJ(1);
+    request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST | PD_NUMOBJ(1);
     request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(DPM_MIN_CURRENT)
         | PD_RDO_FV_CURRENT_SET(DPM_MIN_CURRENT)
         | PD_RDO_NO_USB_SUSPEND
@@ -166,8 +165,8 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
     }
 
     /* Set the Sink_Capabilities message header */
-    cap->hdr = PD_MSGTYPE_SINK_CAPABILITIES | PD_DATAROLE_UFP | PD_SPECREV_2_0
-        | PD_POWERROLE_SINK | PD_NUMOBJ(numobj);
+    cap->hdr = cfg->pe.hdr_template | PD_MSGTYPE_SINK_CAPABILITIES
+        | PD_NUMOBJ(numobj);
 }
 
 bool pdbs_dpm_giveback_enabled(struct pdb_config *cfg)
