@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.2.0-dev, 2017-09-11
+Version 1.2.0-dev, 2017-10-09
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
@@ -83,31 +83,49 @@ and a question mark.  For example:
     PDBS) foo bar
     foo ?
 
-### help
+### Miscellaneous
+
+#### help
 
 Usage: `help`
 
 Prints short help messages about all available commands.
 
-### license
+#### license
 
 Usage: `license`
 
 Prints licensing information for the firmware.
 
-### erase
+#### identify
 
-Usage: `erase`
+Usage: `identify`
 
-Synchronously erases all stored configuration from flash.  This can be used to
-restore a device to its default state.
+Blinks the LED quickly.  Useful for identifying which device you're connected
+to if several are plugged in to your computer at once.
 
-Note: The `erase` command is mainly intended for development and testing.
-Stored configuration is automatically erased if necessary when `write` is run,
-and wear leveling is performed as well.  Unless you really know what you're
-doing, there should be no reason to ever run `erase`.
+### Storage
 
-### write
+#### get_cfg
+
+Usage: `get_cfg [index]`
+
+If no index is provided, prints the current configuration from flash.  If there
+is no configuration, `No configuration` is printed instead.
+
+For developers: if an index is provided, prints a particular location in the
+configuration flash sector.  If the index lies outside the configuration flash
+sector, `Invalid index` is printed instead.
+
+#### load
+
+Usage: `load`
+
+Loads the current configuration from flash into the buffer.  Useful if you want
+to change some settings while leaving others alone.  If there is no
+configuration, `No configuration` is printed instead.
+
+#### write
 
 Usage: `write`
 
@@ -119,38 +137,33 @@ If the output is enabled, the newly written configuration is automatically
 negotiated.  The newly configured power is then made available on the output
 connector if it is available from the source.
 
-### load
+#### erase
 
-Usage: `load`
+Usage: `erase`
 
-Loads the current configuration from flash into the buffer.  Useful if you want
-to change some settings while leaving others alone.  If there is no
-configuration, `No configuration` is printed instead.
+Synchronously erases all stored configuration from flash.  This can be used to
+restore a device to its default state.
 
-### get_cfg
+Note: The `erase` command is mainly intended for development and testing.
+Stored configuration is automatically erased if necessary when `write` is run,
+and wear leveling is performed as well.  Unless you really know what you're
+doing, there should be no reason to ever run `erase`.
 
-Usage: `get_cfg [index]`
+### Configuration
 
-If no index is provided, prints the current configuration from flash.  If there
-is no configuration, `No configuration` is printed instead.
-
-For developers: if an index is provided, prints a particular location in the
-configuration flash sector.  If the index lies outside the configuration flash
-sector, `Invalid index` is printed instead.
-
-### get_tmpcfg
+#### get_tmpcfg
 
 Usage: `get_tmpcfg`
 
 Prints the contents of the configuration buffer.
 
-### clear_flags
+#### clear_flags
 
 Usage: `clear_flags`
 
 Clears all the flags in the configuration buffer.
 
-### toggle_giveback
+#### toggle_giveback
 
 Usage: `toggle_giveback`
 
@@ -159,7 +172,7 @@ power supply to temporarily remove power from the Sink's output if another
 device needs more power.  Recommended if the Sink is being used to charge a
 battery.
 
-### set_v
+#### set_v
 
 Usage: `set_v voltage_in_mV`
 
@@ -169,7 +182,7 @@ on success, an error message on failure.
 Note: values are rounded down to the nearest Power Delivery voltage unit
 (50 mV).
 
-### set_i
+#### set_i
 
 Usage: `set_i current_in_mA`
 
@@ -179,14 +192,9 @@ output on success, an error message on failure.
 Note: values are rounded down to the nearest Power Delivery current unit
 (10 mA).
 
-### identify
+### Power Delivery
 
-Usage: `identify`
-
-Blinks the LED quickly.  Useful for identifying which device you're connected
-to if several are plugged in to your computer at once.
-
-### output
+#### output
 
 Usage: `output [enable|disable]`
 
@@ -199,7 +207,7 @@ This command only affects whether the output can be turned on during the
 ongoing run of Setup mode.  The output is disabled in Setup mode by default,
 and is always enabled in Sink mode.
 
-### get_source_cap
+#### get_source_cap
 
 Usage: `get_source_cap`
 
