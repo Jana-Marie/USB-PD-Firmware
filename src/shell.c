@@ -257,9 +257,9 @@ static void cmd_clear_flags(BaseSequentialStream *chp, int argc, char *argv[])
     }
 
     /* Clear all flags that can be toggled with toggle_* commands */
-    tmpcfg.flags &= ~PDBS_CONFIG_FLAGS_GIVEBACK
-        & ~PDBS_CONFIG_FLAGS_VAR_BAT
-        & PDBS_CONFIG_FLAGS_HV_PREFERRED;
+    tmpcfg.flags &= ~(PDBS_CONFIG_FLAGS_GIVEBACK
+            | PDBS_CONFIG_FLAGS_VAR_BAT
+            | PDBS_CONFIG_FLAGS_HV_PREFERRED);
 }
 
 static void cmd_toggle_giveback(BaseSequentialStream *chp, int argc, char *argv[])
