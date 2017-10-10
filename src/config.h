@@ -48,7 +48,7 @@ struct pdbs_config {
 /* Flags for configuration structures. */
 /* GiveBack supported */
 #define PDBS_CONFIG_FLAGS_GIVEBACK 0x0001
-/* Variable and battery PDOs supported (vmin and vmax valid) */
+/* Variable and battery PDOs preferred (FIXME: not implemented) */
 #define PDBS_CONFIG_FLAGS_VAR_BAT 0x0002
 
 

@@ -69,7 +69,8 @@ void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
     /* Print voltages and current */
     chprintf(chp, "v: %d.%02d V\r\n", PD_PDV_V(cfg->v), PD_PDV_CV(cfg->v));
     chprintf(chp, "i: %d.%02d A\r\n", PD_PDI_A(cfg->i), PD_PDI_CA(cfg->i));
-    if (cfg->flags & PDBS_CONFIG_FLAGS_VAR_BAT) {
+    /* If either end of the range is non-zero, print the range */
+    if (cfg->vmin != 0 || cfg->vmax != 0) {
         chprintf(chp, "vmin: %d.%02d V\r\n", PD_PDV_V(cfg->vmin),
                  PD_PDV_CV(cfg->vmin));
         chprintf(chp, "vmax: %d.%02d V\r\n", PD_PDV_V(cfg->vmax),
