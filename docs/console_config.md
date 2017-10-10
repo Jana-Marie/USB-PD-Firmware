@@ -67,10 +67,70 @@ As soon as the prompt reappears after running `write`, the changes have been
 stored to flash, which can be verified with `get_cfg`.  The Sink may be safely
 unplugged at any time.
 
+### Voltage Ranges
+
+The preferred voltage may be set to any value for programmable power supplies.
+This means uncommon voltages may be set, e.g. 13.8 V.  Few non-programmable
+power supplies offer such a voltage.  To ensure a Sink configured this way can
+still work with as many power supplies as possible, it is possible to configure
+a closed range of acceptable voltages:
+
+    PDBS) set_v 13800
+    PDBS) set_vmin 11000
+    PDBS) set_vmax 16000
+    PDBS) get_cfg
+    status: valid
+    flags: (none)
+    v: 13.80 V
+    vmin: 11.00 V
+    vmax: 16.00 V
+    i: 2.25 A
+
+If 12 V and 15 V are available from a power supply, the Sink would request 12 V
+given this configuration.  If higher voltages from the range are preferred over
+lower ones, it is possible to set this as well:
+
+    PDBS) toggle_hv_preferred
+    PDBS) get_cfg
+    status: valid
+    flags: HV_Preferred
+    v: 13.80 V
+    vmin: 11.00 V
+    vmax: 16.00 V
+    i: 2.25 A
+
+To remove a configured voltage range, returning to a single desired voltage,
+simply set the top and bottom of the range to 0 V.
+
+### Alternate Configuration Types
+
+While configuring a current to be requested at any voltage works well for some
+use cases (e.g. linear regulators), for others, it may make more sense to set
+the power required, or even the resistance of a resistive load.  As of firmware
+version 1.2.0, the PD Buddy Sink supports setting these directly:
+
+    PDBS) set_p 45000
+    PDBS) get_tmpcfg
+    status: valid
+    flags: (none)
+    v: 20.00 V
+    p: 45.00 W
+    PDBS) set_r 8889
+    PDBS) get_tmpcfg
+    status: valid
+    flags: (none)
+    v: 20.00 V
+    r: 8.88 Ω
+
+In either case, the device will set the current it requests according to the
+configured value.  The value is kept constant across the entire configured
+voltage range, allowing the current to vary accordingly.
+
 ## Commands
 
 Commands are echoed on the terminal as characters are received.  Lines are
-separated by `\r\n` and a command's output ends with the `PDBS) ` prompt.
+separated by `\r\n` and a command's output ends with the `PDBS) ` prompt.  The
+character encoding used for text is UTF-8.
 
 The command buffer can be cleared by sending ^D (a `\x04` character).  It is
 recommended to do this at the start of programmatic communications to ensure
@@ -161,7 +221,8 @@ Prints the contents of the configuration buffer.
 
 Usage: `clear_flags`
 
-Clears all the flags in the configuration buffer.
+Clears the configuration buffer flags that can be toggled with `toggle_*`
+commands.
 
 #### toggle_giveback
 
@@ -172,6 +233,14 @@ power supply to temporarily remove power from the Sink's output if another
 device needs more power.  Recommended if the Sink is being used to charge a
 battery.
 
+#### toggle_hv_preferred
+
+Usage: `toggle_hv_preferred`
+
+Toggles the HV_Preferred flag in the configuration buffer.  When enabled,
+preference is given to higher voltages in the range.  When disabled, preference
+is given to lower voltages.
+
 #### set_v
 
 Usage: `set_v voltage_in_mV`
@@ -179,18 +248,55 @@ Usage: `set_v voltage_in_mV`
 Sets the voltage of the configuration buffer, in millivolts.  Prints no output
 on success, an error message on failure.
 
-Note: values are rounded down to the nearest Power Delivery voltage unit
-(50 mV).
+Note: values are rounded down to the nearest 10 mV.
+
+#### set_vmin
+
+Usage: `set_vmin voltage_in_mV`
+
+Sets the minimum voltage of the configuration buffer, in millivolts.  Prints no
+message on success, an error message on failure.
+
+Note: values are rounded down to the nearest 10 mV.
+
+#### set_vmax
+
+Usage: `set_vmax voltage_in_mV`
+
+Sets the maximum voltage of the configuration buffer, in millivolts.  Prints no
+message on success, an error message on failure.
+
+Note: values are rounded down to the nearest 10 mV.
 
 #### set_i
 
 Usage: `set_i current_in_mA`
 
-Sets the current of the configuration buffer, in milliamperes.  Prints no
-output on success, an error message on failure.
+Sets the current of the configuration buffer, in milliamperes, overriding any
+power or resistance configured.  Prints no output on success, an error message
+on failure.
 
-Note: values are rounded down to the nearest Power Delivery current unit
-(10 mA).
+Note: values are rounded down to the nearest 10 mA.
+
+#### set_p
+
+Usage: `set_p power_in_mW`
+
+Sets the power of the configuration buffer, in milliwatts, overriding any
+current or resistance configured.  Prints no output on success, an error
+message on failure.
+
+Note: values are rounded down to the nearest 10 mW.
+
+#### set_r
+
+Usage: `set_r resistance_in_mΩ`
+
+Sets the resistance of the configuration buffer, in milliohms, overriding any
+current or power configured.  Prints no output on success, an error message on
+failure.
+
+Note: values are rounded down to the nearest 10 mΩ.
 
 ### Power Delivery
 
@@ -248,18 +354,51 @@ this configuration object:
 
 * `GiveBack`: allows the power supply to temporarily reduce power to the device
   if necessary.
+* `HV_Preferred`: precedence is given to higher voltages when selecting from
+  the range (lower voltages take precedence when the flag is disabled).
 
 ### v
 
-The `v` field holds the fixed voltage of the configuration object, in volts.
+The `v` field holds the preferred voltage of the configuration object, in
+volts.
 The field's value is a floating-point decimal number, followed by a space and a
 capital V.  For example: `20.00 V`.
 
+### vmin
+
+The `vmin` field holds the lower end of the configuration object's voltage
+range, in volts.
+The field's value is a floating-point decimal number, followed by a space and a
+capital V.  For example: `20.00 V`.
+
+When absent, this field's value may be assumed to be `0 V`.
+
+### vmax
+
+The `vmax` field holds the upper end of the configuration object's voltage
+range, in volts.
+The field's value is a floating-point decimal number, followed by a space and a
+capital V.  For example: `20.00 V`.
+
+When absent, this field's value may be assumed to be `0 V`.
+
 ### i
 
-The `i` field holds the fixed current of the configuration object, in amperes.
+The `i` field holds the current of the configuration object, in amperes.
 The field's value is a floating-point decimal number, followed by a space and a
 capital A.  For example: `2.25 A`.
+
+### p
+
+The `p` field holds the power of the configuration object, in watts.
+The field's value is a floating-point decimal number, followed by a space and a
+capital W.  For example: `2.25 W`.
+
+### r
+
+The `r` field holds the resistance of the configuration object, in ohms.
+The field's value is a floating-point decimal number, followed by a space and a
+capital Ω.  For example: `2.25 Ω`.
 
 ## PDO Format
 
