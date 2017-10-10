@@ -28,12 +28,27 @@
  * PD Buddy Sink configuration structure
  */
 struct pdbs_config {
+    /* Status halfword, used to indicate which config objects can be written to
+     * and which one is valid. */
     uint16_t status;
+    /* Flags halfword for miscellaneous small fields. */
     uint16_t flags;
+    /* Preferred voltage. */
     uint16_t v;
-    uint16_t i;
+    /* Union for specifying how much current to request. */
+    union {
+        /* Required current. */
+        uint16_t i;
+        /* Required power. */
+        uint16_t p;
+        /* Value of resistive load. */
+        uint16_t r;
+    };
+    /* Lower end of voltage range. */
     uint16_t vmin;
+    /* Upper end of voltage range. */
     uint16_t vmax;
+    /* Extra bytes reserved for future use. */
     uint16_t _reserved[2];
 } __attribute__((packed));
 
@@ -47,9 +62,17 @@ struct pdbs_config {
 
 /* Flags for configuration structures. */
 /* GiveBack supported */
-#define PDBS_CONFIG_FLAGS_GIVEBACK 0x0001
+#define PDBS_CONFIG_FLAGS_GIVEBACK (1 << 0)
 /* Variable and battery PDOs preferred (FIXME: not implemented) */
-#define PDBS_CONFIG_FLAGS_VAR_BAT 0x0002
+#define PDBS_CONFIG_FLAGS_VAR_BAT (1 << 1)
+/* High voltages preferred */
+#define PDBS_CONFIG_FLAGS_HV_PREFERRED (1 << 2)
+/* Current definition type */
+#define PDBS_CONFIG_FLAGS_CURRENT_DEFN_SHIFT 3
+#define PDBS_CONFIG_FLAGS_CURRENT_DEFN (0x3 << PDBS_CONFIG_FLAGS_CURRENT_DEFN_SHIFT)
+#define PDBS_CONFIG_FLAGS_CURRENT_DEFN_I (0 << PDBS_CONFIG_FLAGS_CURRENT_DEFN_SHIFT)
+#define PDBS_CONFIG_FLAGS_CURRENT_DEFN_P (1 << PDBS_CONFIG_FLAGS_CURRENT_DEFN_SHIFT)
+#define PDBS_CONFIG_FLAGS_CURRENT_DEFN_R (2 << PDBS_CONFIG_FLAGS_CURRENT_DEFN_SHIFT)
 
 
 /* Flash configuration array */
