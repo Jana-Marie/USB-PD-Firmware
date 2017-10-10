@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.2.0-dev, 2017-10-09
+Version 1.2.0-dev, 2017-10-10
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
@@ -76,8 +76,7 @@ still work with as many power supplies as possible, it is possible to configure
 a closed range of acceptable voltages:
 
     PDBS) set_v 13800
-    PDBS) set_vmin 11000
-    PDBS) set_vmax 16000
+    PDBS) set_vrange 11000 16000
     PDBS) get_cfg
     status: valid
     flags: (none)
@@ -250,21 +249,12 @@ on success, an error message on failure.
 
 Note: values are rounded down to the nearest 10 mV.
 
-#### set_vmin
+#### set_vrange
 
-Usage: `set_vmin voltage_in_mV`
+Usage: `set_vrange min_voltage_in_mV max_voltage_in_mV`
 
-Sets the minimum voltage of the configuration buffer, in millivolts.  Prints no
-message on success, an error message on failure.
-
-Note: values are rounded down to the nearest 10 mV.
-
-#### set_vmax
-
-Usage: `set_vmax voltage_in_mV`
-
-Sets the maximum voltage of the configuration buffer, in millivolts.  Prints no
-message on success, an error message on failure.
+Sets the minimum and maximum voltage of the configuration buffer, in
+millivolts.  Prints no message on success, an error message on failure.
 
 Note: values are rounded down to the nearest 10 mV.
 
