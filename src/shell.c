@@ -202,8 +202,8 @@ static void cmd_load(BaseSequentialStream *chp, int argc, char *argv[])
     tmpcfg.flags = cfg->flags;
     tmpcfg.v = cfg->v;
     tmpcfg.i = cfg->i;
-    tmpcfg.v_min = cfg->v_min;
-    tmpcfg.v_max = cfg->v_max;
+    tmpcfg.vmin = cfg->vmin;
+    tmpcfg.vmax = cfg->vmax;
 }
 
 static void cmd_get_cfg(BaseSequentialStream *chp, int argc, char *argv[])

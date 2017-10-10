@@ -70,10 +70,10 @@ void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
     chprintf(chp, "v: %d.%02d V\r\n", PD_PDV_V(cfg->v), PD_PDV_CV(cfg->v));
     chprintf(chp, "i: %d.%02d A\r\n", PD_PDI_A(cfg->i), PD_PDI_CA(cfg->i));
     if (cfg->flags & PDBS_CONFIG_FLAGS_VAR_BAT) {
-        chprintf(chp, "v_min: %d.%02d V\r\n", PD_PDV_V(cfg->v_min),
-                 PD_PDV_CV(cfg->v_min));
-        chprintf(chp, "v_max: %d.%02d V\r\n", PD_PDV_V(cfg->v_max),
-                 PD_PDV_CV(cfg->v_max));
+        chprintf(chp, "vmin: %d.%02d V\r\n", PD_PDV_V(cfg->vmin),
+                 PD_PDV_CV(cfg->vmin));
+        chprintf(chp, "vmax: %d.%02d V\r\n", PD_PDV_V(cfg->vmax),
+                 PD_PDV_CV(cfg->vmax));
     }
 }
 
@@ -215,8 +215,8 @@ void pdbs_config_flash_update(const struct pdbs_config *cfg)
     flash_write_halfword(&(empty->flags), cfg->flags);
     flash_write_halfword(&(empty->v), cfg->v);
     flash_write_halfword(&(empty->i), cfg->i);
-    flash_write_halfword(&(empty->v_min), cfg->v_min);
-    flash_write_halfword(&(empty->v_max), cfg->v_max);
+    flash_write_halfword(&(empty->vmin), cfg->vmin);
+    flash_write_halfword(&(empty->vmax), cfg->vmax);
 
     flash_lock();
 

@@ -32,8 +32,8 @@ struct pdbs_config {
     uint16_t flags;
     uint16_t v;
     uint16_t i;
-    uint16_t v_min;
-    uint16_t v_max;
+    uint16_t vmin;
+    uint16_t vmax;
     uint16_t _reserved[2];
 } __attribute__((packed));
 
@@ -48,7 +48,7 @@ struct pdbs_config {
 /* Flags for configuration structures. */
 /* GiveBack supported */
 #define PDBS_CONFIG_FLAGS_GIVEBACK 0x0001
-/* Variable and battery PDOs supported (v_min and v_max valid) */
+/* Variable and battery PDOs supported (vmin and vmax valid) */
 #define PDBS_CONFIG_FLAGS_VAR_BAT 0x0002
 
 
