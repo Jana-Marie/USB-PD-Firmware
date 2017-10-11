@@ -274,6 +274,18 @@ static void cmd_toggle_giveback(BaseSequentialStream *chp, int argc, char *argv[
     tmpcfg.flags ^= PDBS_CONFIG_FLAGS_GIVEBACK;
 }
 
+static void cmd_toggle_hv_preferred(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    (void) argv;
+    if (argc > 0) {
+        chprintf(chp, "Usage: toggle_hv_preferred\r\n");
+        return;
+    }
+
+    /* Toggle the HV_Preferred flag */
+    tmpcfg.flags ^= PDBS_CONFIG_FLAGS_HV_PREFERRED;
+}
+
 static void cmd_set_v(BaseSequentialStream *chp, int argc, char *argv[])
 {
     if (argc != 1) {
@@ -397,6 +409,7 @@ static const struct pdbs_shell_cmd commands[] = {
     {"get_tmpcfg", cmd_get_tmpcfg, "Print the configuration buffer"},
     {"clear_flags", cmd_clear_flags, "Clear all flags"},
     {"toggle_giveback", cmd_toggle_giveback, "Toggle the GiveBack flag"},
+    {"toggle_hv_preferred", cmd_toggle_hv_preferred, "Toggle the HV_Preferred flag"},
     /* TODO {"toggle_var_bat", cmd_toggle_var_bat, "Toggle the Var/Bat flag"},*/
     {"set_v", cmd_set_v, "Set the voltage in millivolts"},
     {"set_i", cmd_set_i, "Set the current in milliamps"},

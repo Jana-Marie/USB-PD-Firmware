@@ -64,6 +64,9 @@ void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
     if (cfg->flags & PDBS_CONFIG_FLAGS_VAR_BAT) {
         chprintf(chp, "Var/Bat ");
     }
+    if (cfg->flags & PDBS_CONFIG_FLAGS_HV_PREFERRED) {
+        chprintf(chp, "HV_Preferred ");
+    }
     chprintf(chp, "\r\n");
 
     /* Print voltages and current */
