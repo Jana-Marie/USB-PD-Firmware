@@ -316,6 +316,9 @@ static void cmd_set_i(BaseSequentialStream *chp, int argc, char *argv[])
     if (i >= PD_MA_MIN && i <= PD_MA_MAX && endptr > argv[0]) {
         /* Convert mA to the unit used by USB PD */
         tmpcfg.i = PD_MA2PDI(i);
+        /* Set the flags to say we're storing a current */
+        tmpcfg.flags &= ~PDBS_CONFIG_FLAGS_CURRENT_DEFN;
+        tmpcfg.flags |= PDBS_CONFIG_FLAGS_CURRENT_DEFN_I;
     } else {
         chprintf(chp, "Invalid current\r\n");
         return;
