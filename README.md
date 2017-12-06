@@ -68,14 +68,16 @@ the following:
 
 Set the Boot switch (SW1) on the PD Buddy Sink to the position not marked on
 the silkscreen to set the device to DFU mode.  If your Sink doesn't have a Boot
-switch, you can simply bridge the two long, close-together pads on the
-footprint for SW1 with a blob of solder to achieve the same effect.  Once the
+switch installed, you can simply bridge the two pads of SW1 circled in [this
+image][dfu pads] with a blob of solder to achieve the same effect.  Once the
 Sink is set to DFU mode, plug it into your computer.  Flash the firmware with:
 
     $ dfu-util -a 0 -s 0x08000000:leave -D build/pd-buddy-firmware.bin
 
 Don't forget to set the switch back to normal mode (or remove the solder blob)
 after unplugging the device.
+
+[dfu pads]: docs/dfu_pads.jpg
 
 ### stlink
 
