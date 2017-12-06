@@ -118,12 +118,13 @@ following commands:
 When `write` is run, the chosen settings are written to flash.  You can then
 simply disconnect the Sink from your computer.
 
-For more information about the serial console configuration interface, see
-`docs/console_config.md`.
+For more information about the serial console configuration interface, refer to
+[the full documentation][shell docs].
 
 [GNU Screen]: https://www.gnu.org/software/screen/
 [Minicom]: https://alioth.debian.org/projects/minicom
 [PuTTY]: http://www.chiark.greenend.org.uk/~sgtatham/putty/
+[shell docs]: docs/console_config.md
 
 ### Configuration with the GUI
 
