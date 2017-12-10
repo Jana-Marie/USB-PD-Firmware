@@ -158,52 +158,16 @@ static void cmd_license(BaseSequentialStream *chp, int argc, char *argv[])
     );
 }
 
-static void cmd_erase(BaseSequentialStream *chp, int argc, char *argv[])
+static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
 {
+    (void) chp;
     (void) argv;
     if (argc > 0) {
-        chprintf(chp, "Usage: erase\r\n");
+        chprintf(chp, "Usage: identify\r\n");
         return;
     }
 
-    pdbs_config_flash_erase();
-}
-
-static void cmd_write(BaseSequentialStream *chp, int argc, char *argv[])
-{
-    (void) argv;
-    if (argc > 0) {
-        chprintf(chp, "Usage: write\r\n");
-        return;
-    }
-
-    pdbs_config_flash_update(&tmpcfg);
-
-    chEvtSignal(pdb_config->pe.thread, PDB_EVT_PE_NEW_POWER);
-}
-
-static void cmd_load(BaseSequentialStream *chp, int argc, char *argv[])
-{
-    (void) argv;
-    if (argc > 0) {
-        chprintf(chp, "Usage: load\r\n");
-        return;
-    }
-
-    /* Get the current configuration */
-    struct pdbs_config *cfg = pdbs_config_flash_read();
-    if (cfg == NULL) {
-        chprintf(chp, "No configuration\r\n");
-        return;
-    }
-
-    /* Load the current configuration into tmpcfg */
-    tmpcfg.status = cfg->status;
-    tmpcfg.flags = cfg->flags;
-    tmpcfg.v = cfg->v;
-    tmpcfg.i = cfg->i;
-    tmpcfg.vmin = cfg->vmin;
-    tmpcfg.vmax = cfg->vmax;
+    chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_IDENTIFY);
 }
 
 static void cmd_get_cfg(BaseSequentialStream *chp, int argc, char *argv[])
@@ -235,6 +199,54 @@ static void cmd_get_cfg(BaseSequentialStream *chp, int argc, char *argv[])
     }
     /* Print the configuration */
     pdbs_config_print(chp, cfg);
+}
+
+static void cmd_load(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    (void) argv;
+    if (argc > 0) {
+        chprintf(chp, "Usage: load\r\n");
+        return;
+    }
+
+    /* Get the current configuration */
+    struct pdbs_config *cfg = pdbs_config_flash_read();
+    if (cfg == NULL) {
+        chprintf(chp, "No configuration\r\n");
+        return;
+    }
+
+    /* Load the current configuration into tmpcfg */
+    tmpcfg.status = cfg->status;
+    tmpcfg.flags = cfg->flags;
+    tmpcfg.v = cfg->v;
+    tmpcfg.i = cfg->i;
+    tmpcfg.vmin = cfg->vmin;
+    tmpcfg.vmax = cfg->vmax;
+}
+
+static void cmd_write(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    (void) argv;
+    if (argc > 0) {
+        chprintf(chp, "Usage: write\r\n");
+        return;
+    }
+
+    pdbs_config_flash_update(&tmpcfg);
+
+    chEvtSignal(pdb_config->pe.thread, PDB_EVT_PE_NEW_POWER);
+}
+
+static void cmd_erase(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    (void) argv;
+    if (argc > 0) {
+        chprintf(chp, "Usage: erase\r\n");
+        return;
+    }
+
+    pdbs_config_flash_erase();
 }
 
 static void cmd_get_tmpcfg(BaseSequentialStream *chp, int argc, char *argv[])
@@ -325,18 +337,6 @@ static void cmd_set_i(BaseSequentialStream *chp, int argc, char *argv[])
     }
 }
 
-static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
-{
-    (void) chp;
-    (void) argv;
-    if (argc > 0) {
-        chprintf(chp, "Usage: identify\r\n");
-        return;
-    }
-
-    chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_IDENTIFY);
-}
-
 static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
 {
     if (argc == 0) {
@@ -405,19 +405,19 @@ static void cmd_get_source_cap(BaseSequentialStream *chp, int argc, char *argv[]
  */
 static const struct pdbs_shell_cmd commands[] = {
     {"license", cmd_license, "Show copyright and license information"},
-    {"erase", cmd_erase, "Erase all stored configuration"},
-    {"write", cmd_write, "Store the configuration buffer"},
-    {"load", cmd_load, "Load the stored configuration into the buffer"},
+    {"identify", cmd_identify, "Blink the LED to identify the device"},
     {"get_cfg", cmd_get_cfg, "Print the stored configuration"},
+    {"load", cmd_load, "Load the stored configuration into the buffer"},
+    {"write", cmd_write, "Store the configuration buffer"},
+    {"erase", cmd_erase, "Erase all stored configuration"},
     {"get_tmpcfg", cmd_get_tmpcfg, "Print the configuration buffer"},
     {"clear_flags", cmd_clear_flags, "Clear all flags"},
     {"toggle_giveback", cmd_toggle_giveback, "Toggle the GiveBack flag"},
     {"toggle_hv_preferred", cmd_toggle_hv_preferred, "Toggle the HV_Preferred flag"},
     /* TODO {"toggle_var_bat", cmd_toggle_var_bat, "Toggle the Var/Bat flag"},*/
     {"set_v", cmd_set_v, "Set the voltage in millivolts"},
+    /* TODO {"set_vrange", cmd_set_vrange, "Set the minimum and maximum voltage in millivolts"},*/
     {"set_i", cmd_set_i, "Set the current in milliamps"},
-    /* TODO {"set_v_range", cmd_set_v_range, "Set the minimum and maximum voltage in millivolts"},*/
-    {"identify", cmd_identify, "Blink the LED to identify the device"},
     {"output", cmd_output, "Get or set the output status"},
     {"get_source_cap", cmd_get_source_cap, "Print the capabilities of the PD source"},
     {NULL, NULL, NULL}
