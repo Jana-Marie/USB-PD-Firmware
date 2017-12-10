@@ -63,7 +63,7 @@ static struct pdbs_dpm_data dpm_data = {
     true,
     true,
     false,
-    ._present_voltage = PD_MV2PDV(5000)
+    ._present_voltage = 5000
 };
 
 /*

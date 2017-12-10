@@ -72,7 +72,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
             }
             /* If the V from the PDO equals our desired V and the I is at least
              * our desired I */
-            if (PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) == scfg->v
+            if (PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) == PD_MV2PDV(scfg->v)
                     && PD_PDO_SRC_FIXED_CURRENT_GET(capabilities, i) >= scfg->i) {
                 /* We got what we wanted, so build a request for that */
                 request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
@@ -94,7 +94,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
                 }
 
                 /* Update requested voltage */
-                dpm_data->_requested_voltage = scfg->v;
+                dpm_data->_requested_voltage = PD_PDV2MV(PD_MV2PDV(scfg->v));
 
                 dpm_data->_capability_match = true;
                 return true;
@@ -118,7 +118,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     }
 
     /* Update requested voltage */
-    dpm_data->_requested_voltage = PD_MV2PDV(5000);
+    dpm_data->_requested_voltage = 5000;
 
     /* At this point, we have a capability match iff the output is disabled */
     dpm_data->_capability_match = !dpm_data->output_enabled;
@@ -136,7 +136,7 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
 
     /* If we have no configuration or want something other than 5 V, add a PDO
      * for vSafe5V */
-    if (scfg == NULL || scfg->v != PD_MV2PDV(5000)) {
+    if (scfg == NULL || PD_MV2PDV(scfg->v) != PD_MV2PDV(5000)) {
         /* Minimum current, 5 V, and higher capability. */
         cap->obj[numobj++] = PD_PDO_TYPE_FIXED
             | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_MV2PDV(5000))
@@ -146,10 +146,10 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
     /* Add a PDO for the desired power. */
     if (scfg != NULL) {
         cap->obj[numobj++] = PD_PDO_TYPE_FIXED
-            | PD_PDO_SNK_FIXED_VOLTAGE_SET(scfg->v)
+            | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_MV2PDV(scfg->v))
             | PD_PDO_SNK_FIXED_CURRENT_SET(scfg->i);
         /* If we want more than 5 V, set the Higher Capability flag */
-        if (scfg->v != PD_MV2PDV(5000)) {
+        if (PD_MV2PDV(scfg->v) != PD_MV2PDV(5000)) {
             cap->obj[0] |= PD_PDO_SNK_FIXED_HIGHER_CAP;
         }
     }
@@ -184,7 +184,7 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
     struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
 
     /* We don't control the voltage anymore; it will always be 5 V. */
-    dpm_data->_requested_voltage = PD_MV2PDV(5000);
+    dpm_data->_requested_voltage = 5000;
 
     /* Make the present Type-C Current advertisement available to the rest of
      * the DPM */
@@ -192,7 +192,7 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
 
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
-    if (scfg == NULL || scfg->v != PD_MV2PDV(5000)) {
+    if (scfg == NULL || PD_MV2PDV(scfg->v) != PD_MV2PDV(5000)) {
         dpm_data->_capability_match = false;
         return false;
     }
@@ -256,7 +256,7 @@ void pdbs_dpm_transition_default(struct pdb_config *cfg)
     struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
 
     /* Pretend we requested 5 V */
-    dpm_data->_requested_voltage = PD_MV2PDV(5000);
+    dpm_data->_requested_voltage = 5000;
     /* Turn the output off */
     dpm_output_set(cfg->dpm_data, false);
 }

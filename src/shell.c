@@ -308,8 +308,7 @@ static void cmd_set_v(BaseSequentialStream *chp, int argc, char *argv[])
     char *endptr;
     long i = strtol(argv[0], &endptr, 0);
     if (i >= PD_MV_MIN && i <= PD_MV_MAX && endptr > argv[0]) {
-        /* Convert mV to the unit used by USB PD */
-        tmpcfg.v = PD_MV2PDV(i);
+        tmpcfg.v = i;
     } else {
         chprintf(chp, "Invalid voltage\r\n");
         return;

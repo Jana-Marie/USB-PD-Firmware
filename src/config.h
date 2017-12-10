@@ -33,20 +33,20 @@ struct pdbs_config {
     uint16_t status;
     /* Flags halfword for miscellaneous small fields. */
     uint16_t flags;
-    /* Preferred voltage. */
+    /* Preferred voltage, in millivolts. */
     uint16_t v;
     /* Union for specifying how much current to request. */
     union {
-        /* Required current. */
+        /* Required current, in centiamperes. */
         uint16_t i;
-        /* Required power. */
+        /* Required power, in centiwatts. */
         uint16_t p;
-        /* Value of resistive load. */
+        /* Value of resistive load, in centiohms. */
         uint16_t r;
     };
-    /* Lower end of voltage range. */
+    /* Lower end of voltage range, in millivolts. */
     uint16_t vmin;
-    /* Upper end of voltage range. */
+    /* Upper end of voltage range, in millivolts. */
     uint16_t vmax;
     /* Extra bytes reserved for future use. */
     uint16_t _reserved[2];

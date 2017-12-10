@@ -40,9 +40,9 @@ struct pdbs_dpm_data {
     bool _unconstrained_power;
     /* Whether our capabilities matched or not */
     bool _capability_match;
-    /* The last explicitly or implicitly negotiated voltage in PDV */
+    /* The last explicitly or implicitly negotiated voltage, in millivolts */
     int _present_voltage;
-    /* The requested voltage */
+    /* The requested voltage, in millivolts */
     int _requested_voltage;
 };
 

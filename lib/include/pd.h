@@ -248,7 +248,10 @@
 #define PD_MA2PDI(ma) ((ma) / 10)
 #define PD_PDI2MA(pdi) ((pdi) * 10)
 
-/* Get portions of a PD voltage in more normal units */
+/* Get portions of a voltage in more normal units */
+#define PD_MV_V(mv) ((mv) / 1000)
+#define PD_MV_MV(mv) ((mv) % 1000)
+
 #define PD_PDV_V(pdv) ((pdv) / 20)
 #define PD_PDV_CV(pdv) (5 * ((pdv) % 20))
 

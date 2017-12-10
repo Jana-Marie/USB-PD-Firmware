@@ -70,7 +70,7 @@ void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
     chprintf(chp, "\r\n");
 
     /* Print voltage */
-    chprintf(chp, "v: %d.%02d V\r\n", PD_PDV_V(cfg->v), PD_PDV_CV(cfg->v));
+    chprintf(chp, "v: %d.%03d V\r\n", PD_MV_V(cfg->v), PD_MV_MV(cfg->v));
     /* Print current-deriving setting */
     switch (cfg->flags & PDBS_CONFIG_FLAGS_CURRENT_DEFN) {
         case PDBS_CONFIG_FLAGS_CURRENT_DEFN_I:
@@ -79,10 +79,10 @@ void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
     }
     /* If either end of the range is non-zero, print the range */
     if (cfg->vmin != 0 || cfg->vmax != 0) {
-        chprintf(chp, "vmin: %d.%02d V\r\n", PD_PDV_V(cfg->vmin),
-                 PD_PDV_CV(cfg->vmin));
-        chprintf(chp, "vmax: %d.%02d V\r\n", PD_PDV_V(cfg->vmax),
-                 PD_PDV_CV(cfg->vmax));
+        chprintf(chp, "vmin: %d.%03d V\r\n", PD_MV_V(cfg->vmin),
+                 PD_MV_MV(cfg->vmin));
+        chprintf(chp, "vmax: %d.%03d V\r\n", PD_MV_V(cfg->vmax),
+                 PD_MV_MV(cfg->vmax));
     }
 }
 
