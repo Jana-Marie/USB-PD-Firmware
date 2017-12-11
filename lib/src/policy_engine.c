@@ -97,6 +97,18 @@ static enum policy_engine_state pe_sink_wait_cap(struct pdb_config *cfg)
             /* If we got a Source_Capabilities message, read it. */
             if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOURCE_CAPABILITIES
                     && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
+                /* First, determine what PD revision we're using */
+                if ((cfg->pe.hdr_template & PD_HDR_SPECREV) == PD_SPECREV_1_0) {
+                    /* If the other end is using at least version 3.0, we'll
+                     * use version 3.0. */
+                    if ((cfg->pe._message->hdr & PD_HDR_SPECREV) >= PD_SPECREV_3_0) {
+                        cfg->pe.hdr_template |= PD_SPECREV_3_0;
+                    /* Otherwise, use 2.0.  Don't worry about the 1.0 case
+                     * because we don't have hardware for PD 1.0 signaling. */
+                    } else {
+                        cfg->pe.hdr_template |= PD_SPECREV_2_0;
+                    }
+                }
                 return PESinkEvalCap;
             /* If the message was a Soft_Reset, do the soft reset procedure */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOFT_RESET
@@ -653,7 +665,7 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
     /* Initialize the old_tcc_match */
     cfg->pe._old_tcc_match = -1;
     /* Initialize the PD message header template */
-    cfg->pe.hdr_template = PD_DATAROLE_UFP | PD_SPECREV_2_0 | PD_POWERROLE_SINK;
+    cfg->pe.hdr_template = PD_DATAROLE_UFP | PD_POWERROLE_SINK;
 
     while (true) {
         switch (state) {
