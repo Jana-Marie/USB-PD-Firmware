@@ -41,7 +41,7 @@ enum policy_engine_state {
     PESinkTransitionDefault,
     PESinkSoftReset,
     PESinkSendSoftReset,
-    PESinkSendReject,
+    PESinkSendNotSupported,
     PESinkSourceUnresponsive
 };
 
@@ -332,42 +332,42 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
                 return PESinkReady;
-            /* Reject DR_Swap messages */
+            /* DR_Swap messages are not supported */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_DR_SWAP
                     && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
-                return PESinkSendReject;
-            /* Reject Get_Source_Cap messages */
+                return PESinkSendNotSupported;
+            /* Get_Source_Cap messages are not supported */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_GET_SOURCE_CAP
                     && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
-                return PESinkSendReject;
-            /* Reject PR_Swap messages */
+                return PESinkSendNotSupported;
+            /* PR_Swap messages are not supported */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_PR_SWAP
                     && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
-                return PESinkSendReject;
-            /* Reject VCONN_Swap messages */
+                return PESinkSendNotSupported;
+            /* VCONN_Swap messages are not supported */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_VCONN_SWAP
                     && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
-                return PESinkSendReject;
-            /* Reject Request messages */
+                return PESinkSendNotSupported;
+            /* Request messages are not supported */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_REQUEST
                     && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
-                return PESinkSendReject;
-            /* Reject Sink_Capabilities messages */
+                return PESinkSendNotSupported;
+            /* Sink_Capabilities messages are not supported */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SINK_CAPABILITIES
                     && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
-                return PESinkSendReject;
+                return PESinkSendNotSupported;
             /* Handle GotoMin messages */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_GOTOMIN
                     && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
@@ -381,10 +381,10 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
                     cfg->pe._message = NULL;
                     return PESinkTransitionSink;
                 } else {
-                    /* We don't support GiveBack, so send a Reject */
+                    /* GiveBack is not supported */
                     chPoolFree(&pdb_msg_pool, cfg->pe._message);
                     cfg->pe._message = NULL;
-                    return PESinkSendReject;
+                    return PESinkSendNotSupported;
                 }
             /* Evaluate new Source_Capabilities */
             } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOURCE_CAPABILITIES
@@ -598,22 +598,28 @@ static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
     return PESinkHardReset;
 }
 
-static enum policy_engine_state pe_sink_send_reject(struct pdb_config *cfg)
+static enum policy_engine_state pe_sink_send_not_supported(struct pdb_config *cfg)
 {
     /* Get a message object */
-    union pd_msg *reject = chPoolAlloc(&pdb_msg_pool);
-    /* Make a Reject message */
-    reject->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REJECT | PD_NUMOBJ(0);
+    union pd_msg *not_supported = chPoolAlloc(&pdb_msg_pool);
+
+    if ((cfg->pe.hdr_template & PD_HDR_SPECREV) == PD_SPECREV_2_0) {
+        /* Make a Reject message */
+        not_supported->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REJECT | PD_NUMOBJ(0);
+    } else if ((cfg->pe.hdr_template & PD_HDR_SPECREV) == PD_SPECREV_3_0) {
+        /* Make a Not_Supported message */
+        not_supported->hdr = cfg->pe.hdr_template | PD_MSGTYPE_NOT_SUPPORTED | PD_NUMOBJ(0);
+    }
 
     /* Transmit the message */
-    chMBPost(&cfg->prl.tx_mailbox, (msg_t) reject, TIME_IMMEDIATE);
+    chMBPost(&cfg->prl.tx_mailbox, (msg_t) not_supported, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
 
-    /* Free the Reject message */
-    chPoolFree(&pdb_msg_pool, reject);
-    reject = NULL;
+    /* Free the message */
+    chPoolFree(&pdb_msg_pool, not_supported);
+    not_supported = NULL;
 
     /* If we got reset signaling, transition to default */
     if (evt & PDB_EVT_PE_RESET) {
@@ -708,8 +714,8 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
             case PESinkSendSoftReset:
                 state = pe_sink_send_soft_reset(cfg);
                 break;
-            case PESinkSendReject:
-                state = pe_sink_send_reject(cfg);
+            case PESinkSendNotSupported:
+                state = pe_sink_send_not_supported(cfg);
                 break;
             case PESinkSourceUnresponsive:
                 state = pe_sink_source_unresponsive(cfg);
