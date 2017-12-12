@@ -42,6 +42,7 @@ enum policy_engine_state {
     PESinkSoftReset,
     PESinkSendSoftReset,
     PESinkSendNotSupported,
+    PESinkChunkReceived,
     PESinkSourceUnresponsive
 };
 
@@ -404,7 +405,24 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
                 return PESinkSoftReset;
-            /* If we got an unknown message, send a soft reset */
+            /* PD 3.0 messges */
+            } else if ((cfg->pe.hdr_template & PD_HDR_SPECREV) == PD_SPECREV_3_0) {
+                /* If the message is a multi-chunk extended message, let it
+                 * time out. */
+                if ((cfg->pe._message->hdr & PD_HDR_EXT)
+                        && (PD_DATA_SIZE_GET(cfg->pe._message) > PD_MAX_EXT_MSG_LEGACY_LEN)) {
+                    chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                    cfg->pe._message = NULL;
+                    return PESinkChunkReceived;
+                /* If we got an unknown message, send a soft reset */
+                } else {
+                    chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                    cfg->pe._message = NULL;
+                    return PESinkSendSoftReset;
+                }
+            /* If we got an unknown message, send a soft reset
+             *
+             * XXX I don't like that this is duplicated. */
             } else {
                 chPoolFree(&pdb_msg_pool, cfg->pe._message);
                 cfg->pe._message = NULL;
@@ -633,6 +651,21 @@ static enum policy_engine_state pe_sink_send_not_supported(struct pdb_config *cf
     return PESinkReady;
 }
 
+static enum policy_engine_state pe_sink_chunk_received(struct pdb_config *cfg)
+{
+    (void) cfg;
+
+    /* Wait for tChunkingNotSupported */
+    eventmask_t evt = chEvtWaitAnyTimeout(PDB_EVT_PE_RESET,
+            PD_T_CHUNKING_NOT_SUPPORTED);
+    /* If we got reset signaling, transition to default */
+    if (evt & PDB_EVT_PE_RESET) {
+        return PESinkTransitionDefault;
+    }
+
+    return PESinkSendNotSupported;
+}
+
 /*
  * When Power Delivery is unresponsive, fall back to Type-C Current
  */
@@ -716,6 +749,9 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
                 break;
             case PESinkSendNotSupported:
                 state = pe_sink_send_not_supported(cfg);
+                break;
+            case PESinkChunkReceived:
+                state = pe_sink_chunk_received(cfg);
                 break;
             case PESinkSourceUnresponsive:
                 state = pe_sink_source_unresponsive(cfg);

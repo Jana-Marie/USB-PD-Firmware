@@ -115,6 +115,27 @@
 
 
 /*
+ * PD Extended Message Header
+ */
+#define PD_EXTHDR_DATA_SIZE_SHIFT 0
+#define PD_EXTHDR_DATA_SIZE (0x1FF << PD_EXTHDR_DATA_SIZE_SHIFT)
+#define PD_EXTHDR_REQUEST_CHUNK_SHIFT 10
+#define PD_EXTHDR_REQUEST_CHUNK (1 << PD_EXTHDR_REQUEST_CHUNK_SHIFT)
+#define PD_EXTHDR_CHUNK_NUMBER_SHIFT 11
+#define PD_EXTHDR_CHUNK_NUMBER (0xF << PD_EXTHDR_CHUNK_NUMBER_SHIFT)
+#define PD_EXTHDR_CHUNKED_SHIFT 15
+#define PD_EXTHDR_CHUNKED (1 << PD_EXTHDR_CHUNKED_SHIFT)
+
+/* Data size */
+#define PD_DATA_SIZE(n) (((n) << PD_EXTHDR_DATA_SIZE_SHIFT) & PD_EXTHDR_DATA_SIZE)
+#define PD_DATA_SIZE_GET(msg) (((msg)->exthdr & PD_EXTHDR_DATA_SIZE) >> PD_EXTHDR_DATA_SIZE_SHIFT)
+
+/* Chunk number */
+#define PD_CHUNK_NUMBER(n) (((n) << PD_EXTHDR_CHUNK_NUMBER_SHIFT) & PD_EXTHDR_CHUNK_NUMBER)
+#define PD_CHUNK_NUMBER_GET(msg) (((msg)->exthdr & PD_EXTHDR_CHUNK_NUMBER) >> PD_EXTHDR_CHUNK_NUMBER_SHIFT)
+
+
+/*
  * PD Power Data Object
  */
 #define PD_PDO_TYPE_SHIFT 30
@@ -216,6 +237,7 @@
  * Where a range is specified, the middle of the range (rounded down to the
  * nearest millisecond) is used.
  */
+#define PD_T_CHUNKING_NOT_SUPPORTED MS2ST(45)
 #define PD_T_HARD_RESET_COMPLETE MS2ST(4)
 #define PD_T_PS_TRANSITION MS2ST(500)
 #define PD_T_SENDER_RESPONSE MS2ST(27)
@@ -229,6 +251,14 @@
  * Counter maximums
  */
 #define PD_N_HARD_RESET_COUNT 2
+
+
+/*
+ * Value parameters
+ */
+#define PD_MAX_EXT_MSG_LEN 260
+#define PD_MAX_EXT_MSG_CHUNK_LEN 26
+#define PD_MAX_EXT_MSG_LEGACY_LEN 26
 
 
 /*

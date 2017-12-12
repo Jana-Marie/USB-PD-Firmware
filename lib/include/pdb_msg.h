@@ -27,7 +27,7 @@
 /*
  * PD message union
  *
- * This can be safely read from or written to in either form without any
+ * This can be safely read from or written to in any form without any
  * transformations because everything in the system is little-endian.
  *
  * Two bytes of padding are required at the start to prevent problems due to
@@ -42,7 +42,13 @@ union pd_msg {
     struct {
         uint8_t _pad2[2];
         uint16_t hdr;
-        uint32_t obj[7];
+        union {
+            uint32_t obj[7];
+            struct {
+                uint16_t exthdr;
+                uint8_t data[26];
+            };
+        };
     } __attribute__((packed));
 };
 
