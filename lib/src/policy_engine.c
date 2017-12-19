@@ -43,6 +43,7 @@ enum policy_engine_state {
     PESinkSendSoftReset,
     PESinkSendNotSupported,
     PESinkChunkReceived,
+    PESinkNotSupportedReceived,
     PESinkSourceUnresponsive
 };
 
@@ -414,6 +415,13 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
                     chPoolFree(&pdb_msg_pool, cfg->pe._message);
                     cfg->pe._message = NULL;
                     return PESinkChunkReceived;
+                /* Tell the DPM a message we sent got a response of
+                 * Not_Supported. */
+                } else if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_NOT_SUPPORTED
+                        && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
+                    chPoolFree(&pdb_msg_pool, cfg->pe._message);
+                    cfg->pe._message = NULL;
+                    return PESinkNotSupportedReceived;
                 /* If we got an unknown message, send a soft reset */
                 } else {
                     chPoolFree(&pdb_msg_pool, cfg->pe._message);
@@ -666,6 +674,17 @@ static enum policy_engine_state pe_sink_chunk_received(struct pdb_config *cfg)
     return PESinkSendNotSupported;
 }
 
+static enum policy_engine_state pe_sink_not_supported_received(struct pdb_config *cfg)
+{
+    /* Inform the Device Policy Manager that we received a Not_Supported
+     * message. */
+    if (cfg->dpm.not_supported_received != NULL) {
+        cfg->dpm.not_supported_received(cfg);
+    }
+
+    return PESinkReady;
+}
+
 /*
  * When Power Delivery is unresponsive, fall back to Type-C Current
  */
@@ -755,6 +774,9 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
                 break;
             case PESinkSourceUnresponsive:
                 state = pe_sink_source_unresponsive(cfg);
+                break;
+            case PESinkNotSupportedReceived:
+                state = pe_sink_not_supported_received(cfg);
                 break;
             default:
                 /* This is an error.  It really shouldn't happen.  We might

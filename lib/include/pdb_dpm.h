@@ -134,6 +134,13 @@ struct pdb_dpm_callbacks {
      * omitted.
      */
     pdb_dpm_func transition_typec;
+
+    /*
+     * Handle a received Not_Supported message.
+     *
+     * Optional.  If no special handling is needed, this may be omitted.
+     */
+    pdb_dpm_func not_supported_received;
 };
 
 
