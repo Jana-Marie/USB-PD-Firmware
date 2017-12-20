@@ -30,9 +30,9 @@
  * Events for the Policy Engine thread, sent by user code
  */
 /* Tell the PE to send a Get_Source_Cap message */
-#define PDB_EVT_PE_GET_SOURCE_CAP EVENT_MASK(6)
+#define PDB_EVT_PE_GET_SOURCE_CAP EVENT_MASK(7)
 /* Tell the PE that new power is required */
-#define PDB_EVT_PE_NEW_POWER EVENT_MASK(7)
+#define PDB_EVT_PE_NEW_POWER EVENT_MASK(8)
 
 
 /*
@@ -60,6 +60,10 @@ struct pdb_pe {
     int8_t _hard_reset_counter;
     /* The result of the last Type-C Current match comparison */
     int8_t _old_tcc_match;
+    /* The index of the first PPS APDO */
+    uint8_t _pps_index;
+    /* Virtual timer for SinkPPSPeriodicTimer */
+    virtual_timer_t _sink_pps_periodic_timer;
     /* Queue for the PE mailbox */
     msg_t _mailbox_queue[PDB_MSG_POOL_SIZE];
 };

@@ -142,9 +142,16 @@
 #define PD_PDO_TYPE (0x3 << PD_PDO_TYPE_SHIFT)
 
 /* PDO types */
-#define PD_PDO_TYPE_FIXED (0x0 << PD_PDO_TYPE_SHIFT)
-#define PD_PDO_TYPE_BATTERY (0x1 << PD_PDO_TYPE_SHIFT)
-#define PD_PDO_TYPE_VARIABLE (0x2 << PD_PDO_TYPE_SHIFT)
+#define PD_PDO_TYPE_FIXED ((unsigned) (0x0 << PD_PDO_TYPE_SHIFT))
+#define PD_PDO_TYPE_BATTERY ((unsigned) (0x1 << PD_PDO_TYPE_SHIFT))
+#define PD_PDO_TYPE_VARIABLE ((unsigned) (0x2 << PD_PDO_TYPE_SHIFT))
+#define PD_PDO_TYPE_AUGMENTED ((unsigned) (0x3 << PD_PDO_TYPE_SHIFT))
+
+#define PD_APDO_TYPE_SHIFT 28
+#define PD_APDO_TYPE (0x3 << PD_APDO_TYPE_SHIFT)
+
+/* APDO types */
+#define PD_APDO_TYPE_PPS (0x0 << PD_APDO_TYPE_SHIFT)
 
 /* PD Source Fixed PDO */
 #define PD_PDO_SRC_FIXED_DUAL_ROLE_PWR_SHIFT 29
@@ -214,6 +221,7 @@
 #define PD_RDO_UNCHUNKED_EXT_MSG (1 << PD_RDO_UNCHUNKED_EXT_MSG_SHIFT)
 
 #define PD_RDO_OBJPOS_SET(i) (((i) << PD_RDO_OBJPOS_SHIFT) & PD_RDO_OBJPOS)
+#define PD_RDO_OBJPOS_GET(msg) (((msg)->obj[0] & PD_RDO_OBJPOS) >> PD_RDO_OBJPOS_SHIFT)
 
 /* Fixed and Variable RDO, no GiveBack support */
 #define PD_RDO_FV_CURRENT_SHIFT 10
@@ -245,6 +253,7 @@
 #define PD_T_SENDER_RESPONSE MS2ST(27)
 #define PD_T_SINK_REQUEST MS2ST(100)
 #define PD_T_TYPEC_SINK_WAIT_CAP MS2ST(465)
+#define PD_T_PPS_REQUEST S2ST(10)
 /* This is actually from Type-C, not Power Delivery, but who cares? */
 #define PD_T_PD_DEBOUNCE MS2ST(15)
 

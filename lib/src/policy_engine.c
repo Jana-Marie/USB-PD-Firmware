@@ -27,6 +27,15 @@
 #include "fusb302b.h"
 
 
+static void pe_sink_pps_periodic_timer_cb(void *cfg)
+{
+    /* Signal the PE thread to make a new PPS request */
+    chSysLockFromISR();
+    chEvtSignalI(((struct pdb_config *) cfg)->pe.thread, PDB_EVT_PE_PPS_REQUEST);
+    chSysUnlockFromISR();
+}
+
+
 enum policy_engine_state {
     PESinkStartup,
     PESinkDiscovery,
@@ -133,6 +142,21 @@ static enum policy_engine_state pe_sink_wait_cap(struct pdb_config *cfg)
 
 static enum policy_engine_state pe_sink_eval_cap(struct pdb_config *cfg)
 {
+    /* If we have a message, remember the index of the first PPS APDO so we can
+     * check if the request is for a PPS APDO in PE_SNK_Select_Cap. */
+    if (cfg->pe._message != NULL) {
+        /* Start by assuming we won't find a PPS APDO (set the index greater
+         * than the maximum possible) */
+        cfg->pe._pps_index = 8;
+        /* Search for the first PPS APDO */
+        for (int8_t i = 0; i < PD_NUMOBJ_GET(cfg->pe._message); i++) {
+            if ((cfg->pe._message->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_AUGMENTED
+                    && (cfg->pe._message->obj[i] & PD_APDO_TYPE) == PD_APDO_TYPE_PPS) {
+                cfg->pe._pps_index = i + 1;
+                break;
+            }
+        }
+    }
     /* Get a message object for the request if we don't have one already */
     if (cfg->pe._last_dpm_request == NULL) {
         cfg->pe._last_dpm_request = chPoolAlloc(&pdb_msg_pool);
@@ -164,6 +188,20 @@ static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
     if ((evt & PDB_EVT_PE_TX_DONE) == 0) {
         return PESinkHardReset;
     }
+
+    /* If we're using PD 3.0 */
+    if ((cfg->pe.hdr_template & PD_HDR_SPECREV) == PD_SPECREV_3_0) {
+        /* If the request was for a PPS APDO, start SinkPPSPeriodicTimer */
+        if (PD_RDO_OBJPOS_GET(cfg->pe._last_dpm_request) >= cfg->pe._pps_index) {
+            chVTSet(&cfg->pe._sink_pps_periodic_timer, PD_T_PPS_REQUEST,
+                    pe_sink_pps_periodic_timer_cb, cfg);
+        /* Otherwise, stop SinkPPSPeriodicTimer */
+        } else {
+            chVTReset(&cfg->pe._sink_pps_periodic_timer);
+        }
+    }
+    /* This will use a virtual timer to send an event flag to this thread after
+     * PD_T_PPS_REQUEST */
 
     /* Wait for a response */
     evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET,
@@ -278,11 +316,12 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
     if (cfg->pe._min_power) {
         evt = chEvtWaitAnyTimeout(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
                 | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP
-                | PDB_EVT_PE_NEW_POWER, PD_T_SINK_REQUEST);
+                | PDB_EVT_PE_NEW_POWER | PDB_EVT_PE_PPS_REQUEST,
+                PD_T_SINK_REQUEST);
     } else {
         evt = chEvtWaitAny(PDB_EVT_PE_MSG_RX | PDB_EVT_PE_RESET
                 | PDB_EVT_PE_I_OVRTEMP | PDB_EVT_PE_GET_SOURCE_CAP
-                | PDB_EVT_PE_NEW_POWER);
+                | PDB_EVT_PE_NEW_POWER | PDB_EVT_PE_PPS_REQUEST);
     }
 
     /* If we got reset signaling, transition to default */
@@ -311,6 +350,11 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
             cfg->pe._message = NULL;
         }
         return PESinkEvalCap;
+    }
+
+    /* If SinkPPSPeriodicTimer ran out, send a new request */
+    if (evt & PDB_EVT_PE_PPS_REQUEST) {
+        return PESinkSelectCap;
     }
 
     /* If no event was received, the timer ran out. */
@@ -720,8 +764,12 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
 
     /* Initialize the mailbox */
     chMBObjectInit(&cfg->pe.mailbox, cfg->pe._mailbox_queue, PDB_MSG_POOL_SIZE);
+    /* Initialize the VT for SinkPPSPeriodicTimer */
+    chVTObjectInit(&cfg->pe._sink_pps_periodic_timer);
     /* Initialize the old_tcc_match */
     cfg->pe._old_tcc_match = -1;
+    /* Initialize the pps_index */
+    cfg->pe._pps_index = 8;
     /* Initialize the PD message header template */
     cfg->pe.hdr_template = PD_DATAROLE_UFP | PD_POWERROLE_SINK;
 
