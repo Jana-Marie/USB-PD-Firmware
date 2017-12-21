@@ -110,6 +110,25 @@ static void print_src_fixed_pdo(BaseSequentialStream *chp, uint32_t pdo)
     chprintf(chp, "\ti: %d.%02d A\r\n", PD_PDI_A(tmp), PD_PDI_CA(tmp));
 }
 
+static void print_src_pps_apdo(BaseSequentialStream *chp, uint32_t pdo)
+{
+    int tmp;
+
+    chprintf(chp, "pps\r\n");
+
+    /* Minimum voltage */
+    tmp = (pdo & PD_APDO_SRC_PPS_MIN_VOLTAGE) >> PD_APDO_SRC_PPS_MIN_VOLTAGE_SHIFT;
+    chprintf(chp, "\tvmin: %d.%02d V\r\n", PD_PAV_V(tmp), PD_PAV_CV(tmp));
+
+    /* Maximum voltage */
+    tmp = (pdo & PD_APDO_SRC_PPS_MAX_VOLTAGE) >> PD_APDO_SRC_PPS_MAX_VOLTAGE_SHIFT;
+    chprintf(chp, "\tvmax: %d.%02d V\r\n", PD_PAV_V(tmp), PD_PAV_CV(tmp));
+
+    /* Maximum current */
+    tmp = (pdo & PD_APDO_SRC_PPS_CURRENT) >> PD_APDO_SRC_PPS_CURRENT_SHIFT;
+    chprintf(chp, "\ti: %d.%02d A\r\n", PD_PAI_A(tmp), PD_PAI_CA(tmp));
+}
+
 static void print_src_pdo(BaseSequentialStream *chp, uint32_t pdo, uint8_t index)
 {
     /* If we have a positive index, print a label for the PDO */
@@ -120,6 +139,9 @@ static void print_src_pdo(BaseSequentialStream *chp, uint32_t pdo, uint8_t index
     /* Select the appropriate method for printing the PDO itself */
     if ((pdo & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED) {
         print_src_fixed_pdo(chp, pdo);
+    } else if ((pdo & PD_PDO_TYPE) == PD_PDO_TYPE_AUGMENTED
+            && (pdo & PD_APDO_TYPE) == PD_APDO_TYPE_PPS) {
+        print_src_pps_apdo(chp, pdo);
     } else {
         /* Unknown PDO, just print it as hex */
         chprintf(chp, "%08X\r\n", pdo);

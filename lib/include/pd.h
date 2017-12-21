@@ -331,9 +331,15 @@
 #define PD_PDV_V(pdv) ((pdv) / 20)
 #define PD_PDV_CV(pdv) (5 * ((pdv) % 20))
 
+#define PD_PAV_V(pav) ((pav) / 10)
+#define PD_PAV_CV(pav) (10 * ((pav) % 10))
+
 /* Get portions of a PD current in more normal units */
-#define PD_PDI_A(pdv) ((pdv) / 100)
-#define PD_PDI_CA(pdv) ((pdv) % 100)
+#define PD_PDI_A(pdi) ((pdi) / 100)
+#define PD_PDI_CA(pdi) ((pdi) % 100)
+
+#define PD_PAI_A(pai) ((pai) / 20)
+#define PD_PAI_CA(pai) (5 * ((pai) % 20))
 
 /*
  * Unit constants
