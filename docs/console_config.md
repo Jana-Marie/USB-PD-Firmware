@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.2.0-dev, 2017-12-09
+Version 1.2.0-dev, 2017-12-20
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
@@ -453,6 +453,30 @@ capital V.  For example: `20.00 V`.
 The `i` field holds the value of the PDO's Maximum Current field (B9-0), in
 amperes.  The field's value is a floating-point decimal number, followed by a
 space and a capital A.  For example: `2.25 A`.
+
+### Source Programmable Power Supply APDO Fields
+
+This section describes how Source Programmable Power Supply APDOs (type `pps`)
+are printed.  For more information about the meaning of each field, see the USB
+Power Delivery Specification, Revision 3.0, Version 1.1, section 6.4.1.2.5.
+
+#### vmin
+
+The `vmin` field holds the value of the PDO's Minimum Voltage field (B15-8), in
+volts.  The field's value is a floating-point decimal number, followed by a
+space and a capital V.  For example: `3.00 V`.
+
+#### vmax
+
+The `vmax` field holds the value of the PDO's Maximum Voltage field (B24-17
+in volts.  The field's value is a floating-point decimal number, followed by a
+space and a capital V.  For example: `16.00 V`.
+
+#### i
+
+The `i` field holds the value of the PDO's Maximum Current field (B6-0), in
+amperes.  The field's value is a floating-point decimal number, followed by a
+space and a capital A.  For example: `3.00 A`.
 
 ### Type-C Current Virtual PDO Fields
 
