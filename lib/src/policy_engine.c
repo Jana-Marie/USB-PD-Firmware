@@ -142,8 +142,9 @@ static enum policy_engine_state pe_sink_wait_cap(struct pdb_config *cfg)
 
 static enum policy_engine_state pe_sink_eval_cap(struct pdb_config *cfg)
 {
-    /* If we have a message, remember the index of the first PPS APDO so we can
-     * check if the request is for a PPS APDO in PE_SNK_Select_Cap. */
+    /* If we have a Source_Capabilities message, remember the index of the
+     * first PPS APDO so we can check if the request is for a PPS APDO in
+     * PE_SNK_Select_Cap. */
     if (cfg->pe._message != NULL) {
         /* Start by assuming we won't find a PPS APDO (set the index greater
          * than the maximum possible) */
@@ -156,10 +157,21 @@ static enum policy_engine_state pe_sink_eval_cap(struct pdb_config *cfg)
                 break;
             }
         }
+        /* New capabilities also means we can't be making a request from the
+         * same PPS APDO */
+        cfg->pe._last_pps = 8;
     }
     /* Get a message object for the request if we don't have one already */
     if (cfg->pe._last_dpm_request == NULL) {
         cfg->pe._last_dpm_request = chPoolAlloc(&pdb_msg_pool);
+    } else {
+        /* Remember the last PDO we requested if it was a PPS APDO */
+        if (PD_RDO_OBJPOS_GET(cfg->pe._last_dpm_request) >= cfg->pe._pps_index) {
+            cfg->pe._last_pps = PD_RDO_OBJPOS_GET(cfg->pe._last_dpm_request);
+        /* Otherwise, forget any PPS APDO we had requested */
+        } else {
+            cfg->pe._last_pps = 8;
+        }
     }
     /* Ask the DPM what to request */
     cfg->dpm.evaluate_capability(cfg, cfg->pe._message,
@@ -221,7 +233,9 @@ static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
         if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_ACCEPT
                 && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
             /* Transition to Sink Standby if necessary */
-            cfg->dpm.transition_standby(cfg);
+            if (PD_RDO_OBJPOS_GET(cfg->pe._last_dpm_request) != cfg->pe._last_pps) {
+                cfg->dpm.transition_standby(cfg);
+            }
 
             cfg->pe._min_power = false;
 
@@ -770,6 +784,8 @@ static THD_FUNCTION(PolicyEngine, vcfg) {
     cfg->pe._old_tcc_match = -1;
     /* Initialize the pps_index */
     cfg->pe._pps_index = 8;
+    /* Initialize the last_pps */
+    cfg->pe._last_pps = 8;
     /* Initialize the PD message header template */
     cfg->pe.hdr_template = PD_DATAROLE_UFP | PD_POWERROLE_SINK;
 

@@ -62,6 +62,8 @@ struct pdb_pe {
     int8_t _old_tcc_match;
     /* The index of the first PPS APDO */
     uint8_t _pps_index;
+    /* The index of the just-requested PPS APDO */
+    uint8_t _last_pps;
     /* Virtual timer for SinkPPSPeriodicTimer */
     virtual_timer_t _sink_pps_periodic_timer;
     /* Queue for the PE mailbox */
