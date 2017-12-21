@@ -65,14 +65,10 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     if (scfg != NULL && dpm_data->output_enabled) {
         /* Look at the PDOs to see if one matches our desires */
         for (uint8_t i = 0; i < numobj; i++) {
-            /* Fixed Supply PDOs come first, so when we see a PDO that isn't a
-             * Fixed Supply, stop reading. */
-            if ((capabilities->obj[i] & PD_PDO_TYPE) != PD_PDO_TYPE_FIXED) {
-                break;
-            }
-            /* If the V from the PDO equals our desired V and the I is at least
-             * our desired I */
-            if (PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) == PD_MV2PDV(scfg->v)
+            /* If we have a fixed PDO, its V equals our desired V, and its I is
+             * at least our desired I */
+            if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
+                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) == PD_MV2PDV(scfg->v)
                     && PD_PDO_SRC_FIXED_CURRENT_GET(capabilities, i) >= scfg->i) {
                 /* We got what we wanted, so build a request for that */
                 request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
@@ -95,6 +91,31 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
 
                 /* Update requested voltage */
                 dpm_data->_requested_voltage = PD_PDV2MV(PD_MV2PDV(scfg->v));
+
+                dpm_data->_capability_match = true;
+                return true;
+            }
+            /* If we have a PPS APDO, our desired V lies within its range, and
+             * its I is at least our desired I */
+            if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_AUGMENTED
+                    && (capabilities->obj[i] & PD_APDO_TYPE) == PD_APDO_TYPE_PPS
+                    && PD_APDO_SRC_PPS_MAX_VOLTAGE_GET(capabilities, i) >= PD_MV2PAV(scfg->v)
+                    && PD_APDO_SRC_PPS_MIN_VOLTAGE_GET(capabilities, i) <= PD_MV2PAV(scfg->v)
+                    && PD_APDO_SRC_PPS_CURRENT_GET(capabilities, i) >= PD_CA2PAI(scfg->i)) {
+                /* We got what we wanted, so build a request for that */
+                request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
+                    | PD_NUMOBJ(1);
+
+                /* Build a request */
+                request->obj[0] = PD_RDO_PROG_CURRENT_SET(PD_CA2PAI(scfg->i))
+                    | PD_RDO_PROG_VOLTAGE_SET(PD_MV2PRV(scfg->v))
+                    | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
+                if (dpm_data->usb_comms) {
+                    request->obj[0] |= PD_RDO_USB_COMMS;
+                }
+
+                /* Update requested voltage */
+                dpm_data->_requested_voltage = PD_PRV2MV(PD_MV2PRV(scfg->v));
 
                 dpm_data->_capability_match = true;
                 return true;

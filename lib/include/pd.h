@@ -177,6 +177,21 @@
 /* PD Source Fixed PDO voltage */
 #define PD_PDO_SRC_FIXED_VOLTAGE_GET(msg, i) (((msg)->obj[(i)] & PD_PDO_SRC_FIXED_VOLTAGE) >> PD_PDO_SRC_FIXED_VOLTAGE_SHIFT)
 
+/* PD Source Programmable Power Supply APDO */
+#define PD_APDO_SRC_PPS_MAX_VOLTAGE_SHIFT 17
+#define PD_APDO_SRC_PPS_MAX_VOLTAGE (0xFF << PD_APDO_SRC_PPS_MAX_VOLTAGE_SHIFT)
+#define PD_APDO_SRC_PPS_MIN_VOLTAGE_SHIFT 8
+#define PD_APDO_SRC_PPS_MIN_VOLTAGE (0xFF << PD_APDO_SRC_PPS_MIN_VOLTAGE_SHIFT)
+#define PD_APDO_SRC_PPS_CURRENT_SHIFT 0
+#define PD_APDO_SRC_PPS_CURRENT (0x7F << PD_APDO_SRC_PPS_CURRENT_SHIFT)
+
+/* PD Source Programmable Power Supply APDO voltages */
+#define PD_APDO_SRC_PPS_MAX_VOLTAGE_GET(msg, i) (((msg)->obj[(i)] & PD_APDO_SRC_PPS_MAX_VOLTAGE) >> PD_APDO_SRC_PPS_MAX_VOLTAGE_SHIFT)
+#define PD_APDO_SRC_PPS_MIN_VOLTAGE_GET(msg, i) (((msg)->obj[(i)] & PD_APDO_SRC_PPS_MIN_VOLTAGE) >> PD_APDO_SRC_PPS_MIN_VOLTAGE_SHIFT)
+
+/* PD Source Programmable Power Supply APDO current */
+#define PD_APDO_SRC_PPS_CURRENT_GET(msg, i) (((msg)->obj[(i)] & PD_APDO_SRC_PPS_CURRENT) >> PD_APDO_SRC_PPS_CURRENT_SHIFT)
+
 /* TODO: other types of source PDO */
 
 /* PD Sink Fixed PDO */
@@ -240,6 +255,15 @@
 
 /* TODO: Battery RDOs */
 
+/* Programmable RDO */
+#define PD_RDO_PROG_VOLTAGE_SHIFT 9
+#define PD_RDO_PROG_VOLTAGE (0x7FF << PD_RDO_PROG_VOLTAGE_SHIFT)
+#define PD_RDO_PROG_CURRENT_SHIFT 0
+#define PD_RDO_PROG_CURRENT (0x7F << PD_RDO_PROG_CURRENT_SHIFT)
+
+#define PD_RDO_PROG_VOLTAGE_SET(i) (((i) << PD_RDO_PROG_VOLTAGE_SHIFT) & PD_RDO_PROG_VOLTAGE)
+#define PD_RDO_PROG_CURRENT_SET(i) (((i) << PD_RDO_PROG_CURRENT_SHIFT) & PD_RDO_PROG_CURRENT)
+
 
 /*
  * Time values
@@ -278,16 +302,27 @@
  * V: volt
  * CV: centivolt
  * MV: millivolt
+ * PRV: Programmable RDO voltage unit (20 mV)
  * PDV: Power Delivery voltage unit (50 mV)
+ * PAV: PPS APDO voltage unit (100 mV)
  * A: ampere
  * CA: centiampere
  * MA: milliampere
  * PDI: Power Delivery current unit (10 mA)
+ * PAI: PPS APDO current unit (50 mA)
  */
+#define PD_MV2PRV(mv) ((mv) / 20)
 #define PD_MV2PDV(mv) ((mv) / 50)
+#define PD_MV2PAV(mv) ((mv) / 100)
+#define PD_PRV2MV(prv) ((prv) * 20)
 #define PD_PDV2MV(pdv) ((pdv) * 50)
+#define PD_PAV2MV(pav) ((pav) * 100)
 #define PD_MA2PDI(ma) ((ma) / 10)
+#define PD_MA2PAI(ma) ((ma) / 50)
+#define PD_CA2PAI(ca) ((ca) / 5)
 #define PD_PDI2MA(pdi) ((pdi) * 10)
+#define PD_PAI2MA(pai) ((pai) * 50)
+#define PD_PAI2CA(pai) ((pai) * 5)
 
 /* Get portions of a voltage in more normal units */
 #define PD_MV_V(mv) ((mv) / 1000)
