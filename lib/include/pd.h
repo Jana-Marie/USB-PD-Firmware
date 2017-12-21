@@ -339,7 +339,7 @@
  * Unit constants
  */
 #define PD_MV_MIN 0
-#define PD_MV_MAX 20000
+#define PD_MV_MAX 21000
 #define PD_PDV_MIN PD_MV2PDV(PD_MV_MIN)
 #define PD_PDV_MAX PD_MV2PDV(PD_MV_MAX)
 #define PD_MA_MIN 0
