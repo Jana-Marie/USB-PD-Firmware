@@ -29,6 +29,13 @@ the most common use cases for the device.
 * Allows the user to read a power supply's advertised capabilities while in
   Setup mode.
 
+### New in version 1.2.0-dev
+
+* The firmware now implements a subset of the USB Power Delivery Specification,
+  Revision 3.0, Version 1.1.
+* Requests can be made from programmable power supplies, allowing voltages to
+  be requested at 20 mV increments from a wide range (up to 3-21 V).
+
 ## Prerequisites
 
 To compile the firmware, you must first install the [GNU ARM Embedded
