@@ -350,6 +350,8 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
 
     /* If the DPM wants us to, send a Get_Source_Cap message */
     if (evt & PDB_EVT_PE_GET_SOURCE_CAP) {
+        /* Tell the protocol layer we're starting an AMS */
+        chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_START_AMS);
         return PESinkGetSourceCap;
     }
 
@@ -363,11 +365,15 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
             chPoolFree(&pdb_msg_pool, cfg->pe._message);
             cfg->pe._message = NULL;
         }
+        /* Tell the protocol layer we're starting an AMS */
+        chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_START_AMS);
         return PESinkEvalCap;
     }
 
     /* If SinkPPSPeriodicTimer ran out, send a new request */
     if (evt & PDB_EVT_PE_PPS_REQUEST) {
+        /* Tell the protocol layer we're starting an AMS */
+        chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_START_AMS);
         return PESinkSelectCap;
     }
 

@@ -45,7 +45,9 @@ enum fusb_typec_current {
     fusb_tcc_none = 0,
     fusb_tcc_default = 1,
     fusb_tcc_1_5 = 2,
-    fusb_tcc_3_0 = 3
+    fusb_sink_tx_ng = 2,
+    fusb_tcc_3_0 = 3,
+    fusb_sink_tx_ok = 3
 };
 
 

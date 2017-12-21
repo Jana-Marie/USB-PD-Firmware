@@ -131,6 +131,17 @@ static enum protocol_tx_state protocol_tx_construct_message(struct pdb_config *c
     cfg->prl._tx_message->hdr &= ~PD_HDR_MESSAGEID;
     cfg->prl._tx_message->hdr |= (cfg->prl._tx_messageidcounter % 8) << PD_HDR_MESSAGEID_SHIFT;
 
+    /* PD 3.0 collision avoidance */
+    if ((cfg->pe.hdr_template & PD_HDR_SPECREV) == PD_SPECREV_3_0) {
+        /* If we're starting an AMS, wait for permission to transmit */
+        evt = chEvtGetAndClearEvents(PDB_EVT_PRLTX_START_AMS);
+        if (evt & PDB_EVT_PRLTX_START_AMS) {
+            while (fusb_get_typec_current(&cfg->fusb) != fusb_sink_tx_ok) {
+                chThdSleepMilliseconds(1);
+            }
+        }
+    }
+
     /* Send the message to the PHY */
     fusb_send_message(&cfg->fusb, cfg->prl._tx_message);
 
