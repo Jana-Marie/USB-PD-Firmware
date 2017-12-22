@@ -337,6 +337,30 @@ static void cmd_set_v(BaseSequentialStream *chp, int argc, char *argv[])
     }
 }
 
+static void cmd_set_vrange(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    if (argc != 2) {
+        chprintf(chp, "Usage: set_vrange min_voltage_in_mV max_voltage_in_mV\r\n");
+        return;
+    }
+
+    char *endptr;
+    long min = strtol(argv[0], &endptr, 0);
+    char *endptr2;
+    long max = strtol(argv[1], &endptr2, 0);
+    if (min < PD_MV_MIN || min > PD_MV_MAX || endptr <= argv[0]
+            || max < PD_MV_MIN || max > PD_MV_MAX || endptr2 <= argv[1]) {
+        chprintf(chp, "Invalid voltage\r\n");
+        return;
+    }
+    if (min > max) {
+        chprintf(chp, "Invalid range\r\n");
+        return;
+    }
+    tmpcfg.vmin = min;
+    tmpcfg.vmax = max;
+}
+
 static void cmd_set_i(BaseSequentialStream *chp, int argc, char *argv[])
 {
     if (argc != 1) {
@@ -437,7 +461,7 @@ static const struct pdbs_shell_cmd commands[] = {
     {"toggle_hv_preferred", cmd_toggle_hv_preferred, "Toggle the HV_Preferred flag"},
     /* TODO {"toggle_var_bat", cmd_toggle_var_bat, "Toggle the Var/Bat flag"},*/
     {"set_v", cmd_set_v, "Set the voltage in millivolts"},
-    /* TODO {"set_vrange", cmd_set_vrange, "Set the minimum and maximum voltage in millivolts"},*/
+    {"set_vrange", cmd_set_vrange, "Set the minimum and maximum voltage in millivolts"},
     {"set_i", cmd_set_i, "Set the current in milliamps"},
     {"output", cmd_output, "Get or set the output status"},
     {"get_source_cap", cmd_get_source_cap, "Print the capabilities of the PD source"},
