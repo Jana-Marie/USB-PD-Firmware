@@ -121,6 +121,41 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
                 return true;
             }
         }
+        /* Look at the PDOs a second time to see if one falls in our voltage
+         * range. */
+        for (uint8_t i = 0; i < numobj; i++) {
+            /* If we have a fixed PDO, its V equals our desired V, and its I is
+             * at least our desired I */
+            if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
+                    && PD_PDO_SRC_FIXED_CURRENT_GET(capabilities, i) >= scfg->i
+                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) >= PD_MV2PDV(scfg->vmin)
+                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) <= PD_MV2PDV(scfg->vmax)) {
+                /* We got what we wanted, so build a request for that */
+                request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
+                    | PD_NUMOBJ(1);
+                if (scfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK) {
+                    /* GiveBack enabled */
+                    request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(DPM_MIN_CURRENT)
+                        | PD_RDO_FV_CURRENT_SET(scfg->i)
+                        | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
+                        | PD_RDO_OBJPOS_SET(i + 1);
+                } else {
+                    /* GiveBack disabled */
+                    request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(scfg->i)
+                        | PD_RDO_FV_CURRENT_SET(scfg->i)
+                        | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
+                }
+                if (dpm_data->usb_comms) {
+                    request->obj[0] |= PD_RDO_USB_COMMS;
+                }
+
+                /* Update requested voltage */
+                dpm_data->_requested_voltage = PD_PDV2MV(PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i));
+
+                dpm_data->_capability_match = true;
+                return true;
+            }
+        }
     }
     /* Nothing matched (or no configuration), so get 5 V at low current */
     request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST | PD_NUMOBJ(1);
