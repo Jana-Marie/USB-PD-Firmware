@@ -138,9 +138,9 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
              * its I is at least our desired I */
             if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_AUGMENTED
                     && (capabilities->obj[i] & PD_APDO_TYPE) == PD_APDO_TYPE_PPS
-                    && PD_APDO_SRC_PPS_MAX_VOLTAGE_GET(capabilities, i) >= PD_MV2PAV(scfg->v)
-                    && PD_APDO_SRC_PPS_MIN_VOLTAGE_GET(capabilities, i) <= PD_MV2PAV(scfg->v)
-                    && PD_APDO_SRC_PPS_CURRENT_GET(capabilities, i) >= PD_CA2PAI(scfg->i)) {
+                    && PD_APDO_PPS_MAX_VOLTAGE_GET(capabilities, i) >= PD_MV2PAV(scfg->v)
+                    && PD_APDO_PPS_MIN_VOLTAGE_GET(capabilities, i) <= PD_MV2PAV(scfg->v)
+                    && PD_APDO_PPS_CURRENT_GET(capabilities, i) >= PD_CA2PAI(scfg->i)) {
                 /* We got what we wanted, so build a request for that */
                 request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
                     | PD_NUMOBJ(1);
@@ -231,14 +231,50 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
             | PD_PDO_SNK_FIXED_CURRENT_SET(DPM_MIN_CURRENT);
     }
 
-    /* Add a PDO for the desired power. */
     if (scfg != NULL) {
+        /* Add a PDO for the desired power. */
         cap->obj[numobj++] = PD_PDO_TYPE_FIXED
             | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_MV2PDV(scfg->v))
             | PD_PDO_SNK_FIXED_CURRENT_SET(scfg->i);
-        /* If we want more than 5 V, set the Higher Capability flag */
-        if (PD_MV2PDV(scfg->v) != PD_MV2PDV(5000)) {
-            cap->obj[0] |= PD_PDO_SNK_FIXED_HIGHER_CAP;
+
+        /* Get the PDO from the voltage range */
+        int8_t i = dpm_get_range_fixed_pdo_index(dpm_data->capabilities, scfg);
+
+        /* If it's vSafe5V, set our vSafe5V's current to what we want */
+        if (i == 0) {
+            cap->obj[0] &= ~PD_PDO_SNK_FIXED_CURRENT;
+            cap->obj[0] |= PD_PDO_SNK_FIXED_CURRENT_SET(scfg->i);
+        } else {
+            /* If we want more than 5 V, set the Higher Capability flag */
+            if (PD_MV2PDV(scfg->v) != PD_MV2PDV(5000)) {
+                cap->obj[0] |= PD_PDO_SNK_FIXED_HIGHER_CAP;
+            }
+
+            /* If the range PDO is a different voltage than the preferred
+             * voltage, add it to the array. */
+            if (i > 0 && PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities, i) != PD_MV2PDV(scfg->v)) {
+                cap->obj[numobj++] = PD_PDO_TYPE_FIXED
+                    | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities, i))
+                    | PD_PDO_SNK_FIXED_CURRENT_SET(PD_PDO_SRC_FIXED_CURRENT_GET(dpm_data->capabilities, i));
+            }
+
+            /* If we have three PDOs at this point, make sure the last two are
+             * sorted by voltage. */
+            if (numobj == 3
+                    && (cap->obj[1] & PD_PDO_SNK_FIXED_VOLTAGE)
+                    > (cap->obj[2] & PD_PDO_SNK_FIXED_VOLTAGE)) {
+                cap->obj[1] ^= cap->obj[2];
+                cap->obj[2] ^= cap->obj[1];
+                cap->obj[1] ^= cap->obj[2];
+            }
+        }
+
+        /* If we're using PD 3.0, add a PPS APDO for our desired voltage */
+        if ((cfg->pe._message->hdr & PD_HDR_SPECREV) >= PD_SPECREV_3_0) {
+            cap->obj[numobj++] = PD_PDO_TYPE_AUGMENTED | PD_APDO_TYPE_PPS
+                | PD_APDO_PPS_MAX_VOLTAGE_SET(PD_MV2PAV(scfg->v))
+                | PD_APDO_PPS_MIN_VOLTAGE_SET(PD_MV2PAV(scfg->v))
+                | PD_APDO_PPS_CURRENT_SET(PD_CA2PAI(scfg->i));
         }
     }
 
