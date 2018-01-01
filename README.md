@@ -35,6 +35,8 @@ the most common use cases for the device.
   Revision 3.0, Version 1.1.
 * Requests can be made from programmable power supplies, allowing voltages to
   be requested at 20 mV increments from a wide range (up to 3-21 V).
+* Basic support for voltage ranges, to provide a fallback if the preferred
+  voltage is unavailable.
 
 ## Prerequisites
 
