@@ -31,6 +31,45 @@
 /* The current draw when the output is disabled */
 #define DPM_MIN_CURRENT PD_MA2PDI(100)
 
+
+/*
+ * Find the index of the first PDO from capabilities in the voltage range,
+ * using the desired order.
+ *
+ * If there is no such PDO, returns -1 instead.
+ */
+static int8_t dpm_get_range_fixed_pdo_index(const union pd_msg *capabilities,
+        struct pdbs_config *scfg)
+{
+    /* Get the number of PDOs */
+    uint8_t numobj = PD_NUMOBJ_GET(capabilities);
+
+    /* Get ready to iterate over the PDOs */
+    int8_t i;
+    int8_t step;
+    if (scfg->flags & PDBS_CONFIG_FLAGS_HV_PREFERRED) {
+        i = numobj - 1;
+        step = -1;
+    } else {
+        i = 0;
+        step = 1;
+    }
+
+    /* Look at the PDOs to see if one falls in our voltage range. */
+    while (0 <= i && i < numobj) {
+        /* If we have a fixed PDO, its V is within our range, and its I is at
+         * least our desired I */
+        if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
+                && PD_PDO_SRC_FIXED_CURRENT_GET(capabilities, i) >= scfg->i
+                && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) >= PD_MV2PDV(scfg->vmin)
+                && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) <= PD_MV2PDV(scfg->vmax)) {
+            return i;
+        }
+        i += step;
+    }
+    return -1;
+}
+
 bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         const union pd_msg *capabilities, union pd_msg *request)
 {
@@ -121,40 +160,33 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
                 return true;
             }
         }
-        /* Look at the PDOs a second time to see if one falls in our voltage
-         * range. */
-        for (uint8_t i = 0; i < numobj; i++) {
-            /* If we have a fixed PDO, its V equals our desired V, and its I is
-             * at least our desired I */
-            if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
-                    && PD_PDO_SRC_FIXED_CURRENT_GET(capabilities, i) >= scfg->i
-                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) >= PD_MV2PDV(scfg->vmin)
-                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) <= PD_MV2PDV(scfg->vmax)) {
-                /* We got what we wanted, so build a request for that */
-                request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
-                    | PD_NUMOBJ(1);
-                if (scfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK) {
-                    /* GiveBack enabled */
-                    request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(DPM_MIN_CURRENT)
-                        | PD_RDO_FV_CURRENT_SET(scfg->i)
-                        | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
-                        | PD_RDO_OBJPOS_SET(i + 1);
-                } else {
-                    /* GiveBack disabled */
-                    request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(scfg->i)
-                        | PD_RDO_FV_CURRENT_SET(scfg->i)
-                        | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
-                }
-                if (dpm_data->usb_comms) {
-                    request->obj[0] |= PD_RDO_USB_COMMS;
-                }
-
-                /* Update requested voltage */
-                dpm_data->_requested_voltage = PD_PDV2MV(PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i));
-
-                dpm_data->_capability_match = true;
-                return true;
+        /* If there's a PDO in the voltage range, use it */
+        int8_t i = dpm_get_range_fixed_pdo_index(capabilities, scfg);
+        if (i >= 0) {
+            /* We got what we wanted, so build a request for that */
+            request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
+                | PD_NUMOBJ(1);
+            if (scfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK) {
+                /* GiveBack enabled */
+                request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(DPM_MIN_CURRENT)
+                    | PD_RDO_FV_CURRENT_SET(scfg->i)
+                    | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
+                    | PD_RDO_OBJPOS_SET(i + 1);
+            } else {
+                /* GiveBack disabled */
+                request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(scfg->i)
+                    | PD_RDO_FV_CURRENT_SET(scfg->i)
+                    | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
             }
+            if (dpm_data->usb_comms) {
+                request->obj[0] |= PD_RDO_USB_COMMS;
+            }
+
+            /* Update requested voltage */
+            dpm_data->_requested_voltage = PD_PDV2MV(PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i));
+
+            dpm_data->_capability_match = true;
+            return true;
         }
     }
     /* Nothing matched (or no configuration), so get 5 V at low current */
