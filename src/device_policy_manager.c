@@ -295,6 +295,7 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
 
 bool pdbs_dpm_giveback_enabled(struct pdb_config *cfg)
 {
+    (void) cfg;
     struct pdbs_config *scfg = pdbs_config_flash_read();
 
     return scfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK;
