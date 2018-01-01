@@ -1,6 +1,6 @@
 /*
  * PD Buddy - USB Power Delivery for everyone
- * Copyright (C) 2017 Clayton G. Hobbs <clay@lakeserv.net>
+ * Copyright (C) 2017-2018 Clayton G. Hobbs <clay@lakeserv.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

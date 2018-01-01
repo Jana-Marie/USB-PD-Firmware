@@ -1,6 +1,6 @@
 /*
  * PD Buddy - USB Power Delivery for everyone
- * Copyright (C) 2017 Clayton G. Hobbs <clay@lakeserv.net>
+ * Copyright (C) 2017-2018 Clayton G. Hobbs <clay@lakeserv.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,7 +163,7 @@ static void cmd_license(BaseSequentialStream *chp, int argc, char *argv[])
 
     chprintf(chp,
         "PD Buddy - USB Power Delivery for everyone\r\n"
-        "Copyright (C) 2017 Clayton G. Hobbs <clay@lakeserv.net>\r\n"
+        "Copyright (C) 2017-2018 Clayton G. Hobbs <clay@lakeserv.net>\r\n"
         "\r\n"
         "This program is free software: you can redistribute it and/or modify\r\n"
         "it under the terms of the GNU General Public License as published by\r\n"
