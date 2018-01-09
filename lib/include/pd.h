@@ -310,11 +310,16 @@
  * PRV: Programmable RDO voltage unit (20 mV)
  * PDV: Power Delivery voltage unit (50 mV)
  * PAV: PPS APDO voltage unit (100 mV)
+ *
  * A: ampere
  * CA: centiampere
  * MA: milliampere
  * PDI: Power Delivery current unit (10 mA)
  * PAI: PPS APDO current unit (50 mA)
+ *
+ * W: watt
+ * CW: centiwatt
+ * MW: milliwatt
  */
 #define PD_MV2PRV(mv) ((mv) / 20)
 #define PD_MV2PDV(mv) ((mv) / 50)
@@ -322,12 +327,15 @@
 #define PD_PRV2MV(prv) ((prv) * 20)
 #define PD_PDV2MV(pdv) ((pdv) * 50)
 #define PD_PAV2MV(pav) ((pav) * 100)
+
 #define PD_MA2PDI(ma) ((ma) / 10)
 #define PD_MA2PAI(ma) ((ma) / 50)
 #define PD_CA2PAI(ca) ((ca) / 5)
 #define PD_PDI2MA(pdi) ((pdi) * 10)
 #define PD_PAI2MA(pai) ((pai) * 50)
 #define PD_PAI2CA(pai) ((pai) * 5)
+
+#define PD_MW2CW(mw) ((mw) / 10)
 
 /* Get portions of a voltage in more normal units */
 #define PD_MV_V(mv) ((mv) / 1000)
@@ -346,6 +354,10 @@
 #define PD_PAI_A(pai) ((pai) / 20)
 #define PD_PAI_CA(pai) (5 * ((pai) % 20))
 
+/* Get portions of a power in more normal units */
+#define PD_CW_W(cw) ((cw) / 100)
+#define PD_CW_CW(cw) ((cw) % 100)
+
 /*
  * Unit constants
  */
@@ -353,10 +365,14 @@
 #define PD_MV_MAX 21000
 #define PD_PDV_MIN PD_MV2PDV(PD_MV_MIN)
 #define PD_PDV_MAX PD_MV2PDV(PD_MV_MAX)
+
 #define PD_MA_MIN 0
 #define PD_MA_MAX 5000
 #define PD_PDI_MIN PD_MA2PDI(PD_MA_MIN)
 #define PD_PDI_MAX PD_MA2PDI(PD_MA_MAX)
+
+#define PD_MW_MIN 0
+#define PD_MW_MAX 100000
 
 
 #endif /* PDB_PD_H */

@@ -382,6 +382,27 @@ static void cmd_set_i(BaseSequentialStream *chp, int argc, char *argv[])
     }
 }
 
+static void cmd_set_p(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    if (argc != 1) {
+        chprintf(chp, "Usage: set_p power_in_mW\r\n");
+        return;
+    }
+
+    char *endptr;
+    long i = strtol(argv[0], &endptr, 0);
+    if (i >= PD_MW_MIN && i <= PD_MW_MAX && endptr > argv[0]) {
+        /* Convert mW to the unit used in the configuration object */
+        tmpcfg.p = PD_MW2CW(i);
+        /* Set the flags to say we're storing a power */
+        tmpcfg.flags &= ~PDBS_CONFIG_FLAGS_CURRENT_DEFN;
+        tmpcfg.flags |= PDBS_CONFIG_FLAGS_CURRENT_DEFN_P;
+    } else {
+        chprintf(chp, "Invalid power\r\n");
+        return;
+    }
+}
+
 static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
 {
     if (argc == 0) {
@@ -463,6 +484,7 @@ static const struct pdbs_shell_cmd commands[] = {
     {"set_v", cmd_set_v, "Set the voltage in millivolts"},
     {"set_vrange", cmd_set_vrange, "Set the minimum and maximum voltage in millivolts"},
     {"set_i", cmd_set_i, "Set the current in milliamps"},
+    {"set_p", cmd_set_p, "Set the power in milliwatts"},
     {"output", cmd_output, "Get or set the output status"},
     {"get_source_cap", cmd_get_source_cap, "Print the capabilities of the PD source"},
     {NULL, NULL, NULL}
