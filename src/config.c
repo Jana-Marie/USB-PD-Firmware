@@ -71,18 +71,18 @@ void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
 
     /* Print voltage */
     chprintf(chp, "v: %d.%03d V\r\n", PD_MV_V(cfg->v), PD_MV_MV(cfg->v));
-    /* Print current-deriving setting */
-    switch (cfg->flags & PDBS_CONFIG_FLAGS_CURRENT_DEFN) {
-        case PDBS_CONFIG_FLAGS_CURRENT_DEFN_I:
-            chprintf(chp, "i: %d.%02d A\r\n", PD_PDI_A(cfg->i), PD_PDI_CA(cfg->i));
-            break;
-    }
     /* If either end of the range is non-zero, print the range */
     if (cfg->vmin != 0 || cfg->vmax != 0) {
         chprintf(chp, "vmin: %d.%03d V\r\n", PD_MV_V(cfg->vmin),
                  PD_MV_MV(cfg->vmin));
         chprintf(chp, "vmax: %d.%03d V\r\n", PD_MV_V(cfg->vmax),
                  PD_MV_MV(cfg->vmax));
+    }
+    /* Print current-deriving setting */
+    switch (cfg->flags & PDBS_CONFIG_FLAGS_CURRENT_DEFN) {
+        case PDBS_CONFIG_FLAGS_CURRENT_DEFN_I:
+            chprintf(chp, "i: %d.%02d A\r\n", PD_PDI_A(cfg->i), PD_PDI_CA(cfg->i));
+            break;
     }
 }
 
