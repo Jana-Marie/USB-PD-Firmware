@@ -54,18 +54,18 @@ void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
     }
 
     /* Print the flags */
-    chprintf(chp, "flags: ");
-    if (cfg->flags == 0) {
-        chprintf(chp, "(none)");
+    chprintf(chp, "flags:");
+    if ((cfg->flags & ~PDBS_CONFIG_FLAGS_CURRENT_DEFN) == 0) {
+        chprintf(chp, " (none)");
     }
     if (cfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK) {
-        chprintf(chp, "GiveBack ");
+        chprintf(chp, " GiveBack");
     }
     if (cfg->flags & PDBS_CONFIG_FLAGS_VAR_BAT) {
-        chprintf(chp, "Var/Bat ");
+        chprintf(chp, " Var/Bat");
     }
     if (cfg->flags & PDBS_CONFIG_FLAGS_HV_PREFERRED) {
-        chprintf(chp, "HV_Preferred ");
+        chprintf(chp, " HV_Preferred");
     }
     chprintf(chp, "\r\n");
 
