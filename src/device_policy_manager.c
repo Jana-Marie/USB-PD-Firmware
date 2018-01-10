@@ -43,6 +43,12 @@ static uint16_t dpm_get_current(struct pdbs_config *scfg, uint16_t mv)
             return scfg->i;
         case PDBS_CONFIG_FLAGS_CURRENT_DEFN_P:
             return (scfg->p * 1000 + mv - 1) / mv;
+        case PDBS_CONFIG_FLAGS_CURRENT_DEFN_R:
+            return (mv * 10 + scfg->r - 1) / scfg->r;
+        default:
+            /* In the case of an error, return a current that can't be
+             * requested. */
+            return PD_CA_MAX + 1;
     }
 }
 

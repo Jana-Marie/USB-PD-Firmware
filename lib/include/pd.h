@@ -322,6 +322,10 @@
  * W: watt
  * CW: centiwatt
  * MW: milliwatt
+ *
+ * O: ohm
+ * CO: centiohm
+ * MO: milliohm
  */
 #define PD_MV2PRV(mv) ((mv) / 20)
 #define PD_MV2PDV(mv) ((mv) / 50)
@@ -330,6 +334,7 @@
 #define PD_PDV2MV(pdv) ((pdv) * 50)
 #define PD_PAV2MV(pav) ((pav) * 100)
 
+#define PD_MA2CA(ma) (((ma) + 10 - 1) / 10)
 #define PD_MA2PDI(ma) (((ma) + 10 - 1) / 10)
 #define PD_MA2PAI(ma) (((ma) + 50 - 1) / 50)
 #define PD_CA2PAI(ca) (((ca) + 5 - 1) / 5)
@@ -338,6 +343,8 @@
 #define PD_PAI2CA(pai) ((pai) * 5)
 
 #define PD_MW2CW(mw) ((mw) / 10)
+
+#define PD_MO2CO(mo) ((mo) / 10)
 
 /* Get portions of a voltage in more normal units */
 #define PD_MV_V(mv) ((mv) / 1000)
@@ -360,6 +367,10 @@
 #define PD_CW_W(cw) ((cw) / 100)
 #define PD_CW_CW(cw) ((cw) % 100)
 
+/* Get portions of a resistance in more normal units */
+#define PD_CO_O(co) ((co) / 100)
+#define PD_CO_CO(co) ((co) % 100)
+
 /*
  * Unit constants
  */
@@ -370,11 +381,16 @@
 
 #define PD_MA_MIN 0
 #define PD_MA_MAX 5000
+#define PD_CA_MIN PD_MA2CA(PD_MA_MIN)
+#define PD_CA_MAX PD_MA2CA(PD_MA_MAX)
 #define PD_PDI_MIN PD_MA2PDI(PD_MA_MIN)
 #define PD_PDI_MAX PD_MA2PDI(PD_MA_MAX)
 
 #define PD_MW_MIN 0
 #define PD_MW_MAX 100000
+
+#define PD_MO_MIN 500
+#define PD_MO_MAX 655350
 
 
 #endif /* PDB_PD_H */

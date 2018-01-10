@@ -86,6 +86,9 @@ void pdbs_config_print(BaseSequentialStream *chp, const struct pdbs_config *cfg)
         case PDBS_CONFIG_FLAGS_CURRENT_DEFN_P:
             chprintf(chp, "p: %d.%02d W\r\n", PD_CW_W(cfg->p), PD_CW_CW(cfg->p));
             break;
+        case PDBS_CONFIG_FLAGS_CURRENT_DEFN_R:
+            chprintf(chp, "r: %d.%02d \316\251\r\n", PD_CO_O(cfg->r), PD_CO_CO(cfg->r));
+            break;
     }
 }
 

@@ -403,6 +403,27 @@ static void cmd_set_p(BaseSequentialStream *chp, int argc, char *argv[])
     }
 }
 
+static void cmd_set_r(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    if (argc != 1) {
+        chprintf(chp, "Usage: set_r power_in_m\316\251\r\n");
+        return;
+    }
+
+    char *endptr;
+    long i = strtol(argv[0], &endptr, 0);
+    if (i >= PD_MO_MIN && i <= PD_MO_MAX && endptr > argv[0]) {
+        /* Convert mohms to the unit used in the configuration object */
+        tmpcfg.r = PD_MO2CO(i);
+        /* Set the flags to say we're storing a resistance */
+        tmpcfg.flags &= ~PDBS_CONFIG_FLAGS_CURRENT_DEFN;
+        tmpcfg.flags |= PDBS_CONFIG_FLAGS_CURRENT_DEFN_R;
+    } else {
+        chprintf(chp, "Invalid resistance\r\n");
+        return;
+    }
+}
+
 static void cmd_output(BaseSequentialStream *chp, int argc, char *argv[])
 {
     if (argc == 0) {
@@ -485,6 +506,7 @@ static const struct pdbs_shell_cmd commands[] = {
     {"set_vrange", cmd_set_vrange, "Set the minimum and maximum voltage in millivolts"},
     {"set_i", cmd_set_i, "Set the current in milliamps"},
     {"set_p", cmd_set_p, "Set the power in milliwatts"},
+    {"set_r", cmd_set_r, "Set the resistance in milliohms"},
     {"output", cmd_output, "Get or set the output status"},
     {"get_source_cap", cmd_get_source_cap, "Print the capabilities of the PD source"},
     {NULL, NULL, NULL}
