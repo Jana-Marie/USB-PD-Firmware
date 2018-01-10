@@ -38,11 +38,11 @@
  *
  * If there is no such PDO, returns -1 instead.
  */
-static int8_t dpm_get_range_fixed_pdo_index(const union pd_msg *capabilities,
+static int8_t dpm_get_range_fixed_pdo_index(const union pd_msg *caps,
         struct pdbs_config *scfg)
 {
     /* Get the number of PDOs */
-    uint8_t numobj = PD_NUMOBJ_GET(capabilities);
+    uint8_t numobj = PD_NUMOBJ_GET(caps);
 
     /* Get ready to iterate over the PDOs */
     int8_t i;
@@ -59,10 +59,10 @@ static int8_t dpm_get_range_fixed_pdo_index(const union pd_msg *capabilities,
     while (0 <= i && i < numobj) {
         /* If we have a fixed PDO, its V is within our range, and its I is at
          * least our desired I */
-        if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
-                && PD_PDO_SRC_FIXED_CURRENT_GET(capabilities, i) >= scfg->i
-                && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) >= PD_MV2PDV(scfg->vmin)
-                && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) <= PD_MV2PDV(scfg->vmax)) {
+        if ((caps->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
+                && PD_PDO_SRC_FIXED_CURRENT_GET(caps->obj[i]) >= scfg->i
+                && PD_PDO_SRC_FIXED_VOLTAGE_GET(caps->obj[i]) >= PD_MV2PDV(scfg->vmin)
+                && PD_PDO_SRC_FIXED_VOLTAGE_GET(caps->obj[i]) <= PD_MV2PDV(scfg->vmax)) {
             return i;
         }
         i += step;
@@ -71,26 +71,26 @@ static int8_t dpm_get_range_fixed_pdo_index(const union pd_msg *capabilities,
 }
 
 bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
-        const union pd_msg *capabilities, union pd_msg *request)
+        const union pd_msg *caps, union pd_msg *request)
 {
     /* Cast the dpm_data to the right type */
     struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
 
     /* Update the stored Source_Capabilities */
-    if (capabilities != NULL) {
+    if (caps != NULL) {
         if (dpm_data->capabilities != NULL) {
             chPoolFree(&pdb_msg_pool, (union pd_msg *) dpm_data->capabilities);
         }
-        dpm_data->capabilities = capabilities;
+        dpm_data->capabilities = caps;
     } else {
         /* No new capabilities; use a shorter name for the stored ones. */
-        capabilities = dpm_data->capabilities;
+        caps = dpm_data->capabilities;
     }
 
     /* Get the current configuration */
     struct pdbs_config *scfg = pdbs_config_flash_read();
     /* Get the number of PDOs */
-    uint8_t numobj = PD_NUMOBJ_GET(capabilities);
+    uint8_t numobj = PD_NUMOBJ_GET(caps);
 
     /* Make the LED blink to indicate ongoing power negotiations */
     if (dpm_data->led_pd_status) {
@@ -98,7 +98,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     }
 
     /* Get whether or not the power supply is constrained */
-    dpm_data->_unconstrained_power = capabilities->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
+    dpm_data->_unconstrained_power = caps->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
 
     /* Make sure we have configuration */
     if (scfg != NULL && dpm_data->output_enabled) {
@@ -106,9 +106,9 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         for (uint8_t i = 0; i < numobj; i++) {
             /* If we have a fixed PDO, its V equals our desired V, and its I is
              * at least our desired I */
-            if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
-                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i) == PD_MV2PDV(scfg->v)
-                    && PD_PDO_SRC_FIXED_CURRENT_GET(capabilities, i) >= scfg->i) {
+            if ((caps->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
+                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(caps->obj[i]) == PD_MV2PDV(scfg->v)
+                    && PD_PDO_SRC_FIXED_CURRENT_GET(caps->obj[i]) >= scfg->i) {
                 /* We got what we wanted, so build a request for that */
                 request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
                     | PD_NUMOBJ(1);
@@ -136,11 +136,11 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
             }
             /* If we have a PPS APDO, our desired V lies within its range, and
              * its I is at least our desired I */
-            if ((capabilities->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_AUGMENTED
-                    && (capabilities->obj[i] & PD_APDO_TYPE) == PD_APDO_TYPE_PPS
-                    && PD_APDO_PPS_MAX_VOLTAGE_GET(capabilities, i) >= PD_MV2PAV(scfg->v)
-                    && PD_APDO_PPS_MIN_VOLTAGE_GET(capabilities, i) <= PD_MV2PAV(scfg->v)
-                    && PD_APDO_PPS_CURRENT_GET(capabilities, i) >= PD_CA2PAI(scfg->i)) {
+            if ((caps->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_AUGMENTED
+                    && (caps->obj[i] & PD_APDO_TYPE) == PD_APDO_TYPE_PPS
+                    && PD_APDO_PPS_MAX_VOLTAGE_GET(caps->obj[i]) >= PD_MV2PAV(scfg->v)
+                    && PD_APDO_PPS_MIN_VOLTAGE_GET(caps->obj[i]) <= PD_MV2PAV(scfg->v)
+                    && PD_APDO_PPS_CURRENT_GET(caps->obj[i]) >= PD_CA2PAI(scfg->i)) {
                 /* We got what we wanted, so build a request for that */
                 request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
                     | PD_NUMOBJ(1);
@@ -161,7 +161,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
             }
         }
         /* If there's a PDO in the voltage range, use it */
-        int8_t i = dpm_get_range_fixed_pdo_index(capabilities, scfg);
+        int8_t i = dpm_get_range_fixed_pdo_index(caps, scfg);
         if (i >= 0) {
             /* We got what we wanted, so build a request for that */
             request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
@@ -183,7 +183,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
             }
 
             /* Update requested voltage */
-            dpm_data->_requested_voltage = PD_PDV2MV(PD_PDO_SRC_FIXED_VOLTAGE_GET(capabilities, i));
+            dpm_data->_requested_voltage = PD_PDV2MV(PD_PDO_SRC_FIXED_VOLTAGE_GET(caps->obj[i]));
 
             dpm_data->_capability_match = true;
             return true;
@@ -252,10 +252,10 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
 
             /* If the range PDO is a different voltage than the preferred
              * voltage, add it to the array. */
-            if (i > 0 && PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities, i) != PD_MV2PDV(scfg->v)) {
+            if (i > 0 && PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities->obj[i]) != PD_MV2PDV(scfg->v)) {
                 cap->obj[numobj++] = PD_PDO_TYPE_FIXED
-                    | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities, i))
-                    | PD_PDO_SNK_FIXED_CURRENT_SET(PD_PDO_SRC_FIXED_CURRENT_GET(dpm_data->capabilities, i));
+                    | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities->obj[i]))
+                    | PD_PDO_SNK_FIXED_CURRENT_SET(PD_PDO_SRC_FIXED_CURRENT_GET(dpm_data->capabilities->obj[i]));
             }
 
             /* If we have three PDOs at this point, make sure the last two are
