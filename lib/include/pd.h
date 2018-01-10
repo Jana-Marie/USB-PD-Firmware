@@ -19,6 +19,8 @@
 #ifndef PDB_PD_H
 #define PDB_PD_H
 
+#include <stdint.h>
+
 #include <ch.h>
 
 
@@ -193,7 +195,7 @@
 #define PD_APDO_PPS_MIN_VOLTAGE_SET(v) (((v) << PD_APDO_PPS_MIN_VOLTAGE_SHIFT) & PD_APDO_PPS_MIN_VOLTAGE)
 
 /* PD Programmable Power Supply APDO current */
-#define PD_APDO_PPS_CURRENT_GET(pdo) (((pdo) & PD_APDO_PPS_CURRENT) >> PD_APDO_PPS_CURRENT_SHIFT)
+#define PD_APDO_PPS_CURRENT_GET(pdo) ((uint8_t) (((pdo) & PD_APDO_PPS_CURRENT) >> PD_APDO_PPS_CURRENT_SHIFT))
 
 #define PD_APDO_PPS_CURRENT_SET(i) (((i) << PD_APDO_PPS_CURRENT_SHIFT) & PD_APDO_PPS_CURRENT)
 

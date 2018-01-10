@@ -340,14 +340,14 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
 
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
-    /* TODO Check if 5 V is inside the voltage range */
-    if (scfg == NULL || PD_MV2PDV(scfg->v) != PD_MV2PDV(5000)) {
+    if (scfg == NULL || (scfg->v != 5000 && (scfg->vmin > 5000
+            || scfg->vmax < 5000))) {
         dpm_data->_capability_match = false;
         return false;
     }
 
     /* Get the current we want */
-    uint16_t current = dpm_get_current(scfg, scfg->v);
+    uint16_t current = dpm_get_current(scfg, 5000);
 
     /* If 1.5 A is available and we want no more than that, great. */
     if (tcc == fusb_tcc_1_5 && current <= 150) {
