@@ -12,31 +12,26 @@ the most common use cases for the device.
   startup.
 * Sink mode implements a simple USB Power Delivery sink, aiming for full
   compliance with the USB Power Delivery Specification, Revision 2.0,
-  Version 1.3.
+  Version 1.3, and with Revision 3.0, Version 1.1.
 * Requests the configured voltage and current if available, or a safe, low
   power request otherwise.
 * Provides power on the output connector only when an explicit contract is in
   place for the configured voltage and current.
 * Optional GiveBack support allows power supplies to temporarily remove power
   from the PD Buddy Sink if necessary.
-* Setup mode implements a USB CDC-ACM command-line interface allowing
-  configuration to be loaded from and stored in flash.
-
-### New in version 1.1.0
-
-* Setup mode allows real-time renegotiation of voltage and current, complete
-  with the ability to control whether the output is enabled or disabled.
-* Allows the user to read a power supply's advertised capabilities while in
-  Setup mode.
-
-### New in version 1.2.0-dev
-
-* The firmware now implements a subset of the USB Power Delivery Specification,
-  Revision 3.0, Version 1.1.
 * Requests can be made from programmable power supplies, allowing voltages to
   be requested at 20 mV increments from a wide range (up to 3-21 V).
-* Basic support for voltage ranges, to provide a fallback if the preferred
-  voltage is unavailable.
+* Configuring a voltage range provides a fallback if the preferred voltage is
+  unavailable.
+* The amount of current the device requests can be set as a power or a
+  resistance, as well as a current.  These values are taken as constant over
+  the configured voltage range.
+* Setup mode implements a USB CDC-ACM command-line interface allowing
+  configuration to be loaded from and stored in flash.
+* Setup mode allows real-time renegotiation of voltage and current, complete
+  with the ability to control whether the output is enabled or disabled.
+* User can easily read a power supply's advertised capabilities while in Setup
+  mode.
 
 ## Prerequisites
 
