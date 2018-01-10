@@ -328,9 +328,9 @@
 #define PD_PDV2MV(pdv) ((pdv) * 50)
 #define PD_PAV2MV(pav) ((pav) * 100)
 
-#define PD_MA2PDI(ma) ((ma) / 10)
-#define PD_MA2PAI(ma) ((ma) / 50)
-#define PD_CA2PAI(ca) ((ca) / 5)
+#define PD_MA2PDI(ma) (((ma) + 10 - 1) / 10)
+#define PD_MA2PAI(ma) (((ma) + 50 - 1) / 50)
+#define PD_CA2PAI(ca) (((ca) + 5 - 1) / 5)
 #define PD_PDI2MA(pdi) ((pdi) * 10)
 #define PD_PAI2MA(pai) ((pai) * 50)
 #define PD_PAI2CA(pai) ((pai) * 5)
