@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.2.0-dev.1, 2018-01-01
+Version 1.2.0-dev.1, 2018-01-09
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
@@ -114,12 +114,12 @@ version 1.2.0, the PD Buddy Sink supports setting these directly:
     flags: (none)
     v: 20.00 V
     p: 45.00 W
-    PDBS) set_r 8889
+    PDBS) set_r 8890
     PDBS) get_tmpcfg
     status: valid
     flags: (none)
     v: 20.00 V
-    r: 8.88 Ω
+    r: 8.89 Ω
 
 In either case, the device will set the current it requests according to the
 configured value.  The value is kept constant across the entire configured
@@ -354,14 +354,14 @@ this configuration object:
 The `v` field holds the preferred voltage of the configuration object, in
 volts.
 The field's value is a floating-point decimal number, followed by a space and a
-capital V.  For example: `20.00 V`.
+capital V.  For example: `20.000 V`.
 
 ### vmin
 
 The `vmin` field holds the lower end of the configuration object's voltage
 range, in volts.
 The field's value is a floating-point decimal number, followed by a space and a
-capital V.  For example: `20.00 V`.
+capital V.  For example: `20.000 V`.
 
 When absent, this field's value may be assumed to be `0 V`.
 
@@ -370,7 +370,7 @@ When absent, this field's value may be assumed to be `0 V`.
 The `vmax` field holds the upper end of the configuration object's voltage
 range, in volts.
 The field's value is a floating-point decimal number, followed by a space and a
-capital V.  For example: `20.00 V`.
+capital V.  For example: `20.000 V`.
 
 When absent, this field's value may be assumed to be `0 V`.
 
@@ -398,11 +398,11 @@ When a list of PDOs is printed, each PDO is numbered with a line as follows:
 
     PDO n: type
 
-`n` is the index of the PDO.  `type` is one of `fixed`, `typec_virtual`, or the
-entire PDO represented as a 32-bit hexadecimal number if the type is unknown.
-If `type` is not a hexadecimal number, the rest of the PDO is printed as a list
-of fields, one per line, each indented by a single ASCII tab character.  Each
-field is of the format:
+`n` is the index of the PDO.  `type` is one of `fixed`, `pps`, `typec_virtual`,
+or the entire PDO represented as a 32-bit hexadecimal number if the type is
+unknown.  If `type` is not a hexadecimal number, the rest of the PDO is printed
+as a list of fields, one per line, each indented by a single ASCII tab
+character.  Each field is of the format:
 
     name: value
 
