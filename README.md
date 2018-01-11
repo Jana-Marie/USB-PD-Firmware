@@ -32,6 +32,8 @@ the most common use cases for the device.
   with the ability to control whether the output is enabled or disabled.
 * User can easily read a power supply's advertised capabilities while in Setup
   mode.
+* Firmware upgrades are easily possible via Setup mode and the
+  microcontroller's built-in DfuSe bootloader.
 
 ## Prerequisites
 
@@ -45,9 +47,10 @@ This will give you a complete copy of the repository, including the ChibiOS
 submodule.
 
 You will also need to install some program to flash the firmware.  The simplest
-option is [dfu-util][], as it requires no extra hardware (though either the
-Boot switch must be installed or two pads must be bridged).  If you prefer to
-use SWD, you could also use [stlink][] or [OpenOCD][].
+option is [dfu-util][], as it requires no extra hardware (though if upgrading
+from versions older than 1.2.0, either the Boot switch must be installed or two
+pads must be bridged).  If you prefer to use SWD, you could also use [stlink][]
+or [OpenOCD][].
 
 [toolchain]: https://launchpad.net/gcc-arm-embedded
 [dfu-util]: http://dfu-util.sourceforge.net/
@@ -70,16 +73,29 @@ the following:
 
 ### dfu-util
 
-Set the Boot switch (SW1) on the PD Buddy Sink to the position not marked on
-the silkscreen to set the device to DFU mode.  If your Sink doesn't have a Boot
-switch installed, you can simply bridge the two pads of SW1 circled in [this
-image][dfu pads] with a blob of solder to achieve the same effect.  Once the
-Sink is set to DFU mode, plug it into your computer.  Flash the firmware with:
+To flash via DfuSe (ST Microelectronics's extended version of the standard USB
+DFU protocol), the Sink must first be put into DFU mode.  If upgrading from a
+version older than 1.2.0, or if no firmware is installed, set the Boot switch
+(SW1) on the PD Buddy Sink to the position not marked on the silkscreen to set
+the device to DFU mode.  If your Sink doesn't have a Boot switch installed, you
+can simply bridge the two pads of SW1 circled in [this image][dfu pads] with a
+blob of solder to achieve the same effect.  Once this Sink is set to DFU mode,
+plug it into your computer.
+
+If upgrading from firmware version 1.2.0 or later, you can easily enter DFU
+mode by running the following command from the Sink's configuration shell:
+
+    PDBS) boot
+
+This immediately puts the Sink in DFU mode until it is reset or unplugged.
+
+When the Sink is in DFU mode, the Status LED should be glowing dimly.  The
+firmware can then be flashed with:
 
     $ dfu-util -a 0 -s 0x08000000:leave -D build/pd-buddy-firmware.bin
 
-Don't forget to set the switch back to normal mode (or remove the solder blob)
-after unplugging the device.
+If applicable, don't forget to set the switch back to normal mode (or remove
+the solder blob) after unplugging the device.
 
 [dfu pads]: docs/dfu_pads.jpg
 

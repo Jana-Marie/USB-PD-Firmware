@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.2.0-dev.1, 2018-01-09
+Version 1.2.0-dev.1, 2018-01-10
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
@@ -162,6 +162,13 @@ Usage: `identify`
 
 Blinks the LED quickly.  Useful for identifying which device you're connected
 to if several are plugged in to your computer at once.
+
+#### boot
+
+Usage: `boot`
+
+Runs the microcontroller's built-in DfuSe bootloader.  This immediately ends
+the configuration shell, causing any unsaved changes to be lost.
 
 ### Storage
 
