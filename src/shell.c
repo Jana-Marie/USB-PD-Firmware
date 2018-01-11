@@ -1,5 +1,5 @@
 /*
- * PD Buddy - USB Power Delivery for everyone
+ * PD Buddy Sink Firmware - Smart power jack for USB Power Delivery
  * Copyright (C) 2017-2018 Clayton G. Hobbs <clay@lakeserv.net>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -163,7 +163,7 @@ static void cmd_license(BaseSequentialStream *chp, int argc, char *argv[])
     }
 
     chprintf(chp,
-        "PD Buddy - USB Power Delivery for everyone\r\n"
+        "PD Buddy Sink Firmware - Smart power jack for USB Power Delivery\r\n"
         "Copyright (C) 2017-2018 Clayton G. Hobbs <clay@lakeserv.net>\r\n"
         "\r\n"
         "This program is free software: you can redistribute it and/or modify\r\n"

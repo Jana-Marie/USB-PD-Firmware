@@ -1,5 +1,5 @@
 /*
- * PD Buddy - USB Power Delivery for everyone
+ * PD Buddy Sink Firmware - Smart power jack for USB Power Delivery
  * Copyright (C) 2017-2018 Clayton G. Hobbs <clay@lakeserv.net>
  *
  * This program is free software: you can redistribute it and/or modify
