@@ -45,6 +45,7 @@
 #include "config.h"
 #include "led.h"
 #include "device_policy_manager.h"
+#include "stm32f072_bootloader.h"
 
 
 /* Buffer for unwritten configuration */
@@ -190,6 +191,19 @@ static void cmd_identify(BaseSequentialStream *chp, int argc, char *argv[])
     }
 
     chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_IDENTIFY);
+}
+
+static void cmd_boot(BaseSequentialStream *chp, int argc, char *argv[])
+{
+    (void) argv;
+    if (argc > 0) {
+        chprintf(chp, "Usage: boot\r\n");
+        return;
+    }
+
+    sduStop(&SDU1);
+    usbDisconnectBus(serusbcfg.usbp);
+    dfu_run_bootloader();
 }
 
 static void cmd_get_cfg(BaseSequentialStream *chp, int argc, char *argv[])
@@ -493,6 +507,7 @@ static void cmd_get_source_cap(BaseSequentialStream *chp, int argc, char *argv[]
 static const struct pdbs_shell_cmd commands[] = {
     {"license", cmd_license, "Show copyright and license information"},
     {"identify", cmd_identify, "Blink the LED to identify the device"},
+    {"boot", cmd_boot, "Run the DfuSe bootloader"},
     {"get_cfg", cmd_get_cfg, "Print the stored configuration"},
     {"load", cmd_load, "Load the stored configuration into the buffer"},
     {"write", cmd_write, "Store the configuration buffer"},

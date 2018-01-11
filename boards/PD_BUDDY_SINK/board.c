@@ -37,6 +37,7 @@
  * generator plugin. Do not edit manually.
  */
 
+#include "stm32f072_bootloader.h"
 #include "hal.h"
 
 #if HAL_USE_PAL || defined(__DOXYGEN__)
@@ -93,6 +94,16 @@ const PALConfig pal_default_config = {
 void __early_init(void) {
 
   stm32_clock_init();
+  /* Jump to the bootloader if the magic value is set in
+   * dfu_reset_to_bootloader_magic. */
+  if (dfu_reset_to_bootloader_magic == RESET_TO_BOOTLOADER_MAGIC_CODE) {
+    asm("cpsie i");
+    void (*bootloader)(void) = (void (*)(void)) (*((uint32_t *) SYSMEM_RESET_VECTOR));
+    dfu_reset_to_bootloader_magic = 0;
+    __set_MSP(BOOTLOADER_STACK_POINTER);
+    bootloader();
+    while (42);
+  }
 }
 
 #if HAL_USE_MMC_SPI || defined(__DOXYGEN__)
