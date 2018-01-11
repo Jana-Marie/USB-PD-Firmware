@@ -36,5 +36,10 @@
 /* Magic value used for jumping to the STM32F072 bootloader */
 extern uint32_t dfu_reset_to_bootloader_magic;
 
+/*
+ * Reset the microcontroller and run the bootloader
+ */
+void dfu_run_bootloader(void);
+
 
 #endif /* PDB_STM32F072_BOOTLOADER_H */
