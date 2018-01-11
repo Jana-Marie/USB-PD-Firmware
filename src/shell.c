@@ -585,8 +585,8 @@ void pdbs_shell(struct pdb_config *cfg)
     int n;
     BaseSequentialStream *chp = shell_cfg.io;
     const struct pdbs_shell_cmd *scp = shell_cfg.commands;
-    char *lp, *cmd, *tokp, line[PDB_SHELL_MAX_LINE_LENGTH];
-    char *args[PDB_SHELL_MAX_ARGUMENTS + 1];
+    char *lp, *cmd, *tokp, line[PDBS_SHELL_MAX_LINE_LENGTH];
+    char *args[PDBS_SHELL_MAX_ARGUMENTS + 1];
 
     pdb_config = cfg;
     pdbs_dpm_data = cfg->dpm_data;
@@ -608,7 +608,7 @@ void pdbs_shell(struct pdb_config *cfg)
         n = 0;
         while ((lp = _strtok(NULL, " \t", &tokp)) != NULL) {
             /* If we have too many tokens, abort */
-            if (n >= PDB_SHELL_MAX_ARGUMENTS) {
+            if (n >= PDBS_SHELL_MAX_ARGUMENTS) {
                 chprintf(chp, "too many arguments\r\n");
                 cmd = NULL;
                 break;

@@ -32,15 +32,15 @@
     limitations under the License.
 */
 
-#ifndef PDB_SHELL_H
-#define PDB_SHELL_H
+#ifndef PDBS_SHELL_H
+#define PDBS_SHELL_H
 
 #include <ch.h>
 
 #include <pdb.h>
 
-#define PDB_SHELL_MAX_LINE_LENGTH 64
-#define PDB_SHELL_MAX_ARGUMENTS 2
+#define PDBS_SHELL_MAX_LINE_LENGTH 64
+#define PDBS_SHELL_MAX_ARGUMENTS 2
 
 
 /* Structure for PD Buddy shell commands */
@@ -62,4 +62,4 @@ void pdbs_shell(struct pdb_config *cfg);
 bool shellGetLine(BaseSequentialStream *chp, char *line, unsigned size);
 
 
-#endif /* PDB_SHELL_H */
+#endif /* PDBS_SHELL_H */

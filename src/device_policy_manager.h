@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PDB_DEVICE_POLICY_MANAGER_H
-#define PDB_DEVICE_POLICY_MANAGER_H
+#ifndef PDBS_DEVICE_POLICY_MANAGER_H
+#define PDBS_DEVICE_POLICY_MANAGER_H
 
 #include <stdbool.h>
 
@@ -101,4 +101,4 @@ void pdbs_dpm_transition_standby(struct pdb_config *cfg);
 void pdbs_dpm_transition_requested(struct pdb_config *cfg);
 
 
-#endif /* PDB_DEVICE_POLICY_MANAGER_H */
+#endif /* PDBS_DEVICE_POLICY_MANAGER_H */

@@ -32,8 +32,8 @@
     limitations under the License.
 */
 
-#ifndef PDB_USBCFG_H
-#define PDB_USBCFG_H
+#ifndef PDBS_USBCFG_H
+#define PDBS_USBCFG_H
 
 #include <hal.h>
 
@@ -43,4 +43,4 @@ extern const SerialUSBConfig serusbcfg;
 extern SerialUSBDriver SDU1;
 
 
-#endif  /* PDB_USBCFG_H */
+#endif  /* PDBS_USBCFG_H */

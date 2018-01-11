@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PDB_STM32F072_BOOTLOADER_H
-#define PDB_STM32F072_BOOTLOADER_H
+#ifndef PDBS_STM32F072_BOOTLOADER_H
+#define PDBS_STM32F072_BOOTLOADER_H
 
 #include <stdint.h>
 
@@ -42,4 +42,4 @@ extern uint32_t dfu_reset_to_bootloader_magic;
 void dfu_run_bootloader(void);
 
 
-#endif /* PDB_STM32F072_BOOTLOADER_H */
+#endif /* PDBS_STM32F072_BOOTLOADER_H */
