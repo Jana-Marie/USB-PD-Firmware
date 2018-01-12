@@ -674,9 +674,9 @@ bool shellGetLine(BaseSequentialStream *chp, char *line, unsigned size)
         /* Delete a character if ASCII backspace or delete is received */
         if ((c == '\b') || (c == '\x7F')) {
             if (p != line) {
-                chSequentialStreamPut(chp, 0x08);
-                chSequentialStreamPut(chp, 0x20);
-                chSequentialStreamPut(chp, 0x08);
+                streamPut(chp, 0x08);
+                streamPut(chp, 0x20);
+                streamPut(chp, 0x08);
                 p--;
             }
             continue;
@@ -692,7 +692,7 @@ bool shellGetLine(BaseSequentialStream *chp, char *line, unsigned size)
             continue;
         /* If there's room in the line buffer, append the new character */
         if (p < line + size - 1) {
-            chSequentialStreamPut(chp, c);
+            streamPut(chp, c);
             *p++ = (char)c;
         }
     }
