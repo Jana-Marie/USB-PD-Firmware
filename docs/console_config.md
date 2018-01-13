@@ -1,6 +1,6 @@
 # PD Buddy Sink Serial Console Configuration Interface
 
-Version 1.2.0-dev.1, 2018-01-10
+Version 1.2.0-dev.1, 2018-01-13
 
 The PD Buddy Sink can be put into setup mode by holding the Setup button while
 plugging it into a computer.  In this mode, the device runs a configuration
@@ -447,6 +447,12 @@ bit (B26).  If this field is not present, its value shall be assumed 0.
 
 The `dual_role_data` field holds the value of the PDO's Dual-Role Data bit
 (B25).  If this field is not present, its value shall be assumed 0.
+
+#### unchunked_ext_msg
+
+The `unchunked_ext_msg` field holds the value of the PDO's Unchunked Extended
+Messages Supported bit (B24).  If this field is not present, its value shall be
+assumed 0.
 
 #### peak_i
 

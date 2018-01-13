@@ -78,25 +78,31 @@ static void print_src_fixed_pdo(BaseSequentialStream *chp, uint32_t pdo)
         chprintf(chp, "\tusb_suspend: %d\r\n", tmp);
     }
 
-    /* Unconstrained power */
+    /* Unconstrained Power */
     tmp = (pdo & PD_PDO_SRC_FIXED_UNCONSTRAINED) >> PD_PDO_SRC_FIXED_UNCONSTRAINED_SHIFT;
     if (tmp) {
         chprintf(chp, "\tunconstrained_pwr: %d\r\n", tmp);
     }
 
-    /* USB communications capable */
+    /* USB Communications Capable */
     tmp = (pdo & PD_PDO_SRC_FIXED_USB_COMMS) >> PD_PDO_SRC_FIXED_USB_COMMS_SHIFT;
     if (tmp) {
         chprintf(chp, "\tusb_comms: %d\r\n", tmp);
     }
 
-    /* Dual-role data */
+    /* Dual-Role Data */
     tmp = (pdo & PD_PDO_SRC_FIXED_DUAL_ROLE_DATA) >> PD_PDO_SRC_FIXED_DUAL_ROLE_DATA_SHIFT;
     if (tmp) {
         chprintf(chp, "\tdual_role_data: %d\r\n", tmp);
     }
 
-    /* Peak current */
+    /* Unchunked Extended Messages Supported */
+    tmp = (pdo & PD_PDO_SRC_FIXED_UNCHUNKED_EXT_MSG) >> PD_PDO_SRC_FIXED_UNCHUNKED_EXT_MSG_SHIFT;
+    if (tmp) {
+        chprintf(chp, "\tunchunked_ext_msg: %d\r\n", tmp);
+    }
+
+    /* Peak Current */
     tmp = (pdo & PD_PDO_SRC_FIXED_PEAK_CURRENT) >> PD_PDO_SRC_FIXED_PEAK_CURRENT_SHIFT;
     if (tmp) {
         chprintf(chp, "\tpeak_i: %d\r\n", tmp);
@@ -106,7 +112,7 @@ static void print_src_fixed_pdo(BaseSequentialStream *chp, uint32_t pdo)
     tmp = (pdo & PD_PDO_SRC_FIXED_VOLTAGE) >> PD_PDO_SRC_FIXED_VOLTAGE_SHIFT;
     chprintf(chp, "\tv: %d.%02d V\r\n", PD_PDV_V(tmp), PD_PDV_CV(tmp));
 
-    /* Maximum current */
+    /* Maximum Current */
     tmp = (pdo & PD_PDO_SRC_FIXED_CURRENT) >> PD_PDO_SRC_FIXED_CURRENT_SHIFT;
     chprintf(chp, "\ti: %d.%02d A\r\n", PD_PDI_A(tmp), PD_PDI_CA(tmp));
 }
