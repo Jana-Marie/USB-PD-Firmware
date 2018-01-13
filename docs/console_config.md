@@ -72,16 +72,17 @@ unplugged at any time.
 The preferred voltage may be set to any value for programmable power supplies.
 This means uncommon voltages may be set, e.g. 13.8 V.  Few non-programmable
 power supplies offer such a voltage.  To ensure a Sink configured this way can
-still work with as many power supplies as possible, it is possible to configure
-a closed range of acceptable voltages:
+still work with as many power supplies as possible, the Sink can be configured
+with a range of acceptable voltages over which it may request a fixed supply
+PDO if the preferred voltage is not available:
 
     PDBS) set_v 13800
-    PDBS) set_vrange 11000 16000
+    PDBS) set_vrange 12000 16000
     PDBS) get_cfg
     status: valid
     flags: (none)
     v: 13.80 V
-    vmin: 11.00 V
+    vmin: 12.00 V
     vmax: 16.00 V
     i: 2.25 A
 
@@ -94,7 +95,7 @@ lower ones, it is possible to set this as well:
     status: valid
     flags: HV_Preferred
     v: 13.80 V
-    vmin: 11.00 V
+    vmin: 12.00 V
     vmax: 16.00 V
     i: 2.25 A
 
@@ -103,9 +104,10 @@ simply set the top and bottom of the range to 0 V.
 
 ### Alternate Configuration Types
 
-While configuring a current to be requested at any voltage works well for some
-use cases (e.g. linear regulators), for others, it may make more sense to set
-the power required, or even the resistance of a resistive load.  As of firmware
+While configuring a constant current to be requested at any voltage works well
+for some use cases (e.g. providing input to linear regulators), for others, it
+may make more sense to set the power required (e.g. providing power to
+switching regulators), or the resistance of a resistive load.  As of firmware
 version 1.2.0, the PD Buddy Sink supports setting these directly:
 
     PDBS) set_p 45000
@@ -123,7 +125,7 @@ version 1.2.0, the PD Buddy Sink supports setting these directly:
 
 In either case, the device will set the current it requests according to the
 configured value.  The value is kept constant across the entire configured
-voltage range, allowing the current to vary accordingly.
+voltage range, allowing the current requested to vary accordingly.
 
 ## Commands
 
@@ -263,6 +265,8 @@ Usage: `set_vrange min_voltage_in_mV max_voltage_in_mV`
 
 Sets the minimum and maximum voltage of the configuration buffer, in
 millivolts.  Prints no message on success, an error message on failure.
+
+To clear the voltage range, set both the minimum and maximum voltage to 0.
 
 Note: values are rounded down to the nearest 20 mV, 50 mV, or 100 mV for
 various parts of the USB Power Delivery protocol.
