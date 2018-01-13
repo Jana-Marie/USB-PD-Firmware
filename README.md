@@ -1,10 +1,15 @@
 # PD Buddy Sink Firmware
 
-This is the firmware for the PD Buddy project.  Currently, this specifically
-means the [PD Buddy Sink][].  The firmware is considered stable, and supports
-the most common use cases for the device.
+This is the firmware for the [PD Buddy Sink][], a smart power jack for USB
+Power Delivery.
+
+The firmware is written using [ChibiOS][] RT and HAL, and is comprised of a
+[library][] for USB Power Delivery and an application using that library to
+request a configured voltage and current.
 
 [PD Buddy Sink]: https://git.clayhobbs.com/pd-buddy/pd-buddy-sink
+[ChibiOS]: http://www.chibios.org/
+[library]: lib/README.md
 
 ## Features
 
@@ -26,14 +31,17 @@ the most common use cases for the device.
 * The amount of current the device requests can be set as a power or a
   resistance, as well as a current.  These values are taken as constant over
   the configured voltage range.
-* Setup mode implements a USB CDC-ACM command-line interface allowing
-  configuration to be loaded from and stored in flash.
+* Setup mode implements a USB CDC-ACM command-line interface, compatible with
+  Linux, Mac OS X, and Windows 10, allowing configuration to be loaded from and
+  stored in flash.
 * Setup mode allows real-time renegotiation of voltage and current, complete
   with the ability to control whether the output is enabled or disabled.
-* User can easily read a power supply's advertised capabilities while in Setup
-  mode.
-* Firmware upgrades are easily possible via Setup mode and the
+* Users can easily read a power supply's advertised capabilities while in Setup
+  mode using a [PD Buddy Wye][].
+* Firmware upgrades are easily possible via Setup mode in conjunction with the
   microcontroller's built-in DfuSe bootloader.
+
+[PD Buddy Wye]: https://git.clayhobbs.com/pd-buddy/pd-buddy-wye
 
 ## Prerequisites
 
