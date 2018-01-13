@@ -72,7 +72,8 @@ static struct pdbs_dpm_data dpm_data = {
 static struct pdb_config pdb_config = {
     .fusb = {
         &I2CD2,
-        FUSB302B_ADDR
+        FUSB302B_ADDR,
+        LINE_INT_N
     },
     .dpm = {
         pdbs_dpm_evaluate_capability,

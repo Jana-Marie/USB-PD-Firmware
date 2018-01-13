@@ -35,6 +35,8 @@ struct pdb_fusb_config {
     I2CDriver *i2cp;
     /* The I2C address of the chip */
     i2caddr_t addr;
+    /* The INT_N line */
+    ioline_t int_n;
 };
 
 /*

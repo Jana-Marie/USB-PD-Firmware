@@ -40,7 +40,7 @@ static THD_FUNCTION(IntNPoll, vcfg) {
 
     while (true) {
         /* If the INT_N line is low */
-        if (palReadLine(LINE_INT_N) == PAL_LOW) {
+        if (palReadLine(cfg->fusb.int_n) == PAL_LOW) {
             /* Read the FUSB302B status and interrupt registers */
             fusb_get_status(&cfg->fusb, &status);
 
