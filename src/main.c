@@ -84,8 +84,8 @@ static struct pdb_config pdb_config = {
         pdbs_dpm_transition_min,
         pdbs_dpm_transition_standby,
         pdbs_dpm_transition_requested,
-        pdbs_dpm_transition_requested, /* XXX type-c current */
-        NULL
+        pdbs_dpm_transition_requested, /* transition_typec */
+        NULL /* not_supported_received */
     },
     .dpm_data = &dpm_data
 };

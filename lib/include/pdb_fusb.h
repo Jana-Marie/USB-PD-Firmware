@@ -31,7 +31,7 @@
  * Configuration for the FUSB302B chip
  */
 struct pdb_fusb_config {
-    /* The I2C bus that the chip is connected to */
+    /* The I2C driver for the bus that the chip is connected to */
     I2CDriver *i2cp;
     /* The I2C address of the chip */
     i2caddr_t addr;

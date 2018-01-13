@@ -26,8 +26,15 @@
 #include <pdb_msg.h>
 
 
+/* Version information */
+#define PDB_LIB_VERSION "0.1.0"
+#define PDB_LIB_MAJOR 0
+#define PDB_LIB_MINOR 1
+#define PDB_LIB_PATCH 0
+
+
 /*
- * Structure for PD Buddy firmware library configuration
+ * Structure for one USB port's PD Buddy firmware library configuration
  *
  * Contains working areas for statically allocated threads, and therefore must
  * be statically allocated!
@@ -53,6 +60,8 @@ struct pdb_config {
 
 /*
  * Initialize the PD Buddy firmware library, starting all its threads
+ *
+ * The I2C driver must already be initialized before calling this function.
  */
 void pdb_init(struct pdb_config *);
 
