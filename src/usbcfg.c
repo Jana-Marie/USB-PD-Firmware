@@ -199,10 +199,9 @@ static const uint8_t vcom_string2[] = {
  * Serial Number string.
  */
 static const uint8_t vcom_string3[] = {
-    USB_DESC_BYTE(24),                    /* bLength.                         */
+    USB_DESC_BYTE(12),                    /* bLength.                         */
     USB_DESC_BYTE(USB_DESCRIPTOR_STRING), /* bDescriptorType.                 */
-    '1', 0, '.', 0, '2', 0, '.', 0, '0', 0, '-', 0, 'd', 0, 'e', 0, 'v', 0,
-    '.', 0, '1', 0
+    '1', 0, '.', 0, '2', 0, '.', 0, '0', 0
 };
 
 /*
