@@ -102,6 +102,10 @@ firmware can then be flashed with:
 
     $ dfu-util -a 0 -s 0x08000000:leave -D build/pd-buddy-firmware.bin
 
+If this fails with a message like "dfu-util: Cannot open DFU device 0483:df11",
+it's likely that you don't have permissions to write to the device.  Try
+running dfu-util as root if this is the case.
+
 If applicable, don't forget to set the switch back to normal mode (or remove
 the solder blob) after unplugging the device.
 
