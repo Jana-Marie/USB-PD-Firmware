@@ -193,6 +193,9 @@ Loads the current configuration from flash into the buffer.  Useful if you want
 to change some settings while leaving others alone.  If there is no
 configuration, `No configuration` is printed instead.
 
+Starting with firmware version 1.3.0, this is automatically run when setup mode
+starts.
+
 #### write
 
 Usage: `write`

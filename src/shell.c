@@ -254,7 +254,10 @@ static void cmd_load(BaseSequentialStream *chp, int argc, char *argv[])
     /* Get the current configuration */
     struct pdbs_config *cfg = pdbs_config_flash_read();
     if (cfg == NULL) {
-        chprintf(chp, "No configuration\r\n");
+        /* When we run this at shell startup, we want it to be quiet */
+        if (chp != NULL) {
+            chprintf(chp, "No configuration\r\n");
+        }
         return;
     }
 
@@ -596,6 +599,9 @@ void pdbs_shell(struct pdb_config *cfg)
 
     pdb_config = cfg;
     pdbs_dpm_data = cfg->dpm_data;
+
+    /* Load the configuration before the shell starts */
+    cmd_load(NULL, 0, NULL);
 
     while (true) {
         /* Print the prompt */
