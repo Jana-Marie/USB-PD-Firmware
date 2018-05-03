@@ -227,3 +227,27 @@ include $(RULESPATH)/rules.mk
 
 flash-openocd-stlink: $(BUILDDIR)/$(PROJECT).elf
 	openocd -f interface/stlink-v2.cfg -c "transport select hla_swd" -f target/stm32f0x.cfg -c "program $(BUILDDIR)/$(PROJECT).elf verify reset exit"
+
+GDB ?= $(TRGT)gdb
+
+ifeq ($(BMP_PORT),)
+BMP_PORT_CANDIDATES := $(wildcard \
+/dev/serial/by-id/usb-Black_Sphere_Technologies_Black_Magic_Probe_*-if00 \
+/dev/cu.usbmodem*1)
+ifeq ($(words $(BMP_PORT_CANDIDATES)),1)
+BMP_PORT := $(BMP_PORT_CANDIDATES)
+else
+BMP_PORT = $(error Black Magic Probe gdb serial port not found, please provide the device name via the BMP_PORT variable parameter$(if \
+$(BMP_PORT_CANDIDATES), (found $(BMP_PORT_CANDIDATES))))
+endif
+endif
+
+flash-bmp: $(BUILDDIR)/$(PROJECT).elf
+	$(GDB) -nx --batch \
+		-ex 'target extended-remote $(BMP_PORT)' \
+		-ex 'monitor swdp_scan' \
+		-ex 'attach 1' \
+		-ex 'load' \
+		-ex 'compare-sections' \
+		-ex 'kill' \
+		$(BUILDDIR)/$(PROJECT).elf

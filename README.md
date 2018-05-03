@@ -57,13 +57,14 @@ submodule.
 You will also need to install some program to flash the firmware.  The simplest
 option is [dfu-util][], as it requires no extra hardware (though if upgrading
 from versions older than 1.2.0, either the Boot switch must be installed or two
-pads must be bridged).  If you prefer to use SWD, you could also use [stlink][]
-or [OpenOCD][].
+pads must be bridged).  If you prefer to use SWD, you could also use
+[stlink][], [OpenOCD][], or a [Black Magic Probe][].
 
 [toolchain]: https://launchpad.net/gcc-arm-embedded
 [dfu-util]: http://dfu-util.sourceforge.net/
 [stlink]: https://github.com/texane/stlink
 [OpenOCD]: http://openocd.org/
+[Black Magic Probe]: https://github.com/blacksphere/blackmagic/wiki
 
 ## Compiling
 
@@ -124,6 +125,13 @@ OpenOCD can also be used to flash the firmware.  If your debug probe is an
 ST-LINK/V2, you can easily do this as follows:
 
     $ make flash-openocd-stlink
+
+### Black Magic Probe
+
+Black Magic Probe debuggers can be used to flash the firmware as well.  This
+can be easily done as follows:
+
+    $ make flash-bmp
 
 ## Usage
 
