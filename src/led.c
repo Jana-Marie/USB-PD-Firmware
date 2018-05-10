@@ -23,9 +23,9 @@
 #include "priorities.h"
 
 /* Delays for blink modes */
-#define LED_FAST MS2ST(125)
-#define LED_MEDIUM MS2ST(250)
-#define LED_SLOW MS2ST(500)
+#define LED_FAST TIME_MS2I(125)
+#define LED_MEDIUM TIME_MS2I(250)
+#define LED_SLOW TIME_MS2I(500)
 
 /* Number of blinks for temporary modes */
 #define LED_MEDIUM_BLINKS 3

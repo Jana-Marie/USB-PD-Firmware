@@ -103,7 +103,7 @@ static enum policy_engine_state pe_sink_wait_cap(struct pdb_config *cfg)
     /* If we got a message */
     if (evt & PDB_EVT_PE_MSG_RX) {
         /* Get the message */
-        if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
+        if (chMBFetchTimeout(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
             /* If we got a Source_Capabilities message, read it. */
             if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_SOURCE_CAPABILITIES
                     && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
@@ -186,7 +186,7 @@ static enum policy_engine_state pe_sink_eval_cap(struct pdb_config *cfg)
 static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
 {
     /* Transmit the request */
-    chMBPost(&cfg->prl.tx_mailbox, (msg_t) cfg->pe._last_dpm_request, TIME_IMMEDIATE);
+    chMBPostTimeout(&cfg->prl.tx_mailbox, (msg_t) cfg->pe._last_dpm_request, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -227,7 +227,7 @@ static enum policy_engine_state pe_sink_select_cap(struct pdb_config *cfg)
     }
 
     /* Get the response message */
-    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetchTimeout(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
         /* If the source accepted our request, wait for the new power */
         if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_ACCEPT
                 && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
@@ -290,7 +290,7 @@ static enum policy_engine_state pe_sink_transition_sink(struct pdb_config *cfg)
     }
 
     /* If we received a message, read it */
-    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetchTimeout(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
         /* If we got a PS_RDY, handle it */
         if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_PS_RDY
                 && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
@@ -384,7 +384,7 @@ static enum policy_engine_state pe_sink_ready(struct pdb_config *cfg)
 
     /* If we received a message */
     if (evt & PDB_EVT_PE_MSG_RX) {
-        if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
+        if (chMBFetchTimeout(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
             /* Ignore vendor-defined messages */
             if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_VENDOR_DEFINED
                     && PD_NUMOBJ_GET(cfg->pe._message) > 0) {
@@ -513,7 +513,7 @@ static enum policy_engine_state pe_sink_get_source_cap(struct pdb_config *cfg)
     get_source_cap->hdr = cfg->pe.hdr_template | PD_MSGTYPE_GET_SOURCE_CAP
         | PD_NUMOBJ(0);
     /* Transmit the Get_Source_Cap */
-    chMBPost(&cfg->prl.tx_mailbox, (msg_t) get_source_cap, TIME_IMMEDIATE);
+    chMBPostTimeout(&cfg->prl.tx_mailbox, (msg_t) get_source_cap, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -540,7 +540,7 @@ static enum policy_engine_state pe_sink_give_sink_cap(struct pdb_config *cfg)
     cfg->dpm.get_sink_capability(cfg, snk_cap);
 
     /* Transmit our capabilities */
-    chMBPost(&cfg->prl.tx_mailbox, (msg_t) snk_cap, TIME_IMMEDIATE);
+    chMBPostTimeout(&cfg->prl.tx_mailbox, (msg_t) snk_cap, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -606,7 +606,7 @@ static enum policy_engine_state pe_sink_soft_reset(struct pdb_config *cfg)
     /* Make an Accept message */
     accept->hdr = cfg->pe.hdr_template | PD_MSGTYPE_ACCEPT | PD_NUMOBJ(0);
     /* Transmit the Accept */
-    chMBPost(&cfg->prl.tx_mailbox, (msg_t) accept, TIME_IMMEDIATE);
+    chMBPostTimeout(&cfg->prl.tx_mailbox, (msg_t) accept, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -635,7 +635,7 @@ static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
     /* Make a Soft_Reset message */
     softrst->hdr = cfg->pe.hdr_template | PD_MSGTYPE_SOFT_RESET | PD_NUMOBJ(0);
     /* Transmit the soft reset */
-    chMBPost(&cfg->prl.tx_mailbox, (msg_t) softrst, TIME_IMMEDIATE);
+    chMBPostTimeout(&cfg->prl.tx_mailbox, (msg_t) softrst, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);
@@ -664,7 +664,7 @@ static enum policy_engine_state pe_sink_send_soft_reset(struct pdb_config *cfg)
     }
 
     /* Get the response message */
-    if (chMBFetch(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
+    if (chMBFetchTimeout(&cfg->pe.mailbox, (msg_t *) &cfg->pe._message, TIME_IMMEDIATE) == MSG_OK) {
         /* If the source accepted our soft reset, wait for capabilities. */
         if (PD_MSGTYPE_GET(cfg->pe._message) == PD_MSGTYPE_ACCEPT
                 && PD_NUMOBJ_GET(cfg->pe._message) == 0) {
@@ -701,7 +701,7 @@ static enum policy_engine_state pe_sink_send_not_supported(struct pdb_config *cf
     }
 
     /* Transmit the message */
-    chMBPost(&cfg->prl.tx_mailbox, (msg_t) not_supported, TIME_IMMEDIATE);
+    chMBPostTimeout(&cfg->prl.tx_mailbox, (msg_t) not_supported, TIME_IMMEDIATE);
     chEvtSignal(cfg->prl.tx_thread, PDB_EVT_PRLTX_MSG_TX);
     eventmask_t evt = chEvtWaitAny(PDB_EVT_PE_TX_DONE | PDB_EVT_PE_TX_ERR
             | PDB_EVT_PE_RESET);

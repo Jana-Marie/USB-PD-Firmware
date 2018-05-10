@@ -84,7 +84,7 @@ static enum protocol_tx_state protocol_tx_wait_message(struct pdb_config *cfg)
     /* If the policy engine is trying to send a message */
     if (evt & PDB_EVT_PRLTX_MSG_TX) {
         /* Get the message */
-        chMBFetch(&cfg->prl.tx_mailbox, (msg_t *) &cfg->prl._tx_message, TIME_IMMEDIATE);
+        chMBFetchTimeout(&cfg->prl.tx_mailbox, (msg_t *) &cfg->prl._tx_message, TIME_IMMEDIATE);
         /* If it's a Soft_Reset, reset the TX layer first */
         if (PD_MSGTYPE_GET(cfg->prl._tx_message) == PD_MSGTYPE_SOFT_RESET
                 && PD_NUMOBJ_GET(cfg->prl._tx_message) == 0) {

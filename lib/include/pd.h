@@ -279,15 +279,15 @@
  * Where a range is specified, the middle of the range (rounded down to the
  * nearest millisecond) is used.
  */
-#define PD_T_CHUNKING_NOT_SUPPORTED MS2ST(45)
-#define PD_T_HARD_RESET_COMPLETE MS2ST(4)
-#define PD_T_PS_TRANSITION MS2ST(500)
-#define PD_T_SENDER_RESPONSE MS2ST(27)
-#define PD_T_SINK_REQUEST MS2ST(100)
-#define PD_T_TYPEC_SINK_WAIT_CAP MS2ST(465)
-#define PD_T_PPS_REQUEST S2ST(10)
+#define PD_T_CHUNKING_NOT_SUPPORTED TIME_MS2I(45)
+#define PD_T_HARD_RESET_COMPLETE TIME_MS2I(4)
+#define PD_T_PS_TRANSITION TIME_MS2I(500)
+#define PD_T_SENDER_RESPONSE TIME_MS2I(27)
+#define PD_T_SINK_REQUEST TIME_MS2I(100)
+#define PD_T_TYPEC_SINK_WAIT_CAP TIME_MS2I(465)
+#define PD_T_PPS_REQUEST TIME_S2I(10)
 /* This is actually from Type-C, not Power Delivery, but who cares? */
-#define PD_T_PD_DEBOUNCE MS2ST(15)
+#define PD_T_PD_DEBOUNCE TIME_MS2I(15)
 
 
 /*

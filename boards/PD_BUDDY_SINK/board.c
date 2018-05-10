@@ -1,23 +1,5 @@
 /*
- * PD Buddy Sink Firmware - Smart power jack for USB Power Delivery
- * Copyright (C) 2017-2018 Clayton G. Hobbs <clay@lakeserv.net>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2017 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -39,14 +21,76 @@
 
 #include "stm32f072_bootloader.h"
 #include "hal.h"
+#include "stm32_gpio.h"
 
-#if HAL_USE_PAL || defined(__DOXYGEN__)
+/*===========================================================================*/
+/* Driver local definitions.                                                 */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver exported variables.                                                */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver local variables and types.                                         */
+/*===========================================================================*/
+
 /**
- * @brief   PAL setup.
- * @details Digital I/O ports static configuration as defined in @p board.h.
- *          This variable is used by the HAL when initializing the PAL driver.
+ * @brief   Type of STM32 GPIO port setup.
  */
-const PALConfig pal_default_config = {
+typedef struct {
+  uint32_t              moder;
+  uint32_t              otyper;
+  uint32_t              ospeedr;
+  uint32_t              pupdr;
+  uint32_t              odr;
+  uint32_t              afrl;
+  uint32_t              afrh;
+} gpio_setup_t;
+
+/**
+ * @brief   Type of STM32 GPIO initialization data.
+ */
+typedef struct {
+#if STM32_HAS_GPIOA || defined(__DOXYGEN__)
+  gpio_setup_t          PAData;
+#endif
+#if STM32_HAS_GPIOB || defined(__DOXYGEN__)
+  gpio_setup_t          PBData;
+#endif
+#if STM32_HAS_GPIOC || defined(__DOXYGEN__)
+  gpio_setup_t          PCData;
+#endif
+#if STM32_HAS_GPIOD || defined(__DOXYGEN__)
+  gpio_setup_t          PDData;
+#endif
+#if STM32_HAS_GPIOE || defined(__DOXYGEN__)
+  gpio_setup_t          PEData;
+#endif
+#if STM32_HAS_GPIOF || defined(__DOXYGEN__)
+  gpio_setup_t          PFData;
+#endif
+#if STM32_HAS_GPIOG || defined(__DOXYGEN__)
+  gpio_setup_t          PGData;
+#endif
+#if STM32_HAS_GPIOH || defined(__DOXYGEN__)
+  gpio_setup_t          PHData;
+#endif
+#if STM32_HAS_GPIOI || defined(__DOXYGEN__)
+  gpio_setup_t          PIData;
+#endif
+#if STM32_HAS_GPIOJ || defined(__DOXYGEN__)
+  gpio_setup_t          PJData;
+#endif
+#if STM32_HAS_GPIOK || defined(__DOXYGEN__)
+  gpio_setup_t          PKData;
+#endif
+} gpio_config_t;
+
+/**
+ * @brief   STM32 GPIO static initialization data.
+ */
+static const gpio_config_t gpio_default_config = {
 #if STM32_HAS_GPIOA
   {VAL_GPIOA_MODER, VAL_GPIOA_OTYPER, VAL_GPIOA_OSPEEDR, VAL_GPIOA_PUPDR,
    VAL_GPIOA_ODR,   VAL_GPIOA_AFRL,   VAL_GPIOA_AFRH},
@@ -81,18 +125,92 @@ const PALConfig pal_default_config = {
 #endif
 #if STM32_HAS_GPIOI
   {VAL_GPIOI_MODER, VAL_GPIOI_OTYPER, VAL_GPIOI_OSPEEDR, VAL_GPIOI_PUPDR,
-   VAL_GPIOI_ODR,   VAL_GPIOI_AFRL,   VAL_GPIOI_AFRH}
+   VAL_GPIOI_ODR,   VAL_GPIOI_AFRL,   VAL_GPIOI_AFRH},
+#endif
+#if STM32_HAS_GPIOJ
+  {VAL_GPIOJ_MODER, VAL_GPIOJ_OTYPER, VAL_GPIOJ_OSPEEDR, VAL_GPIOJ_PUPDR,
+   VAL_GPIOJ_ODR,   VAL_GPIOJ_AFRL,   VAL_GPIOJ_AFRH},
+#endif
+#if STM32_HAS_GPIOK
+  {VAL_GPIOK_MODER, VAL_GPIOK_OTYPER, VAL_GPIOK_OSPEEDR, VAL_GPIOK_PUPDR,
+   VAL_GPIOK_ODR,   VAL_GPIOK_AFRL,   VAL_GPIOK_AFRH}
 #endif
 };
+
+/*===========================================================================*/
+/* Driver local functions.                                                   */
+/*===========================================================================*/
+
+static void gpio_init(stm32_gpio_t *gpiop, const gpio_setup_t *config) {
+
+  gpiop->OTYPER  = config->otyper;
+  gpiop->OSPEEDR = config->ospeedr;
+  gpiop->PUPDR   = config->pupdr;
+  gpiop->ODR     = config->odr;
+  gpiop->AFRL    = config->afrl;
+  gpiop->AFRH    = config->afrh;
+  gpiop->MODER   = config->moder;
+}
+
+static void stm32_gpio_init(void) {
+
+  /* Enabling GPIO-related clocks, the mask comes from the
+     registry header file.*/
+  rccResetAHB(STM32_GPIO_EN_MASK);
+  rccEnableAHB(STM32_GPIO_EN_MASK, true);
+
+  /* Initializing all the defined GPIO ports.*/
+#if STM32_HAS_GPIOA
+  gpio_init(GPIOA, &gpio_default_config.PAData);
 #endif
+#if STM32_HAS_GPIOB
+  gpio_init(GPIOB, &gpio_default_config.PBData);
+#endif
+#if STM32_HAS_GPIOC
+  gpio_init(GPIOC, &gpio_default_config.PCData);
+#endif
+#if STM32_HAS_GPIOD
+  gpio_init(GPIOD, &gpio_default_config.PDData);
+#endif
+#if STM32_HAS_GPIOE
+  gpio_init(GPIOE, &gpio_default_config.PEData);
+#endif
+#if STM32_HAS_GPIOF
+  gpio_init(GPIOF, &gpio_default_config.PFData);
+#endif
+#if STM32_HAS_GPIOG
+  gpio_init(GPIOG, &gpio_default_config.PGData);
+#endif
+#if STM32_HAS_GPIOH
+  gpio_init(GPIOH, &gpio_default_config.PHData);
+#endif
+#if STM32_HAS_GPIOI
+  gpio_init(GPIOI, &gpio_default_config.PIData);
+#endif
+#if STM32_HAS_GPIOJ
+  gpio_init(GPIOJ, &gpio_default_config.PJData);
+#endif
+#if STM32_HAS_GPIOK
+  gpio_init(GPIOK, &gpio_default_config.PKData);
+#endif
+}
+
+/*===========================================================================*/
+/* Driver interrupt handlers.                                                */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver exported functions.                                                */
+/*===========================================================================*/
 
 /**
  * @brief   Early initialization code.
- * @details This initialization must be performed just after stack setup
- *          and before any other initialization.
+ * @details GPIO ports and system clocks are initialized before everything
+ *          else.
  */
 void __early_init(void) {
 
+  stm32_gpio_init();
   stm32_clock_init();
   /* Jump to the bootloader if the magic value is set in
    * dfu_reset_to_bootloader_magic. */
@@ -105,6 +223,28 @@ void __early_init(void) {
     while (42);
   }
 }
+
+#if HAL_USE_SDC || defined(__DOXYGEN__)
+/**
+ * @brief   SDC card detection.
+ */
+bool sdc_lld_is_card_inserted(SDCDriver *sdcp) {
+
+  (void)sdcp;
+  /* TODO: Fill the implementation.*/
+  return true;
+}
+
+/**
+ * @brief   SDC card write protection detection.
+ */
+bool sdc_lld_is_write_protected(SDCDriver *sdcp) {
+
+  (void)sdcp;
+  /* TODO: Fill the implementation.*/
+  return false;
+}
+#endif /* HAL_USE_SDC */
 
 #if HAL_USE_MMC_SPI || defined(__DOXYGEN__)
 /**
@@ -133,4 +273,5 @@ bool mmc_lld_is_write_protected(MMCDriver *mmcp) {
  * @todo    Add your board-specific code, if any.
  */
 void boardInit(void) {
+
 }
