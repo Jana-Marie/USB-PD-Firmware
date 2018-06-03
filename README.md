@@ -184,11 +184,12 @@ leave its output turned off.
 
 ### Status LED descriptions
 
-LED State            | Mode  | Meaning
----------------------|-------|---------------------------------------------------
-Fast blink (4/sec)   | Sink  | Negotiating USB Power Delivery contract
-Medium blink (2/sec) | Sink  | USB Power Delivery contract established, output on
-Off                  | Sink  | Output on
-On                   | Sink  | Unable to get configured power from source
-Slow blink (1/sec)   | Setup | Running in setup mode
-Fast blink (4/sec)   | Setup | `identify` command run
+LED State                  | Mode  | Meaning
+---------------------------|-------|---------------------------------------------------
+Fast blink (4 blink/sec)   | Sink  | Negotiating USB Power Delivery contract
+Medium blink (2 blink/sec) | Sink  | USB Power Delivery contract established, output on
+Off                        | Sink  | Output on
+On                         | Sink  | Unable to get configured power from source
+Long blink (1 blink/2 sec) | Sink  | Only default USB power is available (e.g. powered with USB A to C cable)
+Slow blink (1 blink/sec)   | Setup | Running in setup mode
+Fast blink (4 blink/sec)   | Setup | `identify` command run

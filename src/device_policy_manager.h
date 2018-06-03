@@ -100,5 +100,10 @@ void pdbs_dpm_transition_standby(struct pdb_config *cfg);
  */
 void pdbs_dpm_transition_requested(struct pdb_config *cfg);
 
+/*
+ * Transition to the Type-C Current power level
+ */
+void pdbs_dpm_transition_typec(struct pdb_config *cfg);
+
 
 #endif /* PDBS_DEVICE_POLICY_MANAGER_H */

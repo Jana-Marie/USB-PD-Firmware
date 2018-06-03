@@ -101,6 +101,14 @@ static THD_FUNCTION(LED, arg) {
                     palToggleLine(LINE_LED);
                 }
                 break;
+            case PDBS_EVT_LED_LONG_BLINK:
+                timeout = LED_FAST;
+                if (i % 16 == 0) {
+                    palClearLine(LINE_LED);
+                } else {
+                    palSetLine(LINE_LED);
+                }
+                break;
             case PDBS_EVT_LED_FAST_BLINK_SLOW:
                 timeout = LED_FAST;
                 if (i == 0) {
