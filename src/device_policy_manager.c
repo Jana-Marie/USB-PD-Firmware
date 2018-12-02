@@ -95,6 +95,7 @@ static int8_t dpm_get_range_fixed_pdo_index(const union pd_msg *caps,
 bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         const union pd_msg *caps, union pd_msg *request)
 {
+
     /* Cast the dpm_data to the right type */
     struct pdbs_dpm_data *dpm_data = cfg->dpm_data;
 
@@ -123,7 +124,16 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     dpm_data->_unconstrained_power = caps->obj[0] & PD_PDO_SRC_FIXED_UNCONSTRAINED;
 
     /* Get the current we want */
-    uint16_t current = dpm_get_current(scfg, scfg->v);
+    /* As we want/need current anyway, lets set it to zero for now */
+    uint16_t current = 0;//dpm_get_current(scfg, scfg->v);
+
+    
+    /*select the voltage */
+    uint16_t voltage = 0;
+    uint16_t pd_profiles[] = {5000,9000,12000,15000,20000};
+    if(cfg->state <= numobj-1){
+        voltage = pd_profiles[cfg->state];
+    } else voltage = pd_profiles[0];
 
     /* Make sure we have configuration */
     if (scfg != NULL && dpm_data->output_enabled) {
@@ -132,7 +142,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
             /* If we have a fixed PDO, its V equals our desired V, and its I is
              * at least our desired I */
             if ((caps->obj[i] & PD_PDO_TYPE) == PD_PDO_TYPE_FIXED
-                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(caps->obj[i]) == PD_MV2PDV(scfg->v)
+                    && PD_PDO_SRC_FIXED_VOLTAGE_GET(caps->obj[i]) == PD_MV2PDV(voltage)
                     && PD_PDO_SRC_FIXED_CURRENT_GET(caps->obj[i]) >= current) {
                 /* We got what we wanted, so build a request for that */
                 request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST

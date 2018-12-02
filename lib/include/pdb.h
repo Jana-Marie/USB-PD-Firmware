@@ -55,6 +55,8 @@ struct pdb_config {
     struct pdb_prl prl;
     /* INT_N pin thread and related variables */
     struct pdb_int_n int_n;
+
+    uint8_t state;
 };
 
 

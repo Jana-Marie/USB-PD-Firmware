@@ -46,7 +46,6 @@ struct pdbs_dpm_data {
     int _requested_voltage;
 };
 
-
 /*
  * Create a Request message based on the given Source_Capabilities message.  If
  * capabilities is NULL, the last non-null Source_Capabilities message passes

@@ -88,7 +88,8 @@ static struct pdb_config pdb_config = {
         pdbs_dpm_transition_typec,
         NULL /* not_supported_received */
     },
-    .dpm_data = &dpm_data
+    .dpm_data = &dpm_data,
+    .state = 0
 };
 
 /*
@@ -130,10 +131,19 @@ static void sink(void)
 {
     /* Start the USB Power Delivery threads */
     pdb_init(&pdb_config);
+    
+    palSetLine(LINE_FET);
 
+    uint8_t _cnt = 0;
     /* Wait, letting all the other threads do their work. */
     while (true) {
-        chThdSleepMilliseconds(1000);
+        chThdSleepMilliseconds(10);
+        if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
+            pdb_config.state = ++_cnt;
+            if(_cnt > 4) _cnt = 0;
+            while(palReadLine(LINE_BUTTON) == PAL_HIGH) chThdSleepMilliseconds(10);
+            chEvtSignal(pdb_config.pe.thread, PDB_EVT_PE_NEW_POWER);
+        }
     }
 }
 
