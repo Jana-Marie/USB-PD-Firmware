@@ -35,12 +35,10 @@
 #include <ch.h>
 #include <hal.h>
 
-#include "shell.h"
 #include "usbcfg.h"
 
 #include <pdb.h>
 #include <pd.h>
-#include "led.h"
 #include "device_policy_manager.h"
 
 /*
@@ -93,38 +91,6 @@ static struct pdb_config pdb_config = {
 };
 
 /*
- * Enter setup mode
- */
-static void setup(void)
-{
-    /* Configure the DPM to play nice with the shell */
-    dpm_data.output_enabled = false;
-    dpm_data.led_pd_status = false;
-    dpm_data.usb_comms = true;
-
-    /* Start the USB Power Delivery threads */
-    pdb_init(&pdb_config);
-
-    /* Indicate that we're in setup mode */
-    chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_CONFIG);
-
-    /* Disconnect from USB */
-    usbDisconnectBus(serusbcfg.usbp);
-
-    /* Start the USB serial interface */
-    sduObjectInit(&SDU1);
-    sduStart(&SDU1, &serusbcfg);
-
-    /* Start USB */
-    chThdSleepMilliseconds(100);
-    usbStart(serusbcfg.usbp, &usbcfg);
-    usbConnectBus(serusbcfg.usbp);
-
-    /* Start the shell */
-    pdbs_shell(&pdb_config);
-}
-
-/*
  * Negotiate with the power supply for the configured power
  */
 static void sink(void)
@@ -134,16 +100,9 @@ static void sink(void)
     
     palSetLine(LINE_FET);
 
-    uint8_t _cnt = 0;
     /* Wait, letting all the other threads do their work. */
     while (true) {
-        chThdSleepMilliseconds(10);
-        if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
-            pdb_config.state = ++_cnt;
-            if(_cnt > 4) _cnt = 0;
-            while(palReadLine(LINE_BUTTON) == PAL_HIGH) chThdSleepMilliseconds(10);
-            chEvtSignal(pdb_config.pe.thread, PDB_EVT_PE_NEW_POWER);
-        }
+        chThdSleepMilliseconds(1000);
     }
 }
 
@@ -162,18 +121,9 @@ int main(void) {
     halInit();
     chSysInit();
 
-    /* Create the LED thread. */
-    pdbs_led_run();
-
     /* Start I2C2 to make communication with the PHY possible */
     i2cStart(pdb_config.fusb.i2cp, &i2c2config);
 
-    /* Decide what mode to enter by the state of the button */
-    if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
-        /* Button pressed -> setup mode */
-        setup();
-    } else {
-        /* Button unpressed -> deliver power, buddy! */
-        sink();
-    }
+    /* Button unpressed -> deliver power, buddy! */
+    sink();
 }
