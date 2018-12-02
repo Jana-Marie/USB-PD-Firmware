@@ -1,9 +1,11 @@
 ## USB-PD Firmware
 #### forked from https://git.clayhobbs.com/pd-buddy/pd-buddy-firmware
 
-Edited and customized to work with [Niklas]{https://github.com/NiklasFauth} USB-C Otter and [JanHenrik's]{https://github.com/Jan--Henrik} [TS100 USB-PD replacement PCB]https://github.com/Jan--Henrik/Otter-Iron.
+Edited and customized to work with [Niklas][] USB-C Otter and [JanHenrik's]{https://github.com/Jan--Henrik} [TS100 USB-PD replacement PCB]https://github.com/Jan--Henrik/Otter-Iron.
 
 Many thanks to [clay]{https://git.clayhobbs.com/clay} for the great work!
+
+[niklas]: https://github.com/NiklasFauth
 
 ## Prerequisites
 
