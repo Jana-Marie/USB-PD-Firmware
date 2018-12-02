@@ -1,47 +1,8 @@
-# PD Buddy Sink Firmware
+## USB-PD Firmware forked from https://git.clayhobbs.com/pd-buddy/pd-buddy-firmware
 
-This is the firmware for the [PD Buddy Sink][], a smart power jack for USB
-Power Delivery.
+Edited and customized to work with [Niklas]{https://github.com/NiklasFauth} USB-C Otter and [JanHenrik's]{https://github.com/Jan--Henrik} [TS100 USB-PD replacement PCB]https://github.com/Jan--Henrik/Otter-Iron.
 
-The firmware is written using [ChibiOS][] RT and HAL, and is comprised of a
-[library][] for USB Power Delivery and an application using that library to
-request a configured voltage and current.
-
-[PD Buddy Sink]: https://git.clayhobbs.com/pd-buddy/pd-buddy-sink
-[ChibiOS]: http://www.chibios.org/
-[library]: lib/README.md
-
-## Features
-
-* Two boot modes, Setup and Sink, selected by the Setup button's state at
-  startup.
-* Sink mode implements a simple USB Power Delivery sink, aiming for full
-  compliance with the USB Power Delivery Specification, Revision 2.0,
-  Version 1.3, and with Revision 3.0, Version 1.1.
-* Requests the configured voltage and current if available, or a safe, low
-  power request otherwise.
-* Provides power on the output connector only when an explicit contract is in
-  place for the configured voltage and current.
-* Optional GiveBack support allows power supplies to temporarily remove power
-  from the PD Buddy Sink if necessary.
-* Requests can be made from programmable power supplies, allowing voltages to
-  be requested at 20 mV increments from a wide range (up to 3-21 V).
-* Configuring a voltage range provides a fallback if the preferred voltage is
-  unavailable.
-* The amount of current the device requests can be set as a power or a
-  resistance, as well as a current.  These values are taken as constant over
-  the configured voltage range.
-* Setup mode implements a USB CDC-ACM command-line interface, compatible with
-  Linux, Mac OS X, and Windows 10, allowing configuration to be loaded from and
-  stored in flash.
-* Setup mode allows real-time renegotiation of voltage and current, complete
-  with the ability to control whether the output is enabled or disabled.
-* Users can easily read a power supply's advertised capabilities while in Setup
-  mode using a [PD Buddy Wye][].
-* Firmware upgrades are easily possible via Setup mode in conjunction with the
-  microcontroller's built-in DfuSe bootloader.
-
-[PD Buddy Wye]: https://git.clayhobbs.com/pd-buddy/pd-buddy-wye
+Many thanks to [clay]{https://git.clayhobbs.com/clay} for the great work!
 
 ## Prerequisites
 
