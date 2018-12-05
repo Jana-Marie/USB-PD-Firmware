@@ -13,29 +13,29 @@
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static msg_t wrCmd(void *ip, uint8_t cmd) {
-	const SSD1306Driver *drvp = (const SSD1306Driver *)ip;
+static msg_t wrCmd(SSD1306Driver *drvp, uint8_t cmd) {
+	//const SSD1306Driver *drvp = (const SSD1306Driver *)ip;
 	msg_t ret;
 	uint8_t txbuf[] = { 0x00, cmd };
 
 	i2cAcquireBus(drvp->config->i2cp);
 
 	ret = i2cMasterTransmit(drvp->config->i2cp, drvp->config->sad,
-			txbuf, sizeof(txbuf), NULL, 0);
+	                        txbuf, 2, NULL, 0);
 
 	i2cReleaseBus(drvp->config->i2cp);
 
 	return ret;
 }
 
-static msg_t wrDat(void *ip, uint8_t *txbuf, uint16_t len) {
-	const SSD1306Driver *drvp = (const SSD1306Driver *)ip;
+static msg_t wrDat(SSD1306Driver *drvp, uint8_t *txbuf, uint16_t len) {
+	//const SSD1306Driver *drvp = (const SSD1306Driver *)ip;
 	msg_t ret;
 
 	i2cAcquireBus(drvp->config->i2cp);
-	
+
 	ret = i2cMasterTransmit(drvp->config->i2cp, drvp->config->sad,
-			txbuf, len, NULL, 0);
+	                        txbuf, len, NULL, 0);
 
 	i2cReleaseBus(drvp->config->i2cp);
 
@@ -76,7 +76,7 @@ static void fillScreen(void *ip, ssd1306_color_t color) {
 	for (idx = 0; idx < 8; idx++) {
 		drvp->fb[SSD1306_WIDTH_FIXED * idx] = 0x40;
 		memset(&drvp->fb[SSD1306_WIDTH_FIXED * idx + 1],
-				color == SSD1306_COLOR_BLACK ? 0x00 : 0xff, SSD1306_WIDTH);
+		       color == SSD1306_COLOR_BLACK ? 0x00 : 0xff, SSD1306_WIDTH);
 	}
 }
 
@@ -110,7 +110,7 @@ static char PUTC(void *ip, char ch, const ssd1306_font_t *font, ssd1306_color_t 
 
 	// Check available space in OLED
 	if (drvp->x + font->fw >= SSD1306_WIDTH ||
-			drvp->y + font->fh >= SSD1306_HEIGHT) {
+	        drvp->y + font->fh >= SSD1306_HEIGHT) {
 		return 0;
 	}
 
@@ -121,7 +121,7 @@ static char PUTC(void *ip, char ch, const ssd1306_font_t *font, ssd1306_color_t 
 			if ((b << j) & 0x8000) {
 				drawPixel(drvp, drvp->x + j, drvp->y + i, color);
 			} else {
-				drawPixel(drvp, drvp->x + j, drvp->y + i,(ssd1306_color_t)! color);
+				drawPixel(drvp, drvp->x + j, drvp->y + i, (ssd1306_color_t)! color);
 			}
 		}
 	}
@@ -173,11 +173,12 @@ void ssd1306ObjectInit(SSD1306Driver *devp) {
 }
 
 void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
+
 	const uint8_t cmds[] = {
 		0xAE,	// display off
 		0x20,	// Set memory address
 		0x10,	// 0x00: horizontal addressing mode, 0x01: vertical addressing mode
-				// 0x10: Page addressing mode(RESET), 0x11: invalid
+		// 0x10: Page addressing mode(RESET), 0x11: invalid
 		0xB0,	// Set page start address for page addressing mode: 0 ~ 7
 		0xC8,	// Set COM output scan direction
 		0x00,	// Set low column address
@@ -206,22 +207,29 @@ void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
 	};
 	uint8_t idx;
 
-    chDbgCheck((devp != NULL) && (config != NULL));
+	//chDbgCheck((devp != NULL) && (config != NULL));
 
-    chDbgAssert((devp->state == SSD1306_STOP) || (devp->state == SSD1306_READY),
-            "ssd1306Start(), invalid state");
+	//chDbgAssert((devp->state == SSD1306_STOP) || (devp->state == SSD1306_READY),
+	//        "ssd1306Start(), invalid state");
 
-    devp->config = config;
+	devp->config = config;
 
 	// A little delay
-	chThdSleepMilliseconds(100);
+	//chThdSleepMilliseconds(100);
 
 	// OLED initialize
-	for (idx = 0; idx < sizeof(cmds) / sizeof(cmds[0]); idx++) {
-		wrCmd(devp, cmds[idx]);
-	}
+	uint8_t txbuf[] = { 0x00, 0x00 };
 
-	// Clear screen	
+	i2cAcquireBus(devp->config->i2cp);
+
+
+	for (idx = 0; idx < sizeof(cmds) / sizeof(cmds[0]); idx++) {
+		//wrCmd(devp, cmds[idx]);
+		txbuf[1] = cmds[idx];
+		i2cMasterTransmit(devp->config->i2cp, devp->config->sad, txbuf, 2, NULL, 0);
+	}
+	i2cReleaseBus(devp->config->i2cp);
+	// Clear screen
 	fillScreen(devp, SSD1306_COLOR_WHITE);
 
 	// Update screen
@@ -231,17 +239,17 @@ void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
 	devp->x = 0;
 	devp->y = 0;
 
-    devp->state = SSD1306_READY;
+	devp->state = SSD1306_READY;
 }
 
 void ssd1306Stop(SSD1306Driver *devp) {
-    chDbgAssert((devp->state == SSD1306_STOP) || (devp->state == SSD1306_READY),
-            "ssd1306Stop(), invalid state");
+	chDbgAssert((devp->state == SSD1306_STOP) || (devp->state == SSD1306_READY),
+	            "ssd1306Stop(), invalid state");
 
-    if (devp->state == SSD1306_READY) {
+	if (devp->state == SSD1306_READY) {
 		// Turn off display
 		setDisplay(devp, 0);
-    }
+	}
 
-    devp->state = SSD1306_STOP;
+	devp->state = SSD1306_STOP;
 }

@@ -98,7 +98,9 @@ static struct pdb_config pdb_config = {
 };
 
 static const I2CConfig i2ccfg = { // I2CCLK=48MHz, SCL=~100kHz
-    0x00700818,
+    STM32_TIMINGR_PRESC(0x05)  |
+    STM32_TIMINGR_SCLDEL(0x03) | STM32_TIMINGR_SDADEL(0x03) |
+    STM32_TIMINGR_SCLH(0x03)   | STM32_TIMINGR_SCLL(0x09),
     0,
     0
 };
@@ -120,7 +122,6 @@ static __attribute__((noreturn)) THD_FUNCTION(OledDisplay, arg) {
     ssd1306ObjectInit(&SSD1306D1);
 
     ssd1306Start(&SSD1306D1, &ssd1306cfg);
-    chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_CONFIG);
 
     ssd1306FillScreen(&SSD1306D1, 0x00);
 
@@ -206,8 +207,8 @@ int main(void) {
     halInit();
     chSysInit();
 
-    palSetPadMode(GPIOB, GPIOB_PIN6, PAL_MODE_ALTERNATE(4) | PAL_STM32_OSPEED_HIGHEST);   /* SCL */
-    palSetPadMode(GPIOB, GPIOB_PIN7, PAL_MODE_ALTERNATE(4) | PAL_STM32_OSPEED_HIGHEST);  /* SDA */
+    //palSetPadMode(GPIOB, GPIOB_PIN6, PAL_MODE_ALTERNATE(4) | PAL_STM32_OSPEED_HIGHEST);   /* SCL */
+    //palSetPadMode(GPIOB, GPIOB_PIN7, PAL_MODE_ALTERNATE(4) | PAL_STM32_OSPEED_HIGHEST);  /* SDA */
 
     /* Create the LED thread. */
     pdbs_led_run();
