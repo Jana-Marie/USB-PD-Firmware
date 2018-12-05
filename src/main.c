@@ -131,7 +131,7 @@ static void sink(void)
 {
     /* Start the USB Power Delivery threads */
     pdb_init(&pdb_config);
-    
+
     palSetLine(LINE_FET);
 
     uint8_t _cnt = 0;
@@ -140,8 +140,8 @@ static void sink(void)
         chThdSleepMilliseconds(10);
         if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
             pdb_config.state = ++_cnt;
-            if(_cnt > 4) _cnt = 0;
-            while(palReadLine(LINE_BUTTON) == PAL_HIGH) chThdSleepMilliseconds(10);
+            if (_cnt > 4) _cnt = 0;
+            while (palReadLine(LINE_BUTTON) == PAL_HIGH) chThdSleepMilliseconds(10);
             chEvtSignal(pdb_config.pe.thread, PDB_EVT_PE_NEW_POWER);
         }
     }
@@ -167,13 +167,13 @@ int main(void) {
 
     /* Start I2C2 to make communication with the PHY possible */
     i2cStart(pdb_config.fusb.i2cp, &i2c2config);
-
-    /* Decide what mode to enter by the state of the button */
     if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
-        /* Button pressed -> setup mode */
+        systime_t now = chVTGetSystemTime();
+        while (palReadLine(LINE_BUTTON) == PAL_HIGH) {
+            if (chVTGetSystemTime() - now >= 3000) dfu_run_bootloader();
+        }
         setup();
     } else {
-        /* Button unpressed -> deliver power, buddy! */
         sink();
     }
 }
