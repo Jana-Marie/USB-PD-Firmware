@@ -42,6 +42,7 @@
 #include <pd.h>
 #include "led.h"
 #include "device_policy_manager.h"
+#include "stm32f072_bootloader.h"
 
 /*
  * I2C configuration object.
@@ -170,7 +171,7 @@ int main(void) {
     if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
         systime_t now = chVTGetSystemTime();
         while (palReadLine(LINE_BUTTON) == PAL_HIGH) {
-            if (chVTGetSystemTime() - now >= 3000) dfu_run_bootloader();
+            if (chVTGetSystemTime() - now >= 30000) dfu_run_bootloader();
         }
         setup();
     } else {
