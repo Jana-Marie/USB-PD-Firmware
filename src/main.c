@@ -43,6 +43,10 @@
 #include "led.h"
 #include "device_policy_manager.h"
 #include "stm32f072_bootloader.h"
+#include "ssd1306.h"
+#include "chprintf.h"
+#include <string.h>
+
 
 /*
  * I2C configuration object.
@@ -93,6 +97,45 @@ static struct pdb_config pdb_config = {
     .state = 0
 };
 
+static const I2CConfig i2ccfg = { // I2CCLK=48MHz, SCL=~100kHz
+    0x00700818,
+    0,
+    0
+};
+
+static const SSD1306Config ssd1306cfg = {
+    &I2CD1,
+    &i2ccfg,
+    SSD1306_SAD_0X78,
+};
+
+static SSD1306Driver SSD1306D1;
+
+static THD_WORKING_AREA(waOledDisplay, 512);
+static __attribute__((noreturn)) THD_FUNCTION(OledDisplay, arg) {
+    (void)arg;
+
+    chRegSetThreadName("OledDisplay");
+
+    ssd1306ObjectInit(&SSD1306D1);
+
+    ssd1306Start(&SSD1306D1, &ssd1306cfg);
+    chEvtSignal(pdbs_led_thread, PDBS_EVT_LED_CONFIG);
+
+    ssd1306FillScreen(&SSD1306D1, 0x00);
+
+    while (TRUE) {
+
+        ssd1306GotoXy(&SSD1306D1, 0, 32);
+        ssd1306Puts(&SSD1306D1, "Hello, world!", &ssd1306_font_7x10, SSD1306_COLOR_WHITE);
+
+        ssd1306UpdateScreen(&SSD1306D1);
+
+        chThdSleepMilliseconds(300);
+    }
+
+    ssd1306Stop(&SSD1306D1);
+}
 /*
  * Enter setup mode
  */
@@ -163,18 +206,26 @@ int main(void) {
     halInit();
     chSysInit();
 
+    palSetPadMode(GPIOB, GPIOB_PIN6, PAL_MODE_ALTERNATE(4) | PAL_STM32_OSPEED_HIGHEST);   /* SCL */
+    palSetPadMode(GPIOB, GPIOB_PIN7, PAL_MODE_ALTERNATE(4) | PAL_STM32_OSPEED_HIGHEST);  /* SDA */
+
     /* Create the LED thread. */
     pdbs_led_run();
 
     /* Start I2C2 to make communication with the PHY possible */
+
     i2cStart(pdb_config.fusb.i2cp, &i2c2config);
+    i2cStart(ssd1306cfg.i2cp, &i2ccfg);
+
     if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
         systime_t now = chVTGetSystemTime();
         while (palReadLine(LINE_BUTTON) == PAL_HIGH) {
-            if (chVTGetSystemTime() - now >= 30000) dfu_run_bootloader();
+            if (chVTGetSystemTime() - now >= 3000) dfu_run_bootloader();
         }
         setup();
     } else {
-        sink();
+        chThdCreateStatic(waOledDisplay, sizeof(waOledDisplay), NORMALPRIO, OledDisplay, NULL);
+        //sink();
+        while (true) {        chThdSleepMilliseconds(10);}
     }
 }

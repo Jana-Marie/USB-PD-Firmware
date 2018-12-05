@@ -74,7 +74,7 @@
 #define STM32_PLLNODIV                      STM32_PLLNODIV_DIV2
 #define STM32_USBSW                         STM32_USBSW_HSI48
 #define STM32_CECSW                         STM32_CECSW_HSI
-#define STM32_I2C1SW                        STM32_I2C1SW_HSI
+#define STM32_I2C1SW                        STM32_I2C1SW_SYSCLK
 #define STM32_USART1SW                      STM32_USART1SW_PCLK
 #define STM32_RTCSEL                        STM32_RTCSEL_LSI
 
@@ -133,7 +133,7 @@
 /*
  * I2C driver system settings.
  */
-#define STM32_I2C_USE_I2C1                  FALSE
+#define STM32_I2C_USE_I2C1                  TRUE
 #define STM32_I2C_USE_I2C2                  TRUE
 #define STM32_I2C_BUSY_TIMEOUT              50
 #define STM32_I2C_I2C1_IRQ_PRIORITY         3
