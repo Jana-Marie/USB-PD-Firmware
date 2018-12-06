@@ -46,7 +46,7 @@
 #include "ssd1306.h"
 #include "chprintf.h"
 #include <string.h>
-
+#include <stdio.h>
 
 /*
  * I2C configuration object.
@@ -178,18 +178,16 @@ static __attribute__((noreturn)) THD_FUNCTION(OledDisplay, arg) {
     ssd1306Start(&SSD1306D1, &ssd1306cfg);
 
     ssd1306FillScreen(&SSD1306D1, 0x00);
-
+    //    char otter[3];
 
     while (TRUE) {
-
-        ssd1306GotoXy(&SSD1306D1, 32, 32);
+        //printf(otter, "%dV",5);
+        ssd1306GotoXy(&SSD1306D1, 15, 15);
         ssd1306Puts(&SSD1306D1, "*chirp*", &ssd1306_font_7x10, SSD1306_COLOR_WHITE);
 
         ssd1306UpdateScreen(&SSD1306D1);
         chThdSleepMilliseconds(300);
     }
-
-    //ssd1306Stop(&SSD1306D1);
 }
 
 /*

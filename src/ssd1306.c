@@ -60,10 +60,15 @@ static void updateScreen(void *ip) {
 	SSD1306Driver *drvp = (SSD1306Driver *)ip;
 	uint8_t idx;
 
+	wrCmd(drvp,0x20);
+	wrCmd(drvp,0x20 + (31));
+	wrCmd(drvp,0x22);
+	wrCmd(drvp,0x00);
+	wrCmd(drvp,0x03);
 	for (idx = 0; idx < 8; idx++) {
-		wrCmd(drvp, 0xB0 + idx);
-		wrCmd(drvp, 0x00);
-		wrCmd(drvp, 0x10);
+		//wrCmd(drvp, 0xB0 + idx);
+		//wrCmd(drvp, 0x00);
+		//wrCmd(drvp, 0x10);
 
 		// Write multi data
 		wrDat(drvp, &drvp->fb[SSD1306_WIDTH_FIXED * idx], SSD1306_WIDTH_FIXED);
@@ -190,6 +195,39 @@ void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
 
 	const uint8_t cmds[] = {
 		0xAE,	// display off
+		0xD5,	// Set memory address
+		0x80,	// 0x00: horizontal addressing mode, 0x01: vertical addressing mode
+				// 0x10: Page addressing mode(RESET), 0x11: invalid
+		0xA8,	// Set page start address for page addressing mode: 0 ~ 7
+		0x1F,	// Set COM output scan direction
+		0xD3,	// Set low column address
+		0x40,	// Set height column address
+		0x8D,	// Set start line address
+		0x14,	// Set contrast control register
+		0x20,
+		0x00,
+		0xA1,
+		0xC8,	// Set segment re-map 0 to 127
+		0xDA,	// Set normal display
+		0x12,	// Set multiplex ratio(1 to 64)
+		0x81,
+		0xcf,	// 0xa4: ouput follows RAM content, 0xa5: ouput ignores RAM content
+		0xd9,	// Set display offset
+		0x22,	// Not offset
+		0xD9,	// Set display clock divide ratio/oscillator frequency
+		0x22,	// Set divide ration
+		0xDB,	// Set pre-charge period
+		0x40,
+		0xA4,	// Set COM pins hardware configuration
+		0xA6,
+		0x2E,
+		0xAF,	// turn on SSD1306panel
+
+	};
+	uint8_t idx;
+
+	/*
+			0xAE,	// display off
 		0x20,	// Set memory address
 		0x10,	// 0x00: horizontal addressing mode, 0x01: vertical addressing mode
 				// 0x10: Page addressing mode(RESET), 0x11: invalid
@@ -218,10 +256,8 @@ void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
 		0x8D,	// Set DC-DC enable
 		0x14,
 		0xAF,	// turn on SSD1306panel
-	};
-	uint8_t idx;
 
-	/*
+
 			0xAE,	// display off
 		0x00,	// Set memory address
 		0x12,	// 0x00: horizontal addressing mode, 0x01: vertical addressing mode
