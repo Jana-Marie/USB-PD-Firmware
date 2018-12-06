@@ -18,12 +18,13 @@ static msg_t wrCmd(SSD1306Driver *drvp, uint8_t cmd) {
 	msg_t ret;
 	uint8_t txbuf[] = { 0x00, cmd };
 
-	i2cAcquireBus(drvp->config->i2cp);
+	i2cAcquireBus(&I2CD1);
 
-	ret = i2cMasterTransmit(drvp->config->i2cp, drvp->config->sad,
-	                        txbuf, 2, NULL, 0);
+	ret = i2cMasterTransmit(&I2CD1, SSD1306_SAD_0X78, txbuf, 2, NULL, 0);
+	chThdSleepMilliseconds(1);
 
-	i2cReleaseBus(drvp->config->i2cp);
+
+	i2cReleaseBus(&I2CD1);
 
 	return ret;
 }
@@ -32,12 +33,11 @@ static msg_t wrDat(SSD1306Driver *drvp, uint8_t *txbuf, uint16_t len) {
 	//const SSD1306Driver *drvp = (const SSD1306Driver *)ip;
 	msg_t ret;
 
-	i2cAcquireBus(drvp->config->i2cp);
+	i2cAcquireBus(&I2CD1);
 
-	ret = i2cMasterTransmit(drvp->config->i2cp, drvp->config->sad,
-	                        txbuf, len, NULL, 0);
+	ret = i2cMasterTransmit(&I2CD1, SSD1306_SAD_0X78, txbuf, len, NULL, 0);
 
-	i2cReleaseBus(drvp->config->i2cp);
+	i2cReleaseBus(&I2CD1);
 
 	return ret;
 }
@@ -176,64 +176,54 @@ void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
 
 	const uint8_t cmds[] = {
 		0xAE,	// display off
-		0x20,	// Set memory address
-		0x10,	// 0x00: horizontal addressing mode, 0x01: vertical addressing mode
-		// 0x10: Page addressing mode(RESET), 0x11: invalid
+		0x00,	// Set memory address
+		0x12,	// 0x00: horizontal addressing mode, 0x01: vertical addressing mode
+		0x00,	//: Page addressing mode(RESET), 0x11: invalid
 		0xB0,	// Set page start address for page addressing mode: 0 ~ 7
-		0xC8,	// Set COM output scan direction
-		0x00,	// Set low column address
-		0x10,	// Set height column address
-		0x40,	// Set start line address
-		0x81,	// Set contrast control register
-		0xFF,
-		0xA1,	// Set segment re-map 0 to 127
-		0xA6,	// Set normal display
-		0xA8,	// Set multiplex ratio(1 to 64)
-		0x3F,
-		0xA4,	// 0xa4: ouput follows RAM content, 0xa5: ouput ignores RAM content
-		0xD3,	// Set display offset
-		0x00,	// Not offset
-		0xD5,	// Set display clock divide ratio/oscillator frequency
-		0xF0,	// Set divide ration
-		0xD9,	// Set pre-charge period
-		0x22,
-		0xDA,	// Set COM pins hardware configuration
-		0x12,
-		0xDB,	// Set VCOMH
-		0x20,	// 0x20: 0.77*Vcc
-		0x8D,	// Set DC-DC enable
+		0x81,	// Set COM output scan direction
+		0x4f,	// Set low column address
+		0xA1,	// Set height column address
+		0xA6,	// Set start line address
+		0xA8,	// Set contrast control register
+		0x1F,
+		0xC8,	// Set segment re-map 0 to 127
+		0xD3,	// Set normal display
+		0x00,	// Set multiplex ratio(1 to 64)
+		0xD5,
+		0x80,	// 0xa4: ouput follows RAM content, 0xa5: ouput ignores RAM content
+		0xD9,	// Set display offset
+		0x1F,	// Not offset
+		0xDA,	// Set display clock divide ratio/oscillator frequency
+		0x12,	// Set divide ration
+		0xDB,	// Set pre-charge period
+		0x40,
+		0x8D,	// Set COM pins hardware configuration
 		0x14,
-		0xAF,	// turn on SSD1306panel
+		0xAF,
 	};
 	uint8_t idx;
 
 	//chDbgCheck((devp != NULL) && (config != NULL));
 
 	//chDbgAssert((devp->state == SSD1306_STOP) || (devp->state == SSD1306_READY),
-	//        "ssd1306Start(), invalid state");
+	//            "ssd1306Start(), invalid state");
 
 	devp->config = config;
 
 	// A little delay
-	//chThdSleepMilliseconds(100);
+	chThdSleepMilliseconds(100);
 
 	// OLED initialize
-	uint8_t txbuf[] = { 0x00, 0x00 };
-
-	i2cAcquireBus(devp->config->i2cp);
 
 
-	for (idx = 0; idx < sizeof(cmds) / sizeof(cmds[0]); idx++) {
-		//wrCmd(devp, cmds[idx]);
-		txbuf[1] = cmds[idx];
-		i2cMasterTransmit(devp->config->i2cp, devp->config->sad, txbuf, 2, NULL, 0);
+	for (idx = 0; idx < 14; idx++) {
+		wrCmd(devp, cmds[idx]);
 	}
-	i2cReleaseBus(devp->config->i2cp);
 	// Clear screen
 	fillScreen(devp, SSD1306_COLOR_WHITE);
 
 	// Update screen
-	updateScreen(devp);
+	//updateScreen(devp);
 
 	// Set default value
 	devp->x = 0;

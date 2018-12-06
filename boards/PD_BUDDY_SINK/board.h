@@ -48,7 +48,7 @@
 #define STM32_LSEDRV                (3U << 3U)
 
 #if !defined(STM32_HSECLK)
-#define STM32_HSECLK                0U
+#define STM32_HSECLK                8000000U
 #endif
 
 #define STM32_HSE_BYPASS
@@ -81,11 +81,11 @@
 #define GPIOB_PIN0                  0U
 #define GPIOB_PIN1                  1U
 #define GPIOB_PIN2                  2U
-#define GPIOB_PIN3                  3U
+#define GPIOB_OLED_PULLUP           3U
 #define GPIOB_PIN4                  4U
 #define GPIOB_PIN5                  5U
-#define GPIOB_PIN6                  6U
-#define GPIOB_PIN7                  7U
+#define GPIOB_OLED_SCL              6U
+#define GPIOB_OLED_SDA              7U
 #define GPIOB_OUT_CTRL              8U
 #define GPIOB_PIN9                  9U
 #define GPIOB_SCL                   10U
@@ -360,11 +360,11 @@
 #define VAL_GPIOB_MODER             (PIN_MODE_INPUT(GPIOB_PIN0) |           \
                                      PIN_MODE_INPUT(GPIOB_PIN1) |           \
                                      PIN_MODE_INPUT(GPIOB_PIN2) |           \
-                                     PIN_MODE_OUTPUT(GPIOB_PIN3) |         \
+                                     PIN_MODE_OUTPUT(GPIOB_OLED_PULLUP) |   \
                                      PIN_MODE_INPUT(GPIOB_PIN4) |           \
                                      PIN_MODE_INPUT(GPIOB_PIN5) |           \
-                                     PIN_MODE_ALTERNATE(GPIOB_PIN6) |           \
-                                     PIN_MODE_ALTERNATE(GPIOB_PIN7) |           \
+                                     PIN_MODE_ALTERNATE(GPIOB_OLED_SCL) |   \
+                                     PIN_MODE_ALTERNATE(GPIOB_OLED_SDA) |   \
                                      PIN_MODE_OUTPUT(GPIOB_OUT_CTRL) |      \
                                      PIN_MODE_INPUT(GPIOB_PIN9) |           \
                                      PIN_MODE_ALTERNATE(GPIOB_SCL) |        \
@@ -376,11 +376,11 @@
 #define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_PIN0) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN1) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN2) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN3) |     \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_OLED_PULLUP) | \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN4) |       \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN5) |       \
-                                     PIN_OTYPE_OPENDRAIN(GPIOB_PIN6) |       \
-                                     PIN_OTYPE_OPENDRAIN(GPIOB_PIN7) |       \
+                                     PIN_OTYPE_OPENDRAIN(GPIOB_OLED_SCL) |  \
+                                     PIN_OTYPE_OPENDRAIN(GPIOB_OLED_SDA) |  \
                                      PIN_OTYPE_PUSHPULL(GPIOB_OUT_CTRL) |   \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN9) |       \
                                      PIN_OTYPE_OPENDRAIN(GPIOB_SCL) |       \
@@ -392,11 +392,11 @@
 #define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_VERYLOW(GPIOB_PIN0) |       \
                                      PIN_OSPEED_VERYLOW(GPIOB_PIN1) |       \
                                      PIN_OSPEED_HIGH(GPIOB_PIN2) |          \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN3) |     \
+                                     PIN_OSPEED_VERYLOW(GPIOB_OLED_PULLUP) | \
                                      PIN_OSPEED_HIGH(GPIOB_PIN4) |          \
                                      PIN_OSPEED_VERYLOW(GPIOB_PIN5) |       \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN6) |       \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN7) |       \
+                                     PIN_OSPEED_HIGH(GPIOB_OLED_SCL) |      \
+                                     PIN_OSPEED_HIGH(GPIOB_OLED_SDA) |      \
                                      PIN_OSPEED_VERYLOW(GPIOB_OUT_CTRL) |   \
                                      PIN_OSPEED_VERYLOW(GPIOB_PIN9) |       \
                                      PIN_OSPEED_HIGH(GPIOB_SCL) |           \
@@ -408,11 +408,11 @@
 #define VAL_GPIOB_PUPDR             (PIN_PUPDR_PULLUP(GPIOB_PIN0) |         \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN1) |         \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN2) |         \
-                                     PIN_PUPDR_FLOATING(GPIOB_PIN3) |     \
+                                     PIN_PUPDR_FLOATING(GPIOB_OLED_PULLUP) | \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN4) |         \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN5) |         \
-                                     PIN_PUPDR_FLOATING(GPIOB_PIN6) |         \
-                                     PIN_PUPDR_FLOATING(GPIOB_PIN7) |         \
+                                     PIN_PUPDR_FLOATING(GPIOB_OLED_SCL) |   \
+                                     PIN_PUPDR_FLOATING(GPIOB_OLED_SDA) |   \
                                      PIN_PUPDR_FLOATING(GPIOB_OUT_CTRL) |   \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN9) |         \
                                      PIN_PUPDR_FLOATING(GPIOB_SCL) |        \
@@ -424,11 +424,11 @@
 #define VAL_GPIOB_ODR               (PIN_ODR_HIGH(GPIOB_PIN0) |             \
                                      PIN_ODR_HIGH(GPIOB_PIN1) |             \
                                      PIN_ODR_HIGH(GPIOB_PIN2) |             \
-                                     PIN_ODR_HIGH(GPIOB_PIN3) |           \
+                                     PIN_ODR_HIGH(GPIOB_OLED_PULLUP) |           \
                                      PIN_ODR_HIGH(GPIOB_PIN4) |             \
                                      PIN_ODR_HIGH(GPIOB_PIN5) |             \
-                                     PIN_ODR_HIGH(GPIOB_PIN6) |             \
-                                     PIN_ODR_HIGH(GPIOB_PIN7) |             \
+                                     PIN_ODR_HIGH(GPIOB_OLED_SCL) |         \
+                                     PIN_ODR_HIGH(GPIOB_OLED_SDA) |         \
                                      PIN_ODR_LOW(GPIOB_OUT_CTRL) |          \
                                      PIN_ODR_HIGH(GPIOB_PIN9) |             \
                                      PIN_ODR_HIGH(GPIOB_SCL) |              \
@@ -440,7 +440,7 @@
 #define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_PIN0, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_PIN1, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_PIN2, 0U) |          \
-                                     PIN_AFIO_AF(GPIOB_PIN3, 0U) |        \
+                                     PIN_AFIO_AF(GPIOB_OLED_PULLUP, 0U) |   \
                                      PIN_AFIO_AF(GPIOB_PIN4, 0U) |          \
                                      PIN_AFIO_AF(GPIOB_PIN5, 0U))
 #define VAL_GPIOB_AFRH              (PIN_AFIO_AF(GPIOB_OUT_CTRL, 0U) |      \
@@ -450,9 +450,9 @@
                                      PIN_AFIO_AF(GPIOB_INT_N, 0U) |         \
                                      PIN_AFIO_AF(GPIOB_PIN13, 0U) |         \
                                      PIN_AFIO_AF(GPIOB_PIN14, 0U) |         \
-                                     PIN_AFIO_AF(GPIOB_PIN15, 0U) |         \
-                                     PIN_AFIO_AF(GPIOB_PIN6, 0U)  |         \
-                                     PIN_AFIO_AF(GPIOB_PIN7, 0U))
+                                     PIN_AFIO_AF(GPIOB_PIN15, 0U)   |       \
+                                     PIN_AFIO_AF(GPIOB_OLED_SCL, 0U) |      \
+                                     PIN_AFIO_AF(GPIOB_OLED_SDA, 0U))
 
 /*
  * GPIOC setup:

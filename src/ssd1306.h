@@ -12,8 +12,8 @@
 #error "SSD1306 requires HAL_USE_I2C"
 #endif
 
-#define SSD1306_WIDTH					128
-#define SSD1306_HEIGHT					64
+#define SSD1306_WIDTH					64
+#define SSD1306_HEIGHT					32
 #define SSD1306_WIDTH_FIXED				(SSD1306_WIDTH + 1)
 
 
