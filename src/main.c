@@ -60,8 +60,8 @@ static const I2CConfig i2c2config = {
 };
 static const I2CConfig i2c1config = {
     STM32_TIMINGR_PRESC(0xB)  |
-    STM32_TIMINGR_SCLDEL(0x14) | STM32_TIMINGR_SDADEL(0x12) |
-    STM32_TIMINGR_SCLH(0xC3)   | STM32_TIMINGR_SCLL(0xC7),
+    STM32_TIMINGR_SCLDEL(0x4) | STM32_TIMINGR_SDADEL(0x2) |
+    STM32_TIMINGR_SCLH(0xF)   | STM32_TIMINGR_SCLL(0x13),
     0,
     0
 };
@@ -182,10 +182,10 @@ static __attribute__((noreturn)) THD_FUNCTION(OledDisplay, arg) {
 
     while (TRUE) {
 
-        ssd1306GotoXy(&SSD1306D1, 10, 10);
-        ssd1306Puts(&SSD1306D1, "Hello, world!", &ssd1306_font_7x10, SSD1306_COLOR_WHITE);
+        ssd1306GotoXy(&SSD1306D1, 32, 32);
+        ssd1306Puts(&SSD1306D1, "*chirp*", &ssd1306_font_7x10, SSD1306_COLOR_WHITE);
 
-        //ssd1306UpdateScreen(&SSD1306D1);
+        ssd1306UpdateScreen(&SSD1306D1);
         chThdSleepMilliseconds(300);
     }
 

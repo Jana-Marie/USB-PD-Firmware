@@ -12,6 +12,7 @@
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
+/*
 static const I2CConfig i2c1config = {
 	STM32_TIMINGR_PRESC(0xB)  |
 	STM32_TIMINGR_SCLDEL(0x14) | STM32_TIMINGR_SDADEL(0x12) |
@@ -19,6 +20,7 @@ static const I2CConfig i2c1config = {
 	0,
 	0
 };
+*/
 
 static msg_t wrCmd(SSD1306Driver *drvp, uint8_t cmd) {
 	//const SSD1306Driver *drvp = (const SSD1306Driver *)ip;
@@ -27,11 +29,11 @@ static msg_t wrCmd(SSD1306Driver *drvp, uint8_t cmd) {
 
 	i2cAcquireBus(&I2CD1);
 	//i2cStart(&I2CD1, &i2c1config);
-	chThdSleepMilliseconds(1);
+	//chThdSleepMilliseconds(1);
 
 	ret = i2cMasterTransmit(&I2CD1, SSD1306_SAD_0X78, txbuf, 2, NULL, 0);
 	//
-	chThdSleepMilliseconds(1);
+	//chThdSleepMilliseconds(1);
 
 
 	i2cReleaseBus(&I2CD1);
@@ -47,7 +49,7 @@ static msg_t wrDat(SSD1306Driver *drvp, uint8_t *txbuf, uint16_t len) {
 	//i2cStart(&I2CD1, &i2c1config);
 
 	ret = i2cMasterTransmit(&I2CD1,  SSD1306_SAD_0X78, txbuf, len, NULL, 0);
-	chThdSleepMilliseconds(1);
+	//chThdSleepMilliseconds(1);
 
 	i2cReleaseBus(&I2CD1);
 
@@ -188,6 +190,39 @@ void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
 
 	const uint8_t cmds[] = {
 		0xAE,	// display off
+		0x20,	// Set memory address
+		0x10,	// 0x00: horizontal addressing mode, 0x01: vertical addressing mode
+				// 0x10: Page addressing mode(RESET), 0x11: invalid
+		0xB0,	// Set page start address for page addressing mode: 0 ~ 7
+		0xC8,	// Set COM output scan direction
+		0x00,	// Set low column address
+		0x10,	// Set height column address
+		0x40,	// Set start line address
+		0x81,	// Set contrast control register
+		0xFF,
+		0xA1,	// Set segment re-map 0 to 127
+		0xA6,	// Set normal display
+		0xA8,	// Set multiplex ratio(1 to 64)
+		0x3F,
+		0xA4,	// 0xa4: ouput follows RAM content, 0xa5: ouput ignores RAM content
+		0xD3,	// Set display offset
+		0x00,	// Not offset
+		0xD5,	// Set display clock divide ratio/oscillator frequency
+		0xF0,	// Set divide ration
+		0xD9,	// Set pre-charge period
+		0x22,
+		0xDA,	// Set COM pins hardware configuration
+		0x12,
+		0xDB,	// Set VCOMH
+		0x20,	// 0x20: 0.77*Vcc
+		0x8D,	// Set DC-DC enable
+		0x14,
+		0xAF,	// turn on SSD1306panel
+	};
+	uint8_t idx;
+
+	/*
+			0xAE,	// display off
 		0x00,	// Set memory address
 		0x12,	// 0x00: horizontal addressing mode, 0x01: vertical addressing mode
 		0x00,	//: Page addressing mode(RESET), 0x11: invalid
@@ -212,8 +247,7 @@ void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
 		0x8D,	// Set COM pins hardware configuration
 		0x14,
 		0xAF,
-	};
-	uint8_t idx;
+		*/
 
 	//chDbgCheck((devp != NULL) && (config != NULL));
 
