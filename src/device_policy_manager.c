@@ -39,16 +39,16 @@
 static uint16_t dpm_get_current(struct pdbs_config *scfg, uint16_t mv)
 {
     switch (scfg->flags & PDBS_CONFIG_FLAGS_CURRENT_DEFN) {
-        case PDBS_CONFIG_FLAGS_CURRENT_DEFN_I:
-            return scfg->i;
-        case PDBS_CONFIG_FLAGS_CURRENT_DEFN_P:
-            return (scfg->p * 1000 + mv - 1) / mv;
-        case PDBS_CONFIG_FLAGS_CURRENT_DEFN_R:
-            return (mv * 10 + scfg->r - 1) / scfg->r;
-        default:
-            /* In the case of an error, return a current that can't be
-             * requested. */
-            return PD_CA_MAX + 1;
+    case PDBS_CONFIG_FLAGS_CURRENT_DEFN_I:
+        return scfg->i;
+    case PDBS_CONFIG_FLAGS_CURRENT_DEFN_P:
+        return (scfg->p * 1000 + mv - 1) / mv;
+    case PDBS_CONFIG_FLAGS_CURRENT_DEFN_R:
+        return (mv * 10 + scfg->r - 1) / scfg->r;
+    default:
+        /* In the case of an error, return a current that can't be
+         * requested. */
+        return PD_CA_MAX + 1;
     }
 }
 
@@ -93,7 +93,7 @@ static int8_t dpm_get_range_fixed_pdo_index(const union pd_msg *caps,
 }
 
 bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
-        const union pd_msg *caps, union pd_msg *request)
+                                  const union pd_msg *caps, union pd_msg *request)
 {
 
     /* Cast the dpm_data to the right type */
@@ -108,7 +108,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     } else {
         /* No new capabilities; use a shorter name for the stored ones. */
         caps = dpm_data->capabilities;
-    }
+    } 
 
     /* Get the current configuration */
     struct pdbs_config *scfg = pdbs_config_flash_read();
@@ -127,13 +127,16 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     /* As we want/need current anyway, lets set it to zero for now */
     uint16_t current = 0;//dpm_get_current(scfg, scfg->v);
 
-    
+
     /*select the voltage */
     uint16_t voltage = 0;
-    uint16_t pd_profiles[] = {5000,9000,12000,15000,20000};
-    if(cfg->state <= numobj-1){
+    uint16_t pd_profiles[] = {5000, 9000, 12000, 15000, 20000};
+    if (cfg->state <= numobj - 1) {
         voltage = pd_profiles[cfg->state];
-    } else voltage = pd_profiles[0];
+    } else {
+        voltage = pd_profiles[0];
+        cfg->state = 0;
+    }
 
     /* Make sure we have configuration */
     if (scfg != NULL && dpm_data->output_enabled) {
@@ -146,18 +149,18 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
                     && PD_PDO_SRC_FIXED_CURRENT_GET(caps->obj[i]) >= current) {
                 /* We got what we wanted, so build a request for that */
                 request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
-                    | PD_NUMOBJ(1);
+                               | PD_NUMOBJ(1);
                 if (scfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK) {
                     /* GiveBack enabled */
                     request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(DPM_MIN_CURRENT)
-                        | PD_RDO_FV_CURRENT_SET(current)
-                        | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
-                        | PD_RDO_OBJPOS_SET(i + 1);
+                                      | PD_RDO_FV_CURRENT_SET(current)
+                                      | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
+                                      | PD_RDO_OBJPOS_SET(i + 1);
                 } else {
                     /* GiveBack disabled */
                     request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(current)
-                        | PD_RDO_FV_CURRENT_SET(current)
-                        | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
+                                      | PD_RDO_FV_CURRENT_SET(current)
+                                      | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
                 }
                 if (dpm_data->usb_comms) {
                     request->obj[0] |= PD_RDO_USB_COMMS;
@@ -178,12 +181,12 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
                     && PD_APDO_PPS_CURRENT_GET(caps->obj[i]) >= PD_CA2PAI(current)) {
                 /* We got what we wanted, so build a request for that */
                 request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
-                    | PD_NUMOBJ(1);
+                               | PD_NUMOBJ(1);
 
                 /* Build a request */
                 request->obj[0] = PD_RDO_PROG_CURRENT_SET(PD_CA2PAI(current))
-                    | PD_RDO_PROG_VOLTAGE_SET(PD_MV2PRV(scfg->v))
-                    | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
+                                  | PD_RDO_PROG_VOLTAGE_SET(PD_MV2PRV(scfg->v))
+                                  | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
                 if (dpm_data->usb_comms) {
                     request->obj[0] |= PD_RDO_USB_COMMS;
                 }
@@ -200,20 +203,20 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         if (i >= 0) {
             /* We got what we wanted, so build a request for that */
             request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST
-                | PD_NUMOBJ(1);
+                           | PD_NUMOBJ(1);
             /* Get the current we need at this voltage */
             current = dpm_get_current(scfg, PD_PDV2MV(PD_PDO_SRC_FIXED_VOLTAGE_GET(caps->obj[i])));
             if (scfg->flags & PDBS_CONFIG_FLAGS_GIVEBACK) {
                 /* GiveBack enabled */
                 request->obj[0] = PD_RDO_FV_MIN_CURRENT_SET(DPM_MIN_CURRENT)
-                    | PD_RDO_FV_CURRENT_SET(current)
-                    | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
-                    | PD_RDO_OBJPOS_SET(i + 1);
+                                  | PD_RDO_FV_CURRENT_SET(current)
+                                  | PD_RDO_NO_USB_SUSPEND | PD_RDO_GIVEBACK
+                                  | PD_RDO_OBJPOS_SET(i + 1);
             } else {
                 /* GiveBack disabled */
                 request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(current)
-                    | PD_RDO_FV_CURRENT_SET(current)
-                    | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
+                                  | PD_RDO_FV_CURRENT_SET(current)
+                                  | PD_RDO_NO_USB_SUSPEND | PD_RDO_OBJPOS_SET(i + 1);
             }
             if (dpm_data->usb_comms) {
                 request->obj[0] |= PD_RDO_USB_COMMS;
@@ -229,9 +232,9 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     /* Nothing matched (or no configuration), so get 5 V at low current */
     request->hdr = cfg->pe.hdr_template | PD_MSGTYPE_REQUEST | PD_NUMOBJ(1);
     request->obj[0] = PD_RDO_FV_MAX_CURRENT_SET(DPM_MIN_CURRENT)
-        | PD_RDO_FV_CURRENT_SET(DPM_MIN_CURRENT)
-        | PD_RDO_NO_USB_SUSPEND
-        | PD_RDO_OBJPOS_SET(1);
+                      | PD_RDO_FV_CURRENT_SET(DPM_MIN_CURRENT)
+                      | PD_RDO_NO_USB_SUSPEND
+                      | PD_RDO_OBJPOS_SET(1);
     /* If the output is enabled and we got here, it must be a capability
      * mismatch. */
     if (dpm_data->output_enabled) {
@@ -264,8 +267,8 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
     if (scfg == NULL || PD_MV2PDV(scfg->v) != PD_MV2PDV(5000)) {
         /* Minimum current, 5 V, and higher capability. */
         cap->obj[numobj++] = PD_PDO_TYPE_FIXED
-            | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_MV2PDV(5000))
-            | PD_PDO_SNK_FIXED_CURRENT_SET(DPM_MIN_CURRENT);
+                             | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_MV2PDV(5000))
+                             | PD_PDO_SNK_FIXED_CURRENT_SET(DPM_MIN_CURRENT);
     }
 
     if (scfg != NULL) {
@@ -273,8 +276,8 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
         uint16_t current = dpm_get_current(scfg, scfg->v);
         /* Add a PDO for the desired power. */
         cap->obj[numobj++] = PD_PDO_TYPE_FIXED
-            | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_MV2PDV(scfg->v))
-            | PD_PDO_SNK_FIXED_CURRENT_SET(current);
+                             | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_MV2PDV(scfg->v))
+                             | PD_PDO_SNK_FIXED_CURRENT_SET(current);
 
         /* Get the PDO from the voltage range */
         int8_t i = dpm_get_range_fixed_pdo_index(dpm_data->capabilities, scfg);
@@ -293,8 +296,8 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
              * voltage, add it to the array. */
             if (i > 0 && PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities->obj[i]) != PD_MV2PDV(scfg->v)) {
                 cap->obj[numobj++] = PD_PDO_TYPE_FIXED
-                    | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities->obj[i]))
-                    | PD_PDO_SNK_FIXED_CURRENT_SET(PD_PDO_SRC_FIXED_CURRENT_GET(dpm_data->capabilities->obj[i]));
+                                     | PD_PDO_SNK_FIXED_VOLTAGE_SET(PD_PDO_SRC_FIXED_VOLTAGE_GET(dpm_data->capabilities->obj[i]))
+                                     | PD_PDO_SNK_FIXED_CURRENT_SET(PD_PDO_SRC_FIXED_CURRENT_GET(dpm_data->capabilities->obj[i]));
             }
 
             /* If we have three PDOs at this point, make sure the last two are
@@ -311,9 +314,9 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
         /* If we're using PD 3.0, add a PPS APDO for our desired voltage */
         if ((cfg->pe._message->hdr & PD_HDR_SPECREV) >= PD_SPECREV_3_0) {
             cap->obj[numobj++] = PD_PDO_TYPE_AUGMENTED | PD_APDO_TYPE_PPS
-                | PD_APDO_PPS_MAX_VOLTAGE_SET(PD_MV2PAV(scfg->v))
-                | PD_APDO_PPS_MIN_VOLTAGE_SET(PD_MV2PAV(scfg->v))
-                | PD_APDO_PPS_CURRENT_SET(PD_CA2PAI(current));
+                                 | PD_APDO_PPS_MAX_VOLTAGE_SET(PD_MV2PAV(scfg->v))
+                                 | PD_APDO_PPS_MIN_VOLTAGE_SET(PD_MV2PAV(scfg->v))
+                                 | PD_APDO_PPS_CURRENT_SET(PD_CA2PAI(current));
         }
     }
 
@@ -329,7 +332,7 @@ void pdbs_dpm_get_sink_capability(struct pdb_config *cfg, union pd_msg *cap)
 
     /* Set the Sink_Capabilities message header */
     cap->hdr = cfg->pe.hdr_template | PD_MSGTYPE_SINK_CAPABILITIES
-        | PD_NUMOBJ(numobj);
+               | PD_NUMOBJ(numobj);
 }
 
 bool pdbs_dpm_giveback_enabled(struct pdb_config *cfg)
@@ -341,7 +344,7 @@ bool pdbs_dpm_giveback_enabled(struct pdb_config *cfg)
 }
 
 bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
-        enum fusb_typec_current tcc)
+                                     enum fusb_typec_current tcc)
 {
     struct pdbs_config *scfg = pdbs_config_flash_read();
     /* Cast the dpm_data to the right type */
@@ -357,7 +360,7 @@ bool pdbs_dpm_evaluate_typec_current(struct pdb_config *cfg,
     /* If we have no configuration or don't want 5 V, Type-C Current can't
      * possibly satisfy our needs */
     if (scfg == NULL || (scfg->v != 5000 && (scfg->vmin > 5000
-            || scfg->vmax < 5000))) {
+                         || scfg->vmax < 5000))) {
         dpm_data->_capability_match = false;
         return false;
     }
@@ -469,5 +472,5 @@ void pdbs_dpm_transition_typec(struct pdb_config *cfg)
 
     /* Set the output, only setting the LED status if it wasn't set above */
     dpm_output_set(cfg->dpm_data, dpm_data->_capability_match,
-            dpm_data->typec_current != fusb_tcc_default);
+                   dpm_data->typec_current != fusb_tcc_default);
 }
