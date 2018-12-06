@@ -12,6 +12,13 @@
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
+static const I2CConfig i2c1config = {
+	STM32_TIMINGR_PRESC(0xB)  |
+	STM32_TIMINGR_SCLDEL(0x14) | STM32_TIMINGR_SDADEL(0x12) |
+	STM32_TIMINGR_SCLH(0xC3)   | STM32_TIMINGR_SCLL(0xC7),
+	0,
+	0
+};
 
 static msg_t wrCmd(SSD1306Driver *drvp, uint8_t cmd) {
 	//const SSD1306Driver *drvp = (const SSD1306Driver *)ip;
@@ -19,8 +26,11 @@ static msg_t wrCmd(SSD1306Driver *drvp, uint8_t cmd) {
 	uint8_t txbuf[] = { 0x00, cmd };
 
 	i2cAcquireBus(&I2CD1);
+	//i2cStart(&I2CD1, &i2c1config);
+	chThdSleepMilliseconds(1);
 
 	ret = i2cMasterTransmit(&I2CD1, SSD1306_SAD_0X78, txbuf, 2, NULL, 0);
+	//
 	chThdSleepMilliseconds(1);
 
 
@@ -34,8 +44,10 @@ static msg_t wrDat(SSD1306Driver *drvp, uint8_t *txbuf, uint16_t len) {
 	msg_t ret;
 
 	i2cAcquireBus(&I2CD1);
+	//i2cStart(&I2CD1, &i2c1config);
 
-	ret = i2cMasterTransmit(&I2CD1, SSD1306_SAD_0X78, txbuf, len, NULL, 0);
+	ret = i2cMasterTransmit(&I2CD1,  SSD1306_SAD_0X78, txbuf, len, NULL, 0);
+	chThdSleepMilliseconds(1);
 
 	i2cReleaseBus(&I2CD1);
 
@@ -211,19 +223,22 @@ void ssd1306Start(SSD1306Driver *devp, const SSD1306Config *config) {
 	devp->config = config;
 
 	// A little delay
-	chThdSleepMilliseconds(100);
+	chThdSleepMilliseconds(150);
 
 	// OLED initialize
 
 
-	for (idx = 0; idx < 14; idx++) {
+	for (idx = 0; idx < sizeof(cmds) / sizeof(cmds[0]); idx++) {
 		wrCmd(devp, cmds[idx]);
+		chThdSleepMilliseconds(1);
 	}
+	chThdSleepMilliseconds(150);
+
 	// Clear screen
 	fillScreen(devp, SSD1306_COLOR_WHITE);
 
 	// Update screen
-	//updateScreen(devp);
+	updateScreen(devp);
 
 	// Set default value
 	devp->x = 0;
