@@ -60,17 +60,11 @@ static void updateScreen(void *ip) {
 	SSD1306Driver *drvp = (SSD1306Driver *)ip;
 	uint8_t idx;
 
-	wrCmd(drvp,0x20);
-	wrCmd(drvp,0x20 + (31));
-	wrCmd(drvp,0x22);
-	wrCmd(drvp,0x00);
-	wrCmd(drvp,0x03);
 	for (idx = 0; idx < 8; idx++) {
-		//wrCmd(drvp, 0xB0 + idx);
-		//wrCmd(drvp, 0x00);
-		//wrCmd(drvp, 0x10);
+		wrCmd(drvp, 0xB0 + idx);
+		wrCmd(drvp, 0x00);
+		wrCmd(drvp, 0x10);
 
-		// Write multi data
 		wrDat(drvp, &drvp->fb[SSD1306_WIDTH_FIXED * idx], SSD1306_WIDTH_FIXED);
 	}
 }
@@ -107,8 +101,8 @@ static void drawPixel(void *ip, uint8_t x, uint8_t y, ssd1306_color_t color) {
 	if (drvp->inv) {
 		color = (ssd1306_color_t)!color;
 	}
-
-	// Set color
+	x+=32;
+		// Set color
 	if (color == SSD1306_COLOR_WHITE) {
 		drvp->fb[x + (y / 8) * SSD1306_WIDTH_FIXED + 1] |= 1 << (y % 8);
 	} else {
