@@ -178,12 +178,15 @@ static __attribute__((noreturn)) THD_FUNCTION(OledDisplay, arg) {
     ssd1306Start(&SSD1306D1, &ssd1306cfg);
 
     ssd1306FillScreen(&SSD1306D1, 0x00);
-    //    char otter[3];
+    
+    char otter[5];
+    uint16_t pd_profiles[] = {5,9,12,15,2};
 
     while (TRUE) {
-        //printf(otter, "%dV",5);
+        chsnprintf(otter, sizeof(otter), "%dV ",pd_profiles[pdb_config.state-1]);
+
         ssd1306GotoXy(&SSD1306D1, 5, 5);
-        ssd1306Puts(&SSD1306D1, "*chirp*", &ssd1306_font_7x10, SSD1306_COLOR_WHITE);
+        ssd1306Puts(&SSD1306D1, otter, &ssd1306_font_7x10, SSD1306_COLOR_WHITE);
 
         ssd1306UpdateScreen(&SSD1306D1);
         chThdSleepMilliseconds(300);

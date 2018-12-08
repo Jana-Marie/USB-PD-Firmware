@@ -135,7 +135,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
         voltage = pd_profiles[cfg->state];
     } else {
         voltage = pd_profiles[0];
-        cfg->state = 0;
+        cfg->state = 0;             // does not jump back :(
     }
 
     /* Make sure we have configuration */
