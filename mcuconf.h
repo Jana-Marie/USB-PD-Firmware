@@ -77,6 +77,7 @@
 #define STM32_I2C1SW                        STM32_I2C1SW_HSI
 #define STM32_USART1SW                      STM32_USART1SW_PCLK
 #define STM32_RTCSEL                        STM32_RTCSEL_LSI
+#define STM32_ADCPRE                        STM32_ADCPRE_DIV4
  
 /*
  * IRQ system settings.
@@ -91,7 +92,7 @@
 /*
  * ADC driver system settings.
  */
-#define STM32_ADC_USE_ADC1                  FALSE
+#define STM32_ADC_USE_ADC1                  TRUE
 #define STM32_ADC_ADC1_CKMODE               STM32_ADC_CKMODE_ADCCLK
 #define STM32_ADC_ADC1_DMA_PRIORITY         2
 #define STM32_ADC_ADC1_DMA_IRQ_PRIORITY     2

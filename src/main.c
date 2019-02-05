@@ -48,6 +48,38 @@
 #include <string.h>
 #include <stdio.h>
 
+// ADCConfig structure for stm32 MCUs is empty
+static ADCConfig adccfg = {};
+
+#define ADC_BUF_DEPTH 1 // depth of buffer
+#define ADC_CH_NUM 1    // number of used ADC channels
+static adcsample_t samples_buf[ADC_BUF_DEPTH * ADC_CH_NUM]; // results array
+
+static ADCConversionGroup adccg = {
+    FALSE,
+    (uint16_t)(ADC_CH_NUM),
+    NULL,
+    0,
+    0, //ADC_CFGR1_CONT | ADC_CFGR1_RES_12BIT,
+    0, //ADC_CR2_SWSTART,
+    0,
+    ((ADC_CH_NUM - 1) << 20),
+    0,
+    2,//1 | (2 << 5),
+};
+/*
+static const ADCConversionGroup adcgrpcfg2 = {
+  TRUE,
+  ADC_GRP2_NUM_CHANNELS,
+  adccallback,
+  adcerrorcallback,
+  ADC_CFGR1_CONT | ADC_CFGR1_RES_12BIT,             /* CFGR1 */
+//  ADC_TR(0, 0),                                     /* TR */
+//  ADC_SMPR_SMP_28P5,                                /* SMPR */
+//  ADC_CHSELR_CHSEL10 | ADC_CHSELR_CHSEL11 |
+//  ADC_CHSELR_CHSEL16 | ADC_CHSELR_CHSEL17           /* CHSELR */
+//};
+
 /*
  * I2C configuration object.
  * I2C2_TIMINGR: 1000 kHz with I2CCLK = 48 MHz, rise time = 100 ns,
@@ -178,15 +210,23 @@ static __attribute__((noreturn)) THD_FUNCTION(OledDisplay, arg) {
     ssd1306Start(&SSD1306D1, &ssd1306cfg);
 
     ssd1306FillScreen(&SSD1306D1, 0x00);
-    
-    char otter[5];
-    uint16_t pd_profiles[] = {5,9,12,15,2};
+
+    char otter[10];
+    uint16_t pd_profiles[] = {5, 9, 12, 15, 2};
+    uint16_t i = 0;
 
     while (TRUE) {
-        chsnprintf(otter, sizeof(otter), "%dV ",pd_profiles[pdb_config.state-1]);
+        adcStartConversion(&ADCD1, &adccg, &samples_buf[0], ADC_BUF_DEPTH);
 
-        ssd1306GotoXy(&SSD1306D1, 5, 5);
+        i = samples_buf[0];
+        chsnprintf(otter, sizeof(otter), "%d", i);
+        ssd1306GotoXy(&SSD1306D1, 5, 0);
         ssd1306Puts(&SSD1306D1, otter, &ssd1306_font_7x10, SSD1306_COLOR_WHITE);
+
+        //i = samples_buf[1];
+        //chsnprintf(otter, sizeof(otter), "%d", i);
+        //ssd1306GotoXy(&SSD1306D1, 5, 15);
+        //ssd1306Puts(&SSD1306D1, otter, &ssd1306_font_7x10, SSD1306_COLOR_WHITE);
 
         ssd1306UpdateScreen(&SSD1306D1);
         chThdSleepMilliseconds(300);
@@ -219,6 +259,17 @@ int main(void) {
 
     palSetPadMode(IOPORT2, 6, PAL_STM32_OTYPE_OPENDRAIN | PAL_MODE_ALTERNATE(1));
     palSetPadMode(IOPORT2, 7, PAL_STM32_OTYPE_OPENDRAIN | PAL_MODE_ALTERNATE(1));
+
+    palSetPadMode(IOPORT1, 1, PAL_MODE_INPUT_ANALOG);
+    palSetPadMode(IOPORT1, 2, PAL_MODE_INPUT_ANALOG);
+    //adcSTM32SetCCR(ADC_CCR_VBATEN | ADC_CCR_TSEN | ADC_CCR_VREFEN);
+    //adcSTM32SetCCR(ADC_CCR_VREFEN);
+
+
+    adcInit();
+    adcStart(&ADCD1, &adccfg);
+    //adcSTM32EnableVREF();
+
 
     if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
         systime_t now = chVTGetSystemTime();
