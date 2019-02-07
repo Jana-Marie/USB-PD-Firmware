@@ -383,7 +383,7 @@ void pdbs_dpm_pd_start(struct pdb_config *cfg)
 }
 
 /*
- * Set the output state, with LED indication.
+ * Set the output state, with LED indication. *CHIRP*
  */
 static void dpm_output_set(struct pdbs_dpm_data *dpm_data, bool state, bool led)
 {
@@ -393,10 +393,10 @@ static void dpm_output_set(struct pdbs_dpm_data *dpm_data, bool state, bool led)
     /* Set the power output */
     if (state && dpm_data->output_enabled) {
         /* Turn the output on */
-        palSetLine(LINE_OUT_CTRL);
+        //palSetLine(LINE_OUT_CTRL);
     } else {
         /* Turn the output off */
-        palClearLine(LINE_OUT_CTRL);
+        //palClearLine(LINE_OUT_CTRL);
     }
 }
 
@@ -426,7 +426,7 @@ void pdbs_dpm_transition_standby(struct pdb_config *cfg)
         /* For the PD Buddy Sink, entering Sink Standby is equivalent to
          * turning the output off.  However, we don't want to change the LED
          * state for standby mode. */
-        palClearLine(LINE_OUT_CTRL);
+        //palClearLine(LINE_OUT_CTRL);
     }
 }
 

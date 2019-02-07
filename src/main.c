@@ -40,6 +40,7 @@
 #include <pdb.h>
 #include <pd.h>
 #include "device_policy_manager.h"
+#include "stm32f072_bootloader.h"
 
 /*
  * I2C configuration object.
@@ -97,8 +98,8 @@ static void sink(void)
 {
     /* Start the USB Power Delivery threads */
     pdb_init(&pdb_config);
-    
-    palSetLine(LINE_FET);
+
+    palSetLine(LINE_PWM);
 
     /* Wait, letting all the other threads do their work. */
     while (true) {
@@ -123,6 +124,11 @@ int main(void) {
 
     /* Start I2C2 to make communication with the PHY possible */
     i2cStart(pdb_config.fusb.i2cp, &i2c2config);
+
+    /* *chirp* */
+    if (palReadLine(LINE_BUTTON1) == PAL_HIGH) {
+        dfu_run_bootloader();
+    }
 
     /* Button unpressed -> deliver power, buddy! */
     sink();
