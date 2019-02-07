@@ -46,6 +46,19 @@
 
 void (*func)(BaseSequentialStream *chp, int argc, char *argv[]);
 
+static PWMConfig pwmcfg = {
+    1000,                                    /* 10kHz PWM clock frequency.     */
+    200,                                    /* Initial PWM period 1S.         */
+    NULL,                                     /* Period callback.               */
+    {
+        {PWM_OUTPUT_ACTIVE_HIGH, NULL},          /* CH1 mode and callback.         */
+        {PWM_OUTPUT_ACTIVE_HIGH, NULL},             /* CH2 mode and callback.         */
+        {PWM_OUTPUT_ACTIVE_HIGH, NULL},             /* CH3 mode and callback.         */
+        {PWM_OUTPUT_ACTIVE_HIGH, NULL}              /* CH4 mode and callback.         */
+    },
+    0,                                        /* Control Register 2.            */
+};
+
 /*
  * I2C configuration object.
  * I2C2_TIMINGR: 1000 kHz with I2CCLK = 48 MHz, rise time = 100 ns,
@@ -114,7 +127,7 @@ static void sink(void)
     pdb_init(&pdb_config);
 
     //palSetLine(LINE_PWM);
-  
+
     /* Disconnect from USB */
     usbDisconnectBus(serusbcfg.usbp);
 
@@ -129,10 +142,25 @@ static void sink(void)
 
     BaseSequentialStream *chp = shell_cfg.io;
 
+
+
+    palSetPadMode(GPIOB, 3, PAL_MODE_ALTERNATE(2));
+    pwmStart(&PWMD2, &pwmcfg);
+    pwmEnableChannel(&PWMD2, 1, PWM_PERCENTAGE_TO_WIDTH(&PWMD2, 8000));
+
     /* Wait, letting all the other threads do their work. */
+    uint16_t cnt = 0;
     while (true) {
         chThdSleepMilliseconds(50);
-        chprintf(chp, "%d \r\n", pdb_config.state);// pdb_config.state
+
+        //pwmChangePeriodI(&PWMD2, PWM_PERCENTAGE_TO_WIDTH(&PWMD2, 2000));
+        pwmEnableChannel(&PWMD2, 1, PWM_PERCENTAGE_TO_WIDTH(&PWMD2, cnt));
+
+        cnt += 100;
+        if (cnt >= 10000) cnt = 0;
+
+
+        chprintf(chp, "%d \r\n", PWM_PERCENTAGE_TO_WIDTH(&PWMD2, 2000) * 100.0f); // pdb_config.state
     }
 }
 
@@ -154,14 +182,12 @@ int main(void) {
     /* Start I2C2 to make communication with the PHY possible */
     i2cStart(pdb_config.fusb.i2cp, &i2c2config);
 
+
     /* *chirp* */
     if (palReadLine(LINE_BUTTON1) == PAL_HIGH) {
         dfu_run_bootloader();
     }
 
-
-
-    //}
     /* Button unpressed -> deliver power, buddy! */
     sink();
 }
