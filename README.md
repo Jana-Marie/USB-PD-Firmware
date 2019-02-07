@@ -1,4 +1,7 @@
 ## USB-PD Firmware
+
+### Otter-Iron firmware
+
 #### forked from https://git.clayhobbs.com/pd-buddy/pd-buddy-firmware
 
 Edited and customized to work with [Niklas][] USB-C Otter and [JanHenrik's][] [TS100 USB-PD replacement PCB][].
