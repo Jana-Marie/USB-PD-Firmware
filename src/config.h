@@ -53,6 +53,12 @@ struct pdbs_config {
     uint16_t _reserved[2];
 } __attribute__((packed));
 
+
+struct pdbs_shell_cfg {
+    BaseSequentialStream *io;
+};
+
+
 /* Status for configuration structures.  EMPTY indicates that the struct is
  * ready to be written, including a status update to VALID.  Once the struct is
  * no longer needed, the status is updated to INVALID.  Erasing the flash page

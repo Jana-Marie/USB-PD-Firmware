@@ -128,7 +128,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     voltage = pd_profiles[numobj-1];
 
     /* Make sure we have configuration */
-    if (scfg != NULL && dpm_data->output_enabled) {
+    if (dpm_data->output_enabled) { //scfg != NULL &&
         /* Look at the PDOs to see if one matches our desires */
         for (uint8_t i = 0; i < numobj; i++) {
             /* If we have a fixed PDO, its V equals our desired V, and its I is

@@ -41,6 +41,10 @@
 #include <pd.h>
 #include "device_policy_manager.h"
 #include "stm32f072_bootloader.h"
+#include "config.h"
+#include "chprintf.h"
+
+void (*func)(BaseSequentialStream *chp, int argc, char *argv[]);
 
 /*
  * I2C configuration object.
@@ -52,6 +56,11 @@ static const I2CConfig i2c2config = {
     0,
     0
 };
+
+const struct pdbs_shell_cfg shell_cfg = {
+    (BaseSequentialStream *)&SDU1
+};
+
 
 /*
  * PD Buddy Sink DPM data
@@ -88,7 +97,7 @@ static struct pdb_config pdb_config = {
         NULL /* not_supported_received */
     },
     .dpm_data = &dpm_data,
-    .state = 0
+    .state = 4
 };
 
 /*
@@ -96,14 +105,34 @@ static struct pdb_config pdb_config = {
  */
 static void sink(void)
 {
+
+
+    dpm_data.output_enabled = true;
+    //dpm_data.usb_comms = true;
+
     /* Start the USB Power Delivery threads */
     pdb_init(&pdb_config);
 
-    palSetLine(LINE_PWM);
+    //palSetLine(LINE_PWM);
+  
+    /* Disconnect from USB */
+    usbDisconnectBus(serusbcfg.usbp);
+
+    /* Start the USB serial interface */
+    sduObjectInit(&SDU1);
+    sduStart(&SDU1, &serusbcfg);
+
+    /* Start USB */
+    chThdSleepMilliseconds(100);
+    usbStart(serusbcfg.usbp, &usbcfg);
+    usbConnectBus(serusbcfg.usbp);
+
+    BaseSequentialStream *chp = shell_cfg.io;
 
     /* Wait, letting all the other threads do their work. */
     while (true) {
-        chThdSleepMilliseconds(1000);
+        chThdSleepMilliseconds(50);
+        chprintf(chp, "%d \r\n", pdb_config.state);// pdb_config.state
     }
 }
 
@@ -130,6 +159,9 @@ int main(void) {
         dfu_run_bootloader();
     }
 
+
+
+    //}
     /* Button unpressed -> deliver power, buddy! */
     sink();
 }
