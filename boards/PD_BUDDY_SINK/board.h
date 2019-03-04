@@ -285,11 +285,11 @@
                                      PIN_OSPEED_HIGH(GPIOA_SWCLK) |         \
                                      PIN_OSPEED_VERYLOW(GPIOA_PIN15))
 #define VAL_GPIOA_PUPDR             (PIN_PUPDR_PULLUP(GPIOA_PIN0) |         \
-                                     PIN_PUPDR_PULLUP(GPIOA_PIN1) |         \
-                                     PIN_PUPDR_PULLUP(GPIOA_PIN2) |         \
+                                     PIN_PUPDR_FLOATING(GPIOA_PIN1) |         \
+                                     PIN_PUPDR_FLOATING(GPIOA_PIN2) |         \
                                      PIN_PUPDR_PULLDOWN(GPIOA_BUTTON1) |         \
                                      PIN_PUPDR_PULLDOWN(GPIOA_BUTTON2) |         \
-                                     PIN_PUPDR_PULLUP(GPIOA_PIN5) |         \
+                                     PIN_PUPDR_FLOATING(GPIOA_PIN5) |         \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN6) |         \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN7) |         \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN8) |         \

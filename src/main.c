@@ -46,6 +46,29 @@
 
 void (*func)(BaseSequentialStream *chp, int argc, char *argv[]);
 
+
+#define ADC_GRP1_NUM_CHANNELS   1
+#define ADC_GRP1_BUF_DEPTH      1
+static adcsample_t samples1[ADC_GRP1_NUM_CHANNELS * ADC_GRP1_BUF_DEPTH];
+
+/*
+ * ADC conversion group.
+ * Mode:        Linear buffer, 8 samples of 1 channel, SW triggered.
+ * Channels:    IN10.
+ */
+static const ADCConversionGroup adcgrpcfg1 = {
+    FALSE,
+    ADC_GRP1_NUM_CHANNELS,
+    NULL,
+    NULL,
+    ADC_CFGR1_CONT | ADC_CFGR1_RES_12BIT,             /* CFGR1 */
+    ADC_TR(0, 0),                                     /* TR */
+    ADC_SMPR_SMP_28P5,                                 /* SMPR */
+    ADC_CHSELR_CHSEL5           /* CHSELR */
+};
+
+
+
 static PWMConfig pwmcfg = {
     1000,                                    /* 10kHz PWM clock frequency.     */
     200,                                    /* Initial PWM period 1S.         */
@@ -142,25 +165,38 @@ static void sink(void)
 
     BaseSequentialStream *chp = shell_cfg.io;
 
+    palSetGroupMode(GPIOA, PAL_PORT_BIT(0) | PAL_PORT_BIT(1) | PAL_PORT_BIT(2)| PAL_PORT_BIT(3) | PAL_PORT_BIT(4) | PAL_PORT_BIT(5)| PAL_PORT_BIT(6) | PAL_PORT_BIT(7) | PAL_PORT_BIT(8),0, PAL_MODE_INPUT_ANALOG); // this is 15th channel
 
+    adcStart(&ADCD1, NULL);
+    //adcSTM32SetCCR(ADC_CCR_VBATEN | ADC_CCR_VREFEN);
 
-    palSetPadMode(GPIOB, 3, PAL_MODE_ALTERNATE(2));
-    pwmStart(&PWMD2, &pwmcfg);
-    pwmEnableChannel(&PWMD2, 1, PWM_PERCENTAGE_TO_WIDTH(&PWMD2, 8000));
+    /*
+     * Linear conversion.
+     */
+    adcConvert(&ADCD1, &adcgrpcfg1, samples1, ADC_GRP1_BUF_DEPTH);
+    chThdSleepMilliseconds(1000);
+
+    //palSetPadMode(GPIOB, 3, PAL_MODE_ALTERNATE(2));
+    //pwmStart(&PWMD2, &pwmcfg);
+    //pwmEnableChannel(&PWMD2, 1, PWM_PERCENTAGE_TO_WIDTH(&PWMD2, 8000));
 
     /* Wait, letting all the other threads do their work. */
-    uint16_t cnt = 0;
+    //HAL_ADC_Start(&hadc1);
+
+     adcAcquireBus  (&ADCD1);
+
     while (true) {
-        chThdSleepMilliseconds(50);
+        chThdSleepMilliseconds(100);
 
         //pwmChangePeriodI(&PWMD2, PWM_PERCENTAGE_TO_WIDTH(&PWMD2, 2000));
-        pwmEnableChannel(&PWMD2, 1, PWM_PERCENTAGE_TO_WIDTH(&PWMD2, cnt));
+        //pwmEnableChannel(&PWMD2, 1, PWM_PERCENTAGE_TO_WIDTH(&PWMD2, cnt));
 
-        cnt += 100;
-        if (cnt >= 10000) cnt = 0;
+        //cnt += 100;
+        //if (cnt >= 10000) cnt = 0;
 
-
-        chprintf(chp, "%d \r\n", PWM_PERCENTAGE_TO_WIDTH(&PWMD2, 2000) * 100.0f); // pdb_config.state
+        chprintf(chp, " %d \n\r",samples1[0]); 
+        //adcStartConversion(&ADCD1, &adccg, samples_buf, ADC_BUF_DEPTH);
+        adcConvert(&ADCD1, &adcgrpcfg1, samples1, ADC_GRP1_BUF_DEPTH);
     }
 }
 
