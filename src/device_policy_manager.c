@@ -108,7 +108,7 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
     } else {
         /* No new capabilities; use a shorter name for the stored ones. */
         caps = dpm_data->capabilities;
-    } 
+    }
 
     /* Get the current configuration */
     struct pdbs_config *scfg = pdbs_config_flash_read();
@@ -130,8 +130,8 @@ bool pdbs_dpm_evaluate_capability(struct pdb_config *cfg,
 
     /*select the voltage */
     uint16_t voltage = 0;
-    uint16_t pd_profiles[] = {5000, 9000, 12000, 15000, 20000};
-    if (cfg->state <= numobj - 1) {
+    uint16_t pd_profiles[] = {5000, 9000, 15000, 20000};
+    if (cfg->state <= 3) {
         voltage = pd_profiles[cfg->state];
     } else {
         voltage = pd_profiles[0];

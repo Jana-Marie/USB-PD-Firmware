@@ -49,24 +49,6 @@
 #include <stdio.h>
 
 // ADCConfig structure for stm32 MCUs is empty
-static ADCConfig adccfg = {};
-
-#define ADC_BUF_DEPTH 1 // depth of buffer
-#define ADC_CH_NUM 1    // number of used ADC channels
-static adcsample_t samples_buf[ADC_BUF_DEPTH * ADC_CH_NUM]; // results array
-
-static ADCConversionGroup adccg = {
-    FALSE,
-    (uint16_t)(ADC_CH_NUM),
-    NULL,
-    0,
-    0, //ADC_CFGR1_CONT | ADC_CFGR1_RES_12BIT,
-    0, //ADC_CR2_SWSTART,
-    0,
-    ((ADC_CH_NUM - 1) << 20),
-    0,
-    2,//1 | (2 << 5),
-};
 /*
 static const ADCConversionGroup adcgrpcfg2 = {
   TRUE,
@@ -90,19 +72,7 @@ static const I2CConfig i2c2config = {
     0,
     0
 };
-static const I2CConfig i2c1config = {
-    STM32_TIMINGR_PRESC(0xB)  |
-    STM32_TIMINGR_SCLDEL(0x4) | STM32_TIMINGR_SDADEL(0x2) |
-    STM32_TIMINGR_SCLH(0xF)   | STM32_TIMINGR_SCLL(0x13),
-    0,
-    0
-};
 
-static const SSD1306Config ssd1306cfg = {
-    &I2CD1,
-    &i2c1config,
-    SSD1306_SAD_0X78,
-};
 /*
  * PD Buddy Sink DPM data
  */
@@ -179,23 +149,29 @@ static void sink(void)
 {
     /* Start the USB Power Delivery threads */
     pdb_init(&pdb_config);
-
-    palSetLine(LINE_FET);
-
-    uint8_t _cnt = 0;
+    chThdSleepMilliseconds(100);
+    //palSetLine(LINE_FET);
+    pdb_config.state = 0;
+    chThdSleepMilliseconds(10);
+    chEvtSignal(pdb_config.pe.thread, PDB_EVT_PE_NEW_POWER);
+    uint8_t _cnt = 1;
     /* Wait, letting all the other threads do their work. */
     while (true) {
+        //palSetLine(LINE_LED);
         chThdSleepMilliseconds(10);
+
         if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
+            palClearLine(LINE_LED);
             pdb_config.state = ++_cnt;
-            if (_cnt > 4) _cnt = 0;
+            if (_cnt > 3) _cnt = 0;
             while (palReadLine(LINE_BUTTON) == PAL_HIGH) chThdSleepMilliseconds(10);
             chEvtSignal(pdb_config.pe.thread, PDB_EVT_PE_NEW_POWER);
         }
+
     }
 }
 
-
+/*
 static SSD1306Driver SSD1306D1;
 
 static THD_WORKING_AREA(waOledDisplay, 512);
@@ -212,7 +188,7 @@ static __attribute__((noreturn)) THD_FUNCTION(OledDisplay, arg) {
     ssd1306FillScreen(&SSD1306D1, 0x00);
 
     char otter[10];
-    uint16_t pd_profiles[] = {5, 9, 12, 15, 2};
+    uint16_t pd_profiles[] = {5, 9, 15, 20};
     uint16_t i = 0;
 
     while (TRUE) {
@@ -232,7 +208,7 @@ static __attribute__((noreturn)) THD_FUNCTION(OledDisplay, arg) {
         chThdSleepMilliseconds(300);
     }
 }
-
+*/
 /*
  * Application entry point.
  */
@@ -247,7 +223,7 @@ int main(void) {
      */
     halInit();
     chSysInit();
-    i2cInit();
+    //i2cInit();
 
     /* Create the LED thread. */
     pdbs_led_run();
@@ -255,22 +231,23 @@ int main(void) {
     /* Start I2C2 to make communication with the PHY possible */
 
     i2cStart(pdb_config.fusb.i2cp, &i2c2config);
-    i2cStart(&I2CD1, &i2c1config);
+    //i2cStart(&I2CD1, &i2c1config);
 
-    palSetPadMode(IOPORT2, 6, PAL_STM32_OTYPE_OPENDRAIN | PAL_MODE_ALTERNATE(1));
-    palSetPadMode(IOPORT2, 7, PAL_STM32_OTYPE_OPENDRAIN | PAL_MODE_ALTERNATE(1));
+    //palSetPadMode(IOPORT2, 6, PAL_STM32_OTYPE_OPENDRAIN | PAL_MODE_ALTERNATE(1));
+    //palSetPadMode(IOPORT2, 7, PAL_STM32_OTYPE_OPENDRAIN | PAL_MODE_ALTERNATE(1));
 
-    palSetPadMode(IOPORT1, 1, PAL_MODE_INPUT_ANALOG);
-    palSetPadMode(IOPORT1, 2, PAL_MODE_INPUT_ANALOG);
+    //palSetPadMode(IOPORT1, 1, PAL_MODE_INPUT_ANALOG);
+    //palSetPadMode(IOPORT1, 2, PAL_MODE_INPUT_ANALOG);
     //adcSTM32SetCCR(ADC_CCR_VBATEN | ADC_CCR_TSEN | ADC_CCR_VREFEN);
     //adcSTM32SetCCR(ADC_CCR_VREFEN);
 
 
-    adcInit();
-    adcStart(&ADCD1, &adccfg);
+    //adcInit();
+    //adcStart(&ADCD1, &adccfg);
     //adcSTM32EnableVREF();
-
-
+    //setup();
+    sink();
+    /*
     if (palReadLine(LINE_BUTTON) == PAL_HIGH) {
         systime_t now = chVTGetSystemTime();
         while (palReadLine(LINE_BUTTON) == PAL_HIGH) {
@@ -278,7 +255,8 @@ int main(void) {
         }
         setup();
     } else {
-        chThdCreateStatic(waOledDisplay, sizeof(waOledDisplay), NORMALPRIO, OledDisplay, NULL);
+        //chThdCreateStatic(waOledDisplay, sizeof(waOledDisplay), NORMALPRIO, OledDisplay, NULL);
         sink();
     }
+    */
 }

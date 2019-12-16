@@ -109,7 +109,7 @@ include $(CHIBIOS)/test/oslib/oslib_test.mk
 include $(PDBLIB)/pd-buddy.mk
 
 # Define linker script file here
-LDSCRIPT=$(CHIBIOS)/../ld/STM32F072x8.ld
+LDSCRIPT=$(CHIBIOS)/../ld/STM32F072xB.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -156,9 +156,9 @@ INCDIR = $(ALLINC) $(TESTINC)
 #
 
 MCU  = cortex-m0
-
+PAT = /home/janhenrik/programme/gcc-arm-none-eabi-8-2018-q4-major/bin/
 #TRGT = arm-elf-
-TRGT = arm-none-eabi-
+TRGT = $(PAT)arm-none-eabi-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
 # Enable loading with g++ only if you need C++ runtime support.
